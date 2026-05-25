@@ -382,6 +382,7 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
     </style>
+<base target="_blank">
 </head>
 <body>
 
@@ -862,28 +863,7 @@ window.goToPost = (id) => {
     }, 300);
 };
 
-// Swipe Detection Logic
-let appTouchStartX = 0;
-let appTouchStartY = 0;
-document.addEventListener('touchstart', e => {
-    if(e.target.closest('.stories-container') || e.target.closest('.carousel') || e.target.closest('.vynix-player') || e.target.closest('.vf-overlay') || e.target.closest('.story-viewer') || e.target.closest('.bottom-sheet')) return;
-    appTouchStartX = e.touches[0].clientX;
-    appTouchStartY = e.touches[0].clientY;
-}, {passive: true});
 
-document.addEventListener('touchend', e => {
-    if(appTouchStartX === 0) return;
-    const appTouchEndX = e.changedTouches[0].clientX;
-    const appTouchEndY = e.changedTouches[0].clientY;
-    const dx = appTouchEndX - appTouchStartX;
-    const dy = appTouchEndY - appTouchStartY;
-
-    if (Math.abs(dx) > 60 && Math.abs(dy) < 50) {
-        if (dx < 0 && currentMainTabIdx < mainTabsList.length - 1) switchMainTab(mainTabsList[currentMainTabIdx + 1]);
-        else if (dx > 0 && currentMainTabIdx > 0) switchMainTab(mainTabsList[currentMainTabIdx - 1]);
-    }
-    appTouchStartX = 0;
-}, {passive: true});
 /* ═════════════════════════════════ */
 
 /* ══ FULLSCREEN IMAGE VIEWER ══ */
