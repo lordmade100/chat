@@ -60,12 +60,23 @@
 
         .header { position: sticky; top: 0; z-index: 50; background: var(--background); border-bottom: 1px solid var(--border); padding: 8px 16px; display: flex; align-items: center; justify-content: space-between; transition: background 0.3s, border-color 0.3s; }
 
-        .feed-tabs { display: flex; gap: 6px; padding: 10px 16px; background: var(--background); position: sticky; top: 65px; z-index: 40; border-bottom: 1px solid var(--border); transition: background 0.3s; }
-        .feed-tab { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 10px; font-size: 13px; font-weight: 600; color: var(--text-secondary); background: var(--surface2); cursor: pointer; border: 1px solid transparent; border-radius: 9999px; transition: all 0.2s ease; font-family: inherit; white-space: nowrap; position: relative; }
-        .feed-tab svg { width: 15px; height: 15px; stroke-width: 2.5; }
-        .feed-tab.active { color: #fff; background: var(--primary); transform: scale(1.02); box-shadow: 0 4px 14px rgba(var(--primary-rgb), 0.25); font-weight: 700; }
+        .feed-tabs { display: flex; gap: 8px; padding: 10px 16px; background: var(--background); position: sticky; top: 65px; z-index: 40; border-bottom: 1px solid var(--border); transition: background 0.3s; }
+        .feed-tab { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px; font-size: 13px; font-weight: 600; color: var(--text-secondary); background: var(--surface2); cursor: pointer; border: 1px solid transparent; border-radius: 12px; transition: all 0.2s ease; font-family: inherit; white-space: nowrap; }
+        .feed-tab svg { width: 16px; height: 16px; }
+        .feed-tab.active { color: #fff; background: var(--primary); transform: scale(1.02); box-shadow: 0 4px 10px rgba(var(--primary-rgb), 0.2); }
         .feed-tab.active svg { stroke: #fff; }
-        .algo-badge { position: absolute; top: -2px; right: -2px; background: var(--like); color: white; border-radius: 9999px; padding: 1px 5px; font-size: 9px; font-weight: 700; line-height: 1; pointer-events: none; border: 2px solid var(--background); }
+        .algo-badge { position: relative; margin-left: 2px; }
+
+        .stories-wrapper { background: var(--background); border-bottom: 1px solid var(--border); padding: 12px 0; position: relative; z-index: 38; transition: background 0.3s; }
+        .stories-container { display: flex; flex-direction: row; flex-wrap: nowrap; gap: 16px; padding: 0 16px; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+        .stories-container::-webkit-scrollbar { display: none; }
+        .story-group { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; flex-shrink: 0; scroll-snap-align: start; }
+        .story-ring-group { width: 72px; height: 72px; border-radius: 50%; padding: 3px; background: var(--story-gradient); position: relative; }
+        .story-ring-group.all-seen { background: var(--border); }
+        .story-img-group { width: 100%; height: 100%; border-radius: 50%; border: 2px solid var(--background); object-fit: cover; }
+        .story-count { position: absolute; bottom: 0; right: 0; background: var(--primary); color: white; font-size: 10px; font-weight: 700; padding: 2px 4px; border-radius: 10px; border: 2px solid var(--background); min-width: 18px; text-align: center; }
+        .story-label { font-size: 12px; font-weight: 400; color: var(--text-primary); max-width: 72px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .story-add-btn { position: absolute; bottom: 0; right: 0; background: var(--primary); color: white; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid var(--background); }
 
         .post-card { background: var(--background); border-bottom: 1px solid var(--border); padding: 12px 16px; animation: fadeIn 0.3s ease-out; position: relative; transition: background 0.15s; -webkit-touch-callout: none; user-select: none; }
         .post-card .post-text, .post-card input, .post-card textarea { user-select: text; }
@@ -74,6 +85,7 @@
         
         .post-header { display: flex; gap: 10px; margin-bottom: 8px; padding-right: 32px; align-items: center; }
         .avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; cursor: pointer; border: 1px solid var(--border); }
+        .avatar.story-ring-active { padding: 2px; background: linear-gradient(var(--background), var(--background)) padding-box, var(--story-gradient) border-box; border: 2px solid transparent; border-radius: 50%; object-fit: cover;}
         
         .post-meta { flex: 1; min-width: 0; }
         .post-author-row { display: flex; align-items: center; gap: 4px; font-weight: 600; font-size: 14px; }
@@ -249,10 +261,23 @@
         .ai-modal-btn.cancel { background: var(--surface2); color: var(--text-primary); }
         .ai-modal-btn.go { background: var(--primary); color: white; }
 
-        .lp-progress { position: fixed; z-index: 9999; pointer-events: none; display: none; }
-        .lp-progress svg { transform: rotate(-90deg); }
-        .lp-progress .track { stroke: var(--surface2); }
-        .lp-progress .fill { stroke: var(--primary); stroke-dasharray: 157; stroke-dashoffset: 157; transition: stroke-dashoffset 0.1s linear; }
+        .story-viewer { position: fixed; inset: 0; background: #000; z-index: 300; display: none; flex-direction: column; }
+        .story-viewer.active { display: flex; }
+        .story-progress-container { display: flex; gap: 4px; padding: 12px; padding-top: calc(12px + env(safe-area-inset-top)); }
+        .story-progress-bar { flex: 1; height: 2px; background: rgba(255,255,255,0.3); border-radius: 2px; overflow: hidden; }
+        .story-progress-fill { height: 100%; background: white; width: 0%; }
+        .story-media-container { flex: 1; display: flex; align-items: center; justify-content: center; cursor: pointer; -webkit-user-select: none; user-select: none; position: relative; }
+        .story-media { max-width: 100%; max-height: 100%; object-fit: contain; pointer-events: none; }
+        .story-video { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+        .story-controls { position: absolute; bottom: calc(20px + env(safe-area-inset-bottom)); left: 0; right: 0; display: flex; justify-content: center; gap: 16px; padding: 0 24px; }
+        .story-control-btn { background: rgba(0,0,0,0.4); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 10px 20px; border-radius: 9999px; cursor: pointer; font-weight: 600; backdrop-filter: blur(8px); display: flex; align-items: center; gap: 6px; font-size: 14px; }
+        .story-control-btn.liked-story { color: #fb7185; }
+        .story-header { position: absolute; top: calc(40px + env(safe-area-inset-top)); left: 16px; right: 16px; display: flex; align-items: center; gap: 10px; color: white; z-index: 10; }
+        .story-header img { width: 36px; height: 36px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.3); }
+        .story-hold-indicator { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); background: rgba(0,0,0,0.6); color: white; padding: 8px 16px; border-radius: 9999px; font-size: 13px; font-weight: 600; opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 15; }
+        .story-hold-indicator.visible { opacity: 1; }
+        .story-nav { position: absolute; top: 0; bottom: 0; width: 30%; z-index: 5; }
+        .story-nav.prev { left: 0; } .story-nav.next { right: 0; }
 
         .compose-media-grid { display: grid; gap: 6px; margin-bottom: 12px; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); }
         .compose-thumb { position: relative; border-radius: 8px; overflow: hidden; aspect-ratio: 1; background: var(--surface2); border: 1px solid var(--border); }
@@ -578,7 +603,7 @@
                     </svg>
                 </button>
                 <button style="background:none;border:none;cursor:pointer;position:relative;" onclick="goToMessages()">
-                    <i data-feather="message-circle" style="width:24px;height:24px;color:var(--text-primary);"></i>
+                    <i data-feather="send" style="width:24px;height:24px;color:var(--text-primary);"></i>
                     <span class="nav-badge" id="badge-messages-header" style="top:-2px;right:-4px;"></span>
                 </button>
                 <button style="background:none;border:none;cursor:pointer;" onclick="goToSettings()">
@@ -601,6 +626,18 @@
                 <span>Trending</span>
                 <span class="algo-badge" id="trending-count">0</span>
             </button>
+        </div>
+
+        <div class="stories-wrapper">
+            <div class="stories-container" id="stories-container">
+                <div class="story-group" onclick="triggerStoryUpload()">
+                    <div class="story-ring-group" style="background:var(--border);">
+                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23A8A8A8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' style='background-color:%23EFEFEF'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3C/svg%3E" id="my-story-img" class="story-img-group">
+                        <div class="story-add-btn"><i data-feather="plus" style="width:12px;height:12px;"></i></div>
+                    </div>
+                    <span class="story-label">Your Story</span>
+                </div>
+            </div>
         </div>
 
         <div id="feed">
@@ -659,7 +696,7 @@
 
 </div>
 
-<<nav class="bottom-nav" id="bottom-nav">
+<nav class="bottom-nav" id="bottom-nav">
     <button class="nav-item active" id="nav-home" onclick="goToHome()">
         <svg class="nav-icon-filled" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3L2 12h3v8h14v-8h3L12 3z"/></svg>
         <svg class="nav-icon-outline" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 10v11h6v-7h6v7h6V10L12 3l-9 7z"/></svg>
@@ -735,6 +772,33 @@
     </div>
 </div>
 
+<input type="file" id="story-input" accept="image/*,video/*" style="display:none;" onchange="validateAndUploadStory(event)">
+
+<div class="story-viewer" id="story-viewer">
+    <div class="story-progress-container" id="story-progress-container"></div>
+    <div class="story-header">
+        <img src="" id="story-viewer-avatar">
+        <div style="flex:1;">
+            <div style="font-weight:600;font-size:14px;display:flex;align-items:center;gap:4px;" id="story-viewer-name-container">
+                <span id="story-viewer-name"></span>
+                <span id="story-viewer-verified"></span>
+            </div>
+            <div style="font-size:12px;opacity:0.8;" id="story-viewer-time"></div>
+        </div>
+    </div>
+    <div class="story-nav prev" onclick="navigateStory(-1)"></div>
+    <div class="story-nav next" onclick="navigateStory(1)"></div>
+    <div class="story-media-container" id="story-media-container"></div>
+    <div class="story-hold-indicator" id="story-hold-indicator">Paused</div>
+    <div class="story-controls">
+        <button class="story-control-btn" id="story-like-btn" onclick="toggleStoryLike()">
+            <span id="story-like-icon">♡</span>
+            <span id="story-like-count"></span>
+        </button>
+        <button class="story-control-btn" id="delete-story-btn" onclick="deleteCurrentStory()" style="display:none; color: #fb7185;">Delete</button>
+    </div>
+</div>
+
 <div class="modal-overlay" id="confirm-overlay" onclick="closeConfirmModal()"></div>
 <div class="confirm-modal" id="confirm-modal">
     <div class="confirm-title" id="confirm-title">Delete?</div>
@@ -759,6 +823,7 @@ const DEFAULT_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/
 const CLOUDINARY_CLOUD_NAME   = 'dqkujefxj';
 const CLOUDINARY_UPLOAD_PRESET = 'banter_box';
 const MAX_VIDEO_DURATION = 120;
+const MAX_STORY_VIDEO_DURATION = 30;
 const VERIFIED_BADGE_SVG = `<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" style="color:var(--verified);"><path d="M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.33 2.19c-1.4-.46-2.91-.2-3.92.81s-1.26 2.52-.8 3.91c-1.31.67-2.2 1.91-2.2 3.34s.89 2.67 2.2 3.34c-.46 1.39-.21 2.9.8 3.91s2.52 1.26 3.91.81c.67 1.31 1.91 2.19 3.34 2.19s2.68-.88 3.34-2.19c1.39.45 2.9.2 3.91-.81s1.27-2.52.81-3.91c1.31-.67 2.19-1.91 2.19-3.34zm-11.71 4.2L6.8 12.22l1.41-1.41 2.83 2.83 5.66-5.66 1.41 1.41-7.07 7.22z"/></svg>`;
 const REPOST_SVG = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>`;
 
@@ -784,6 +849,8 @@ let currentUser = null, currentUserData = null;
 let selectedMedia = null, selectedMediaFiles = [];
 let deleteType = null, deleteData = null, confirmCallback = null;
 let currentEditPostId = null;
+let storyGroups = new Map();
+let currentStoryGroupIndex = 0, currentStoryIndex = 0, storyTimeout = null, currentVideoElement = null;
 let loadedPostIds = new Set(), postsListenerAttached = false;
 let allPostsCache = [], currentTab = 'foryou';
 let pendingNewPosts = [], isUserAtTop = true;
@@ -792,25 +859,35 @@ const commentListeners     = new Map();
 const commentLikeListeners = new Map();
 
 // --- MEDIA.NET AD LOGIC ---
-let postRenderCount = 0;
+let postRenderCount = 0; // Tracks posts rendered to know when to show an ad
 
 function renderMediaNetAd(container) {
+    // Create a unique ID for this specific ad unit on the page
     const adId = 'medianet-ad-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+
     const adWrapper = document.createElement('div');
+    // Wrap it in your exact Vynix post-card class so it blends perfectly
     adWrapper.className = 'post-card'; 
     adWrapper.style.display = 'flex';
-    adWrapper.style.justifyContent = 'center';
-    adWrapper.style.padding = '16px 0';
+    adWrapper.style.justifyContent = 'center'; // Centers the ad banner
+    adWrapper.style.padding = '16px 0'; // Matches your feed spacing
+    
+    // Create the target div for Media.net
     adWrapper.innerHTML = `<div id="${adId}"></div>`;
     container.appendChild(adWrapper);
+
+    // Tell the Media.net engine to fill this specific div
     try {
         window._mNHandle.queue.push(function () {
+            // "300x250" is the standard size for mobile/in-feed native ads. 
+            // Replace "YOUR_CID" with your actual ID.
             window._mNDetails.loadTag("YOUR_CID", "300x250", adId); 
         });
     } catch (error) {
         console.error("Ad load failed", error);
     }
 }
+// --------------------------
 
 /* ══ OFFLINE DB CACHING ══ */
 function saveOfflineData() {
@@ -830,10 +907,12 @@ function loadOfflineData() {
         if (savedUser) {
             currentUserData = JSON.parse(savedUser);
             document.getElementById('compose-avatar').src      = currentUserData.photoURL || DEFAULT_AVATAR;
+            document.getElementById('my-story-img').src        = currentUserData.photoURL || DEFAULT_AVATAR;
             document.getElementById('nav-profile-avatar').src  = currentUserData.photoURL || DEFAULT_AVATAR;
         }
     } catch(e){}
 }
+// Load offline data immediately on boot
 loadOfflineData();
 
 /* ══ MAIN APP TAB/SWIPE SWITCHING ══ */
@@ -848,17 +927,23 @@ window.setNavActive = (name) => {
 };
 
 window.switchMainTab = (tabId, args = null) => {
+    // Save scroll state of current tab
     tabScrolls[mainTabsList[currentMainTabIdx]] = window.scrollY;
+    
     document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active'));
     document.getElementById(`view-${tabId}`).classList.add('active');
     setNavActive(tabId);
     currentMainTabIdx = mainTabsList.indexOf(tabId);
+    
+    // Load specific tab data
     if (tabId === 'profile') loadProfile(args || currentUser?.uid);
     if (tabId === 'notifications') loadNotifications();
     if (tabId === 'search') {
         const searchInput = document.getElementById('main-search-input');
         if (!searchInput.value) showRecentSearchPosts();
     }
+
+    // Restore scroll state
     window.scrollTo(0, tabScrolls[tabId] || 0);
 };
 
@@ -881,6 +966,7 @@ window.goToPost = (id) => {
     }, 300);
 };
 
+
 /* ═════════════════════════════════ */
 
 /* ══ FULLSCREEN IMAGE VIEWER ══ */
@@ -901,9 +987,9 @@ let newProfilePicFile = null;
 window.openEditProfile = () => {
     document.getElementById('edit-profile-username').value = currentUserData.username || '';
     document.getElementById('edit-profile-img-preview').src = currentUserData.photoURL || DEFAULT_AVATAR;
-    newProfilePicFile = null;
+    newProfilePicFile = null; // Reset selection
     document.getElementById('edit-profile-overlay').classList.add('active');
-    feather.replace();
+    feather.replace(); // Render camera icon
 };
 
 window.closeEditProfile = () => {
@@ -920,23 +1006,35 @@ window.handleProfilePicSelect = (e) => {
 window.saveProfile = async () => {
     const un = document.getElementById('edit-profile-username').value.trim();
     if(!un) return showToast('Username required');
+    
     const btn = document.getElementById('save-profile-btn');
     btn.textContent = 'Saving...';
     btn.disabled = true;
+
     try {
         let photoURL = currentUserData.photoURL;
+
+        // Upload new picture if one was selected
         if (newProfilePicFile) {
             const r = await uploadToCloudinary(newProfilePicFile, 'avatars');
             photoURL = r.secure_url;
         }
+
+        // Save to Firebase (Display Name removed)
         await update(ref(db, `users/${currentUser.uid}`), { username: un, photoURL: photoURL });
+        
+        // Update local app state
         currentUserData.username = un;
         currentUserData.photoURL = photoURL;
         document.getElementById('compose-avatar').src = photoURL || DEFAULT_AVATAR;
+        document.getElementById('my-story-img').src = photoURL || DEFAULT_AVATAR;
         document.getElementById('nav-profile-avatar').src = photoURL || DEFAULT_AVATAR;
+        
         showToast('Profile updated');
         closeEditProfile();
         loadProfile(currentUser.uid);
+        
+        // Reflect new data instantly in local cache posts
         allPostsCache.forEach(p => {
             if(p.uid === currentUser.uid && p.user) { 
                 p.user.username = un; 
@@ -948,6 +1046,7 @@ window.saveProfile = async () => {
     } catch(e) { 
         showToast('Error saving profile'); 
     }
+    
     btn.textContent = 'Save';
     btn.disabled = false;
 };
@@ -956,6 +1055,7 @@ window.saveProfile = async () => {
 window.openPostDetail = (postId) => {
     const post = allPostsCache.find(p => p.id === postId);
     if (!post) { showToast('Post not found'); return; }
+
     const body = document.getElementById('post-detail-body');
     const user = post.user || {};
     const isRepost = !!post.isRepost;
@@ -969,7 +1069,8 @@ window.openPostDetail = (postId) => {
     const userReposted = !!(post.reposts?.[currentUser?.uid]);
     const isFollowing  = !!currentUserData?.following?.[displayUser.uid];
     const canEdit = isOwner && (Date.now() - (post.timestamp||0) < 3600000);
-    const avatarClass = 'avatar post-avatar';
+    const hasStory = storyGroups.has(displayUser.uid);
+    const avatarClass = hasStory ? 'avatar post-avatar story-ring-active' : 'avatar post-avatar';
     const followHtml = (!isOwner && displayUser.uid)
         ? `<button class="follow-btn follow-btn-${displayUser.uid} ${isFollowing?'following':'primary'}" onclick="toggleFollow('${displayUser.uid}',event)" style="margin-left:auto;">${isFollowing?'Following':'Follow'}</button>`
         : '';
@@ -1033,6 +1134,7 @@ window.openPostDetail = (postId) => {
         </div>
     `;
 
+    // If it's a video post, open video feed instead of inline sheet
     const isVideo = post.mediaType === 'video' || (post.mediaUrls && post.mediaUrls.some(m => m.type === 'video'));
     if (isVideo) {
         openVideoFeed(post.id);
@@ -1041,9 +1143,13 @@ window.openPostDetail = (postId) => {
 
     document.getElementById('post-detail-overlay').classList.add('active');
     document.body.style.overflow = 'hidden';
+
+    // Wire up comments & realtime for this post
     setupCommentsListener(post.id);
     attachRealtimePostListeners(post.id);
     feather.replace();
+
+    // Back-gesture support
     history.pushState({ postDetail: true }, '');
     window._postDetailBack = () => closePostDetail();
 };
@@ -1052,6 +1158,7 @@ window.closePostDetail = (e) => {
     if (e && e.target !== document.getElementById('post-detail-overlay')) return;
     document.getElementById('post-detail-overlay').classList.remove('active');
     document.body.style.overflow = '';
+    // Pause any video inside the sheet
     document.querySelectorAll('#post-detail-body video').forEach(v => { v.pause(); v.src = ''; });
     setTimeout(() => { document.getElementById('post-detail-body').innerHTML = ''; }, 350);
 };
@@ -1068,9 +1175,11 @@ function renderSearchVideoStrip() {
     const videos = allPostsCache.filter(p =>
         p.mediaType === 'video' || (p.mediaUrls && p.mediaUrls.some(m => m.type === 'video'))
     ).slice(0, 20);
+
     const strip = document.getElementById('search-video-strip');
     const scroll = document.getElementById('search-video-scroll');
     if (!videos.length) { strip.style.display = 'none'; return; }
+
     strip.style.display = 'block';
     scroll.innerHTML = videos.map(post => {
         const user = post.user || {};
@@ -1091,6 +1200,8 @@ function renderSearchVideoStrip() {
                 </div>
             </div>`;
     }).join('');
+
+    // Lazy-play on hover/intersection for thumbnails
     const observer = new IntersectionObserver(entries => {
         entries.forEach(entry => {
             const v = entry.target.querySelector('video');
@@ -1111,6 +1222,7 @@ window.showRecentSearchPosts = () => {
         container.innerHTML = '<div class="empty-state">Find your friends on Vynix.</div>';
         return;
     }
+    
     container.innerHTML = `<div style="padding: 12px 16px; font-weight: 600; font-size: 15px;">Discover</div>` + 
         recent.map(p => `
             <div class="search-result-item" onclick="goToPost('${p.id}')" style="align-items: flex-start;">
@@ -1128,12 +1240,18 @@ window.showRecentSearchPosts = () => {
 window.handleMainSearch = async (query) => {
     const container = document.getElementById('search-results-container');
     if(!query.trim()) { showRecentSearchPosts(); return; }
+    
+    // Hide video strip while searching
     document.getElementById('search-video-strip').style.display = 'none';
+    
     const q = query.toLowerCase();
     const users = await getAllUsers();
     const userResults = users.filter(u => u.username?.toLowerCase().includes(q) || u.displayName?.toLowerCase().includes(q)).slice(0, 6);
+    
     const postResults = allPostsCache.filter(p => (p.text || '').toLowerCase().includes(q) || (p.user?.username || '').toLowerCase().includes(q)).slice(0, 15);
+    
     let html = '';
+    
     if(userResults.length > 0) {
         html += `<div style="padding: 12px 16px 4px; font-weight: 600; font-size: 13px; color: var(--text-secondary);">Users</div>`;
         html += userResults.map(u => `
@@ -1148,6 +1266,7 @@ window.handleMainSearch = async (query) => {
             </div>
         `).join('');
     }
+    
     if(postResults.length > 0) {
         html += `<div style="padding: 12px 16px 4px; font-weight: 600; font-size: 13px; color: var(--text-secondary);">Posts</div>`;
         html += postResults.map(p => `
@@ -1162,6 +1281,7 @@ window.handleMainSearch = async (query) => {
             </div>
         `).join('');
     }
+    
     if(!html) html = '<div class="empty-state">No results found.</div>';
     container.innerHTML = html;
 };
@@ -1170,26 +1290,33 @@ window.handleMainSearch = async (query) => {
 window.loadNotifications = async () => {
     const list = document.getElementById('notifications-list');
     list.innerHTML = '<div class="loading-more active"><div class="vynix-spinner"></div></div>';
+    
     try {
         const snap = await get(ref(db, `notifications/${currentUser.uid}`));
         if (!snap.exists()) {
             list.innerHTML = '<div class="empty-state">No notifications yet.</div>';
             return;
         }
+        
         const notifs = [];
         snap.forEach(child => { notifs.push({ id: child.key, ...child.val() }); });
         notifs.sort((a, b) => b.timestamp - a.timestamp);
+        
+        // Use the user cache to avoid hundreds of fetch calls
         const usersCache = await getAllUsers();
+        
         list.innerHTML = '';
         for (const n of notifs) {
             let actor = usersCache.find(u => u.uid === n.actorId) || { username: 'Someone', photoURL: DEFAULT_AVATAR };
-            if (!actor.uid) {
+            if (!actor.uid) { // Fallback if not in cache
                 try { const asnap = await get(ref(db, `users/${n.actorId}`)); if(asnap.exists()) actor = asnap.val(); } catch(e) {}
             }
+            
             let text = ''; let icon = '';
             if (n.type === 'like') { text = 'liked your post.'; icon = '<i data-feather="heart" style="color:var(--like);width:14px;height:14px;fill:var(--like);"></i>'; }
             else if (n.type === 'comment') { text = 'commented on your post.'; icon = '<i data-feather="message-circle" style="width:14px;height:14px;color:var(--primary);fill:var(--primary);"></i>'; }
             else if (n.type === 'follow') { text = 'started following you.'; icon = '<i data-feather="user-plus" style="color:var(--primary);width:14px;height:14px;"></i>'; }
+            
             const el = document.createElement('div');
             el.className = `notification-item ${!n.read ? 'unread' : ''}`;
             el.innerHTML = `
@@ -1221,6 +1348,7 @@ window.loadProfile = async (uid) => {
     const content = document.getElementById('profile-content');
     content.innerHTML = '<div class="loading-more active"><div class="vynix-spinner"></div></div>';
     document.getElementById('profile-header-username').textContent = 'Loading...';
+    
     try {
         const isOwn = uid === currentUser?.uid;
         let uData = isOwn ? currentUserData : null;
@@ -1229,10 +1357,13 @@ window.loadProfile = async (uid) => {
             if (!snap.exists()) throw new Error('User not found');
             uData = snap.val();
         }
+        
         document.getElementById('profile-header-username').textContent = uData.username || 'User';
+        
         const followersCount = Object.keys(uData.followers || {}).length;
         const followingCount = Object.keys(uData.following || {}).length;
         const isFollowing = !!currentUserData?.following?.[uid];
+        
         let actionBtn = '';
         if (isOwn) {
             actionBtn = `<button class="profile-action-btn edit" onclick="openEditProfile()">Edit Profile</button>`;
@@ -1243,12 +1374,14 @@ window.loadProfile = async (uid) => {
                 <button style="flex:1;" class="profile-action-btn edit" onclick="window.location.href='messages.html?userid=${uid}'">Message</button>
             </div>`;
         }
+
         let html = `
             <div class="profile-header-card">
                 <img src="${uData.photoURL || DEFAULT_AVATAR}" class="profile-avatar-large" onclick="openImageViewer(this.src)">
                 <div style="font-weight:700;font-size:20px;display:flex;align-items:center;justify-content:center;gap:4px;">
                     @${escapeHtml(uData.username)} ${uData.verified ? VERIFIED_BADGE_SVG : ''}
                 </div>
+                
                 <div class="profile-stats">
                     <div class="stat"><strong id="profile-post-count">0</strong> Posts</div>
                     <div class="stat"><strong>${followersCount}</strong> Followers</div>
@@ -1259,9 +1392,12 @@ window.loadProfile = async (uid) => {
             <div class="profile-grid" id="profile-grid"></div>
         `;
         content.innerHTML = html;
+        
+        // Fetch user's posts from the loaded cache
         const userPosts = allPostsCache.filter(p => p.uid === uid).sort((a,b) => b.timestamp - a.timestamp);
         const grid = document.getElementById('profile-grid');
         document.getElementById('profile-post-count').textContent = userPosts.length;
+        
         if (userPosts.length === 0) {
             grid.style.display = 'block';
             grid.innerHTML = '<div class="empty-state" style="padding-top: 40px;">No posts yet.</div>';
@@ -1269,9 +1405,11 @@ window.loadProfile = async (uid) => {
             userPosts.forEach(post => {
                 const thumb = post.mediaUrls ? post.mediaUrls[0].url : (post.mediaUrl || null);
                 const isVideo = post.mediaType === 'video' || (post.mediaUrls && post.mediaUrls[0].type === 'video');
+                
                 const el = document.createElement('div');
                 el.className = 'grid-item';
                 el.onclick = () => openPostDetail(post.id);
+                
                 if (thumb) {
                     el.innerHTML = isVideo 
                         ? `<video src="${thumb}" muted></video><div class="grid-icon"><i data-feather="play" style="width:16px;height:16px;"></i></div>` 
@@ -1287,6 +1425,35 @@ window.loadProfile = async (uid) => {
         content.innerHTML = '<div class="empty-state">User not found or error loading profile.</div>';
         document.getElementById('profile-header-username').textContent = 'Error';
     }
+};
+
+/* ══ STORY GLOBAL PAUSE/RESUME ══ */
+let holdActive = false, storyElapsedMs = 0;
+
+window.pauseStoryPlayback = () => {
+    if (!document.getElementById('story-viewer').classList.contains('active')) return;
+    const fill = document.getElementById('current-progress');
+    if (fill) {
+        const computed = getComputedStyle(fill).width; const parent = fill.parentElement;
+        const pct = parent ? (parseFloat(computed)/parent.offsetWidth*100) : parseFloat(fill.style.width);
+        storyElapsedMs = pct / 100 * (parseFloat(fill.style.transitionDuration) * 1000 || STORY_IMAGE_DURATION);
+        fill.style.transition='none'; fill.style.width=pct+'%';
+    }
+    if (currentVideoElement) currentVideoElement.pause();
+    if (storyTimeout) { clearTimeout(storyTimeout); storyTimeout=null; }
+};
+
+window.resumeStoryPlayback = () => {
+    if (!document.getElementById('story-viewer').classList.contains('active')) return;
+    const fill = document.getElementById('current-progress');
+    let totalDur = STORY_IMAGE_DURATION;
+    if (currentVideoElement && currentVideoElement.duration) {
+        totalDur = Math.min(currentVideoElement.duration * 1000, STORY_MAX_VIDEO_DURATION);
+    }
+    const remainingMs = Math.max(0, totalDur - storyElapsedMs);
+    if (fill&&remainingMs>0) { fill.style.transition=`width ${remainingMs}ms linear`; fill.style.width='100%'; }
+    if (currentVideoElement) currentVideoElement.play().catch(()=>{});
+    storyTimeout = setTimeout(()=>navigateStory(1), remainingMs);
 };
 
 /* ══ VIDEO FEED STATE ══ */
@@ -1417,8 +1584,10 @@ onAuthStateChanged(auth, async (user) => {
     if (!user) { window.location.href = 'signup.html'; return; }
     currentUser = user;
     await loadUserData();
+    setupStoriesListeners();
     setupNotificationsListener();
     setupMessagesListener();
+    setupStoryHold();
     loadPosts();
 });
 
@@ -1451,6 +1620,7 @@ async function loadUserData() {
 
     onValue(ref(db, `users/${currentUser.uid}/following`), s => {
         currentUserData.following = s.val() || {};
+        // Update all follow buttons
         document.querySelectorAll('.follow-btn').forEach(btn => {
             const targetUid = Array.from(btn.classList).find(c => c.startsWith('follow-btn-'))?.replace('follow-btn-', '');
             if(targetUid) {
@@ -1462,6 +1632,7 @@ async function loadUserData() {
     });
 
     document.getElementById('compose-avatar').src      = currentUserData.photoURL || DEFAULT_AVATAR;
+    document.getElementById('my-story-img').src        = currentUserData.photoURL || DEFAULT_AVATAR;
     document.getElementById('nav-profile-avatar').src  = currentUserData.photoURL || DEFAULT_AVATAR;
 }
 
@@ -1469,9 +1640,13 @@ async function loadUserData() {
 window.toggleFollow = async (targetUid, event) => {
     if(event) event.stopPropagation();
     if(!currentUser || targetUid === currentUser.uid) return;
+    
     const followRef = ref(db, `users/${currentUser.uid}/following/${targetUid}`);
     const followerRef = ref(db, `users/${targetUid}/followers/${currentUser.uid}`);
+    
+    // Optimistic UI update
     const isFollowing = !!currentUserData?.following?.[targetUid];
+    
     document.querySelectorAll(`.follow-btn-${targetUid}`).forEach(btn => {
         if(!isFollowing) {
             btn.textContent = 'Following';
@@ -1483,6 +1658,7 @@ window.toggleFollow = async (targetUid, event) => {
             btn.classList.add('primary');
         }
     });
+
     try {
         if(isFollowing) {
             await remove(followRef);
@@ -1490,6 +1666,8 @@ window.toggleFollow = async (targetUid, event) => {
         } else {
             await set(followRef, true);
             await set(followerRef, true);
+            
+            // Notification
             await push(ref(db, `notifications/${targetUid}`), {
                 type: 'follow', actorId: currentUser.uid, read: false, timestamp: Date.now()
             });
@@ -1523,20 +1701,25 @@ function updateBadge(id, count) {
 
 async function loadPosts() {
     const feed = document.getElementById('feed');
+    // If we loaded offline, don't show skeletons
     if(allPostsCache.length === 0) {
         ['skel-1','skel-2'].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'block'; });
     } else {
         ['skel-1','skel-2'].forEach(id => { const el = document.getElementById(id); if (el) el.remove(); });
     }
+    
     try {
        const recentPostsQuery = query(ref(db, 'posts'), limitToLast(200));
         const snapshot = await get(recentPostsQuery);
+        
         if (!snapshot.exists()) {
             if(allPostsCache.length === 0) feed.innerHTML = '<div class="empty-state">No posts yet. Be the first to post!</div>';
             setupPostsListeners(); return;
         }
+        
         allPostsCache = [];
         const promises = [];
+        
         snapshot.forEach(child => {
             promises.push((async () => {
                 const post = { id: child.key, ...child.val() };
@@ -1552,18 +1735,24 @@ async function loadPosts() {
                 allPostsCache.push(post);
             })());
         });
+        
         await Promise.all(promises);
-        saveOfflineData();
+        saveOfflineData(); // Save fresh posts
+        
         const cutoff = Date.now() - 48 * 3600 * 1000;
         document.getElementById('trending-count').textContent = allPostsCache.filter(p => (p.timestamp || 0) > cutoff).length;
+        
         allPostKeys = getSortedPosts(currentTab).map(p => ({ id: p.id, timestamp: p.timestamp }));
         hasMorePages = allPostKeys.length > 0;
+        
         feed.innerHTML = '';
         loadedPostIds.clear();
         pageIndex = 0;
+        
         await loadNextPage(); 
         setupScrollObserver(); 
         setupPostsListeners();
+        
     } catch (e) {
         console.error(e);
         if(allPostsCache.length === 0) feed.innerHTML = '<div class="empty-state">Error loading posts. Please refresh.</div>';
@@ -1595,7 +1784,7 @@ async function loadNextPage() {
                 } catch { continue; }
             }
             renderPost(post);
-            await new Promise(r => setTimeout(r, 10));
+            await new Promise(r => setTimeout(r, 10)); // Faster rendering
         }
         pageIndex++;
         hasMorePages = pageIndex * PAGE_SIZE < allPostKeys.length;
@@ -1619,10 +1808,13 @@ function setupScrollObserver() {
 function setupPostsListeners() {
     if (postsListenerAttached) return;
     postsListenerAttached = true;
+    
     const postsRef = query(ref(db, 'posts'), limitToLast(10));
+    
     onChildAdded(postsRef, async (snap) => {
         const postId = snap.key;
         if (loadedPostIds.has(postId) || allPostsCache.find(p => p.id === postId)) return;
+        
         const post = { id: postId, ...snap.val() };
         try {
             const us = await get(ref(db, `users/${post.uid}`));
@@ -1632,6 +1824,7 @@ function setupPostsListeners() {
                 post.originalUser = os.val() || {};
             }
         } catch { post.user = {}; post.isVerified = false; }
+        
         allPostsCache.unshift(post);
         if (!isUserAtTop) { 
             loadedPostIds.add(postId); 
@@ -1642,6 +1835,7 @@ function setupPostsListeners() {
             renderPost(post, true); 
         }
     });
+    
     onChildRemoved(ref(db, 'posts'), (snap) => {
         const el = document.getElementById(`post-${snap.key}`);
         if (el) { 
@@ -1696,6 +1890,7 @@ function attachCommentLikeListener(postId, commentId) {
     if (commentLikeListeners.has(key)) return;
     onValue(ref(db, `posts/${postId}/comments/${commentId}/likes`), (snap) => {
         const likes = snap.val() || {}; const count = Object.keys(likes).length; const userLiked = !!likes[currentUser?.uid];
+        
         const btn = document.getElementById(`clbtn-${postId}-${commentId}`); 
         if (btn) {
             btn.classList.toggle('liked', userLiked);
@@ -1703,6 +1898,7 @@ function attachCommentLikeListener(postId, commentId) {
             if (svg) { userLiked ? svg.setAttribute('fill','currentColor') : svg.setAttribute('fill','none'); }
             const countEl = btn.querySelector('.cl-count'); if (countEl) countEl.textContent = count > 0 ? count : '';
         }
+
         const vfBtn = document.getElementById(`vf-clbtn-${postId}-${commentId}`);
         if (vfBtn) {
             vfBtn.classList.toggle('liked', userLiked);
@@ -1729,17 +1925,24 @@ function renderPost(post, prepend = false) {
     const isRepost = !!post.isRepost; const reposterName = isRepost ? (user.displayName || 'Someone') : null;
     const displayUser = isRepost && post.originalUser ? post.originalUser : user;
     const repostCount = Object.keys(post.reposts || {}).length; const userReposted = post.reposts?.[currentUser?.uid];
+    
     const isBookmarked = !!(currentUserData?.bookmarks?.[post.id]);
     const isAd = !!post.isAd && displayUser.verified;
+    
     const handleAndDate = isAd
         ? `<div class="ad-sponsored-label">Sponsored</div>`
         : `<div class="post-handle">${formatTime(post.timestamp)}</div>`;
+        
     const adCTA = isAd 
         ? `<a href="${post.adLink || '#'}" class="ad-cta-btn" target="_blank">${escapeHtml(post.adCtaText || 'Learn More')}</a>` 
         : '';
+    
     const postTimeMs = post.timestamp || Date.now();
     const canEdit = isOwner && (Date.now() - postTimeMs < 3600000);
-    const avatarClass = 'avatar post-avatar';
+
+    const hasStory = storyGroups.has(displayUser.uid);
+    const avatarClass = hasStory ? 'avatar post-avatar story-ring-active' : 'avatar post-avatar';
+    
     const isFollowing = !!currentUserData?.following?.[displayUser.uid];
     const followHtml = (!isOwner && displayUser.uid) ? `<button class="follow-btn follow-btn-${displayUser.uid} ${isFollowing ? 'following' : 'primary'}" onclick="toggleFollow('${displayUser.uid}', event)">${isFollowing ? 'Following' : 'Follow'}</button>` : '';
 
@@ -1748,6 +1951,7 @@ function renderPost(post, prepend = false) {
     div.innerHTML = `
         ${isRepost ? `<div class="repost-banner">${REPOST_SVG}<span>${escapeHtml(reposterName)} reposted</span></div>` : ''}
         ${getAlgoLabel(post)}
+        
         <div class="post-menu">
             <button class="post-menu-btn" onclick="togglePostMenu('${post.id}',event)"><i data-feather="more-horizontal" style="width:20px;height:20px;"></i></button>
             <div class="post-dropdown" id="dropdown-${post.id}">
@@ -1757,6 +1961,7 @@ function renderPost(post, prepend = false) {
                 ${!isOwner ? `<button class="dropdown-item" onclick="reportPost('${post.id}', event)">Report</button>` : ''}
             </div>
         </div>
+        
         <div class="post-header">
             <img src="${displayUser.photoURL || DEFAULT_AVATAR}" onerror="this.src='${DEFAULT_AVATAR}'" class="${avatarClass}" data-uid="${isRepost && post.originalUid ? post.originalUid : post.uid}">
             <div class="post-meta">
@@ -1768,9 +1973,11 @@ function renderPost(post, prepend = false) {
             </div>
             ${followHtml}
         </div>
+        
         ${renderPostText(post.text || '', post.id)}
         ${renderPostMedia(post)}
         ${adCTA}
+        
         <div class="actions">
             <div style="display: flex; gap: 16px;">
                 <button class="action-btn ${post.likes?.[currentUser?.uid] ? 'liked' : ''}" onclick="toggleLike('${post.id}')" id="like-btn-${post.id}">
@@ -1794,6 +2001,7 @@ function renderPost(post, prepend = false) {
                 </button>
             </div>
         </div>
+        
         <div class="comments-section" id="comments-${post.id}">
             <div id="comments-list-${post.id}"></div>
             <div class="comment-input-wrapper">
@@ -1809,13 +2017,17 @@ function renderPost(post, prepend = false) {
     setupCommentsListener(post.id);
     attachRealtimePostListeners(post.id);
     feather.replace();
+
+    // --- ADD THIS BLOCK FOR ADS ---
     if (!prepend) { 
         postRenderCount++;
+        // Trigger an ad every 5 posts
         if (postRenderCount >= 5) { 
             renderMediaNetAd(feed);
-            postRenderCount = 0;
+            postRenderCount = 0; // Reset counter
         }
     }
+    // ------------------------------
 }
 
 window.triggerDoubleTapLike = async (postId) => {
@@ -1837,6 +2049,7 @@ window.sharePost = async (postId, username, text) => {
         text: text ? (text.length > 60 ? text.substring(0, 60) + '...' : text) : 'Check out this post on Vynix!',
         url: window.location.origin + window.location.pathname + `#post-${postId}`
     };
+
     try {
         if (navigator.share && navigator.canShare(shareData)) {
             await navigator.share(shareData);
@@ -1853,10 +2066,13 @@ window.sharePost = async (postId, username, text) => {
 window.openEditModal = (postId, event) => {
     if (event) event.stopPropagation();
     document.querySelectorAll('.post-dropdown').forEach(d => d.classList.remove('active'));
+    
     const post = allPostsCache.find(p => p.id === postId);
     if (!post) return;
+    
     currentEditPostId = postId;
     document.getElementById('edit-post-text').value = post.text || '';
+    
     document.getElementById('edit-overlay').classList.add('active');
     document.getElementById('edit-modal').classList.add('active');
 };
@@ -1869,22 +2085,29 @@ window.closeEditModal = () => {
 
 window.saveEdit = async () => {
     if (!currentEditPostId) return;
+    
     const newText = document.getElementById('edit-post-text').value.trim();
     const btn = document.getElementById('save-edit-btn');
+    
     btn.disabled = true;
     btn.textContent = 'Saving...';
+    
     try {
         await update(ref(db, `posts/${currentEditPostId}`), { text: newText, editedAt: serverTimestamp() });
+        
         const postIdx = allPostsCache.findIndex(p => p.id === currentEditPostId);
         if (postIdx > -1) allPostsCache[postIdx].text = newText;
+        
         const oldTextNode = document.getElementById(`post-text-${currentEditPostId}`);
         if (oldTextNode) {
             const seeMoreBtn = document.getElementById(`see-more-${currentEditPostId}`);
             if (seeMoreBtn) seeMoreBtn.remove();
+            
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = renderPostText(newText, currentEditPostId);
             oldTextNode.replaceWith(...tempDiv.childNodes);
         }
+        
         showToast('Post updated');
         closeEditModal();
         saveOfflineData();
@@ -1899,7 +2122,9 @@ window.saveEdit = async () => {
 window.reportPost = async (postId, event) => {
     if (event) event.stopPropagation();
     document.querySelectorAll('.post-dropdown').forEach(d => d.classList.remove('active'));
+    
     if (!currentUser) return showToast("Please login to report.");
+    
     try {
         await push(ref(db, 'reports'), {
             postId: postId,
@@ -1912,11 +2137,13 @@ window.reportPost = async (postId, event) => {
     }
 };
 
+
 // ── AUTOPLAY INTERSECTION OBSERVER ──
 const feedVideoObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
         const vid = entry.target;
         if (document.getElementById('vf-overlay')?.classList.contains('active')) return;
+
         if (entry.isIntersecting) {
             if (vid.paused) {
                 const playPromise = vid.play();
@@ -2038,6 +2265,7 @@ window.openVideoFeed = (postId) => {
     document.querySelectorAll('.vynix-player video').forEach(v => {
         if (!v.paused) v.pause();
     });
+
     vfVideoPosts = getVideoPosts();
     if (!vfVideoPosts.length) { showToast('No videos to show'); return; }
     const startIdx = Math.max(0, vfVideoPosts.findIndex(p => p.id === postId));
@@ -2053,6 +2281,7 @@ window.closeVideoFeed = () => {
     document.body.style.overflow = '';
     document.querySelectorAll('#vf-scroller video').forEach(v => { v.pause(); v.src = ''; });
     if (vfProgTimer) { clearInterval(vfProgTimer); vfProgTimer = null; }
+    
     document.querySelectorAll('.vynix-player video').forEach(vid => {
         const rect = vid.getBoundingClientRect();
         const inView = rect.top < window.innerHeight && rect.bottom > 0;
@@ -2066,6 +2295,7 @@ window.closeVideoFeed = () => {
 function buildVideoSlides(startIdx) {
     const scroller = document.getElementById('vf-scroller');
     scroller.innerHTML = '';
+
     vfVideoPosts.forEach((post, i) => {
         const user = (post.isRepost && post.originalUser) ? post.originalUser : (post.user || {});
         const videoSrc = post.mediaType === 'video'
@@ -2075,8 +2305,10 @@ function buildVideoSlides(startIdx) {
         const commentCount = Object.keys(post.comments|| {}).length;
         const repostCount  = Object.keys(post.reposts || {}).length;
         const userLiked    = !!(post.likes?.[currentUser?.uid] || vfLikeState[post.id]);
+        
         const isFollowing = !!currentUserData?.following?.[user.uid];
         const followHtml = (user.uid && user.uid !== currentUser?.uid) ? `<button class="follow-btn follow-btn-${user.uid} ${isFollowing ? 'following' : 'primary'}" onclick="toggleFollow('${user.uid}', event)" style="margin-left:8px; padding: 2px 8px; font-size:12px;">${isFollowing ? 'Following' : 'Follow'}</button>` : '';
+
         const slide = document.createElement('div');
         slide.className = 'vf-slide'; slide.id = `vfs-${i}`;
         slide.innerHTML = `
@@ -2143,6 +2375,7 @@ function buildVideoSlides(startIdx) {
                 <div class="vf-progress-fill" id="vfprog-${i}" style="transition:width 0.1s linear;"></div>
             </div>
         `;
+
         slide.addEventListener('click', e => {
             if (e.target.closest('.vf-act-btn') || e.target.closest('.vf-close') || e.target.closest('.follow-btn')) return;
             const vid  = document.getElementById(`vfv-${i}`);
@@ -2151,6 +2384,9 @@ function buildVideoSlides(startIdx) {
             if (!vid) return;
             if (vid.paused) {
                 vid.play().catch(()=>{});
+                icon.setAttribute('points','6 4 6 20 M14 4');
+                icon.innerHTML = '';
+                icon.outerHTML = `<polygon id="vfti-${i}" points="6 4 6 20"/>`;
                 const parent = document.getElementById(`vftr-${i}`)?.querySelector('svg');
                 if (parent) parent.innerHTML = `<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>`;
             } else {
@@ -2162,12 +2398,15 @@ function buildVideoSlides(startIdx) {
             clearTimeout(ring._t);
             ring._t = setTimeout(() => ring.classList.remove('show'), 500);
         });
+
         const vid = slide.querySelector('video');
         vid.addEventListener('waiting', () => { document.getElementById(`vfl-${i}`).style.display = 'flex'; });
         vid.addEventListener('canplay', () => { document.getElementById(`vfl-${i}`).style.display = 'none'; });
         vid.addEventListener('playing', () => { document.getElementById(`vfl-${i}`).style.display = 'none'; });
+
         scroller.appendChild(slide);
     });
+
     requestAnimationFrame(() => {
         const target = document.getElementById(`vfs-${startIdx}`);
         if (target) target.scrollIntoView({ behavior: 'instant' });
@@ -2185,16 +2424,19 @@ function vfPlaySlide(idx) {
     });
     const vid = document.getElementById(`vfv-${idx}`);
     if (!vid) return;
+    
     if (!vid.src || vid.src === window.location.href) {
         vid.src = vid.dataset.src || '';
         vid.load();
     } else if (vid.currentTime > 0 && vid.paused) {
         vid.currentTime = 0; 
     }
+    
     if (vid.paused) {
         const p = vid.play();
         if(p !== undefined) p.catch(()=>{});
     }
+
     [-1, 1].forEach(d => {
         const nv = document.getElementById(`vfv-${idx + d}`);
         if (nv && (!nv.src || nv.src === window.location.href)) {
@@ -2202,6 +2444,7 @@ function vfPlaySlide(idx) {
             nv.preload = 'auto';
         }
     });
+
     const fill = document.getElementById(`vfprog-${idx}`);
     if (fill) {
         fill.style.transition = 'none';
@@ -2231,6 +2474,7 @@ function setupVfScroll() {
             ticking = true;
         }
     }, { passive: true });
+
     document.addEventListener('keydown', e => {
         if (!document.getElementById('vf-overlay').classList.contains('active')) return;
         if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
@@ -2277,19 +2521,24 @@ window.vfOpenComments = (postId) => {
     const overlay = document.getElementById('vf-comments-overlay');
     const sheet = document.getElementById('vf-comments-sheet');
     document.getElementById('vf-comment-avatar').src = currentUserData?.photoURL || DEFAULT_AVATAR;
+
     const container = document.getElementById('vf-comments-container');
     container.innerHTML = `<div id="vf-comments-list-${postId}"></div>`;
+
     overlay.classList.add('active');
     sheet.style.transform = 'translateY(0)';
+
     const input = document.getElementById('vf-comment-input');
     const btn = document.getElementById('vf-comment-submit');
     input.value = '';
+    
     input.oninput = () => { 
         btn.disabled = !input.value.trim(); 
         btn.classList.toggle('active', !!input.value.trim()); 
     };
     input.onkeypress = (e) => { if (e.key === 'Enter') window.vfSubmitComment(postId); };
     btn.onclick = () => window.vfSubmitComment(postId);
+
     setupVfCommentsListener(postId);
 };
 
@@ -2307,6 +2556,7 @@ window.vfSubmitComment = async (postId) => {
     const input = document.getElementById(`vf-comment-input`);
     const text  = input.value.trim();
     if (!text) return;
+    
     const btn = document.getElementById(`vf-comment-submit`);
     btn.disabled = true;
     try {
@@ -2316,6 +2566,7 @@ window.vfSubmitComment = async (postId) => {
         input.value = '';
         btn.disabled = true;
         btn.classList.remove('active');
+        
         try {
             const postSnap = await get(ref(db, `posts/${postId}`));
             if (postSnap.exists()) {
@@ -2328,6 +2579,7 @@ window.vfSubmitComment = async (postId) => {
                 }
             }
         } catch (e) { console.warn('Comment notification failed', e); }
+
     } catch { showToast('Failed to post comment'); }
     finally   { btn.disabled = false; }
 };
@@ -2337,14 +2589,17 @@ function setupVfCommentsListener(postId) {
         off(ref(db, `posts/${postId}/comments`));
     }
     const cRef = ref(db, `posts/${postId}/comments`);
+    
     onChildAdded(cRef, async (snap) => {
         if (document.getElementById(`vf-comment-${postId}-${snap.key}`)) return;
         await renderVfComment(postId, snap.key, snap.val());
     });
+    
     onChildRemoved(cRef, (snap) => {
         const el = document.getElementById(`vf-comment-${postId}-${snap.key}`);
         if (el) { el.classList.add('removing'); setTimeout(() => el.remove(), 300); }
     });
+    
     vfCommentListeners.set(postId, true);
 }
 
@@ -2352,12 +2607,15 @@ async function renderVfComment(postId, commentId, comment, isReply=false, parent
     const containerId = parentId ? `vf-replies-${postId}-${parentId}` : `vf-comments-list-${postId}`;
     const container = document.getElementById(containerId);
     if (!container || document.getElementById(`vf-comment-${postId}-${commentId}`)) return;
+    
     let user = {};
     try { const us = await get(ref(db, `users/${comment.uid}`)); user = us.val() || {}; } catch {}
+    
     const isOwner  = comment.uid === currentUser.uid;
     const likes     = comment.likes || {};
     const likeCount = Object.keys(likes).length;
     const userLiked = !!likes[currentUser?.uid];
+
     const div = document.createElement('div');
     div.className = `comment`; div.id = `vf-comment-${postId}-${commentId}`;
     div.innerHTML = `
@@ -2383,8 +2641,10 @@ async function renderVfComment(postId, commentId, comment, isReply=false, parent
             <div id="vf-replies-${postId}-${commentId}" style="margin-top:8px;"></div>
             <div id="vf-reply-input-${postId}-${commentId}"></div>
         </div>`;
+        
     container.appendChild(div);
     attachCommentLikeListener(postId, commentId);
+    
     if (comment.replies) {
         Object.entries(comment.replies).forEach(([rId, r]) => renderVfComment(postId, rId, r, true, commentId));
     }
@@ -2411,6 +2671,7 @@ window.submitVfReply = async (postId, commentId) => {
 
 function renderPostMedia(post) {
     let spotifyHtml = '';
+    
     if (post.spotifyTrackId) {
         spotifyHtml = `
         <div style="margin: 0 -16px 12px; padding: 0 16px;">
@@ -2421,12 +2682,14 @@ function renderPostMedia(post) {
             </iframe>
         </div>`;
     }
+
     const doubleTapHtml = `
         <div class="double-tap-heart" id="dt-heart-${post.id}">
             <svg width="80" height="80" viewBox="0 0 24 24" fill="currentColor" stroke="none">
                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
             </svg>
         </div>`;
+
     if (post.mediaUrls && post.mediaUrls.length > 1) {
         const id = `carousel-${post.id}`;
         const slides = post.mediaUrls.map((m,i) => {
@@ -2442,6 +2705,7 @@ function renderPostMedia(post) {
         const dots = post.mediaUrls.map((_,i) => `<div class="carousel-dot${i===0?' active':''}" onclick="carouselGoTo('${id}',${i})"></div>`).join('');
         return spotifyHtml + `<div class="carousel" id="${id}" data-index="0" data-count="${post.mediaUrls.length}">${doubleTapHtml}<div class="carousel-track" id="${id}-track">${slides}</div><button class="carousel-btn prev" onclick="carouselMove('${id}',-1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg></button><button class="carousel-btn next" onclick="carouselMove('${id}',1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg></button><div class="carousel-dots" id="${id}-dots">${dots}</div><div class="carousel-counter" id="${id}-counter">1 / ${post.mediaUrls.length}</div></div>`;
     }
+    
     if (post.mediaUrl) {
         if (post.mediaType === 'video') {
             return spotifyHtml + `<div class="video-post-wrapper" style="position:relative;" ondblclick="triggerDoubleTapLike('${post.id}')" onclick="openVideoFeed('${post.id}')">
@@ -2465,7 +2729,7 @@ window.carouselGoTo = (id, idx) => {
     document.getElementById(`${id}-track`).style.transform = `translateX(-${idx*100}%)`;
     document.getElementById(`${id}-counter`).textContent = `${idx+1} / ${count}`;
     const dots = document.getElementById(`${id}-dots`).children;
-    for (let i=0;i<<dots.length;i++) dots[i].classList.toggle('active', i===idx);
+    for (let i=0;i<dots.length;i++) dots[i].classList.toggle('active', i===idx);
 };
 
 function setupCommentsListener(postId) {
@@ -2670,11 +2934,14 @@ window.toggleLike = async postId => {
 
 window.toggleBookmark = async postId => {
     if (!currentUser) { showToast('Please log in'); return; }
+    
     const btn = document.getElementById(`bookmark-btn-${postId}`);
     if (!btn) return;
+    
     const svg = btn.querySelector('svg');
     const isBookmarked = svg.getAttribute('fill') === 'currentColor';
     const bookmarkRef = ref(db, `users/${currentUser.uid}/bookmarks/${postId}`);
+    
     try {
         if (isBookmarked) {
             await remove(bookmarkRef);
@@ -2770,19 +3037,244 @@ function showConfirmModal(title, text, confirmText, isRepost=false) {
 window.closeConfirmModal = () => {
     document.getElementById('confirm-overlay').classList.remove('active');
     document.getElementById('confirm-modal').classList.remove('active');
+    if (deleteType === 'story') window.resumeStoryPlayback();
     deleteType=null; deleteData=null; confirmCallback=null;
 };
 
 window.executeConfirmAction = async () => {
     if (confirmCallback) { const cb=confirmCallback; closeConfirmModal(); await cb(); return; }
     if (!deleteType||!deleteData) { closeConfirmModal(); return; }
+    
     const type = deleteType;
     const data = deleteData;
-    closeConfirmModal();
+    closeConfirmModal(); // Hide modal immediately
+    
     try {
         if (type==='post')    { await remove(ref(db,`posts/${data}`)); showToast('Post deleted'); }
         else if (type==='comment') { await remove(ref(db,`posts/${data.postId}/comments/${data.commentId}`)); showToast('Comment deleted'); }
+        else if (type==='story')   { await remove(ref(db,`stories/${data}`)); closeStoryViewer(); showToast('Story deleted'); }
     } catch { showToast('Delete failed'); }
+};
+
+/* ══ STORIES ══ */
+const STORY_IMAGE_DURATION = 5000;
+const STORY_MAX_VIDEO_DURATION = 30000;
+
+function setupStoriesListeners() {
+    onChildAdded  (ref(db,'stories'), snap => { const s={id:snap.key,...snap.val()}; if(Date.now()-s.timestamp<86400000) addStoryToGroup(s); });
+    onChildChanged(ref(db,'stories'), snap => updateStoryInGroup({id:snap.key,...snap.val()}));
+    onChildRemoved(ref(db,'stories'), snap => removeStoryFromGroup(snap.key));
+}
+function addStoryToGroup(story) {
+    const uid = story.uid;
+    if (!storyGroups.has(uid)) storyGroups.set(uid,{user:{uid,username:story.username,photoURL:story.userPhoto,verified:story.verified||false},stories:[]});
+    const group = storyGroups.get(uid);
+    if (!group.stories.find(s=>s.id===story.id)) { group.stories.push(story); group.stories.sort((a,b)=>a.timestamp-b.timestamp); renderStoryGroups(); }
+}
+function updateStoryInGroup(story) { const g=storyGroups.get(story.uid); if(g){const i=g.stories.findIndex(s=>s.id===story.id); if(i!==-1){g.stories[i]=story;renderStoryGroups();}}}
+function removeStoryFromGroup(storyId) {
+    for (const [uid,group] of storyGroups) {
+        const i=group.stories.findIndex(s=>s.id===storyId);
+        if(i!==-1){group.stories.splice(i,1); if(!group.stories.length)storyGroups.delete(uid); renderStoryGroups(); break;}
+    }
+}
+function renderStoryGroups() {
+    const container=document.getElementById('stories-container'); const addBtn=container.firstElementChild;
+    container.innerHTML=''; container.appendChild(addBtn);
+    const sortedEntries = Array.from(storyGroups.entries()).sort(([uidA,groupA],[uidB,groupB]) => {
+        if (uidA===currentUser?.uid) return -1; if (uidB===currentUser?.uid) return 1;
+        const hasUnseenA = groupA.stories.some(s=>!s.viewed?.[currentUser?.uid]);
+        const hasUnseenB = groupB.stories.some(s=>!s.viewed?.[currentUser?.uid]);
+        if (hasUnseenA&&!hasUnseenB) return -1; if (!hasUnseenA&&hasUnseenB) return 1;
+        const latestA = Math.max(...groupA.stories.map(s=>s.timestamp||0));
+        const latestB = Math.max(...groupB.stories.map(s=>s.timestamp||0));
+        return latestB-latestA;
+    });
+    for (const [uid,group] of sortedEntries) {
+        const hasUnseen = group.stories.some(s=>!s.viewed?.[currentUser?.uid]);
+        const isOwn     = uid===currentUser?.uid;
+        const el = document.createElement('div'); el.className='story-group'; el.onclick=()=>openStoryViewer(uid);
+        el.innerHTML=`<div class="story-ring-group ${hasUnseen?'':'all-seen'}"><img src="${group.user.photoURL||DEFAULT_AVATAR}" onerror="this.src='${DEFAULT_AVATAR}'" class="story-img-group">${group.stories.length>1?`<div class="story-count">${group.stories.length}</div>`:''}</div><span class="story-label">${isOwn?'Your Story':group.user.username}</span>`;
+        container.appendChild(el);
+    }
+}
+
+window.triggerStoryUpload = () => document.getElementById('story-input').click();
+window.validateAndUploadStory = async e => {
+    const file = e.target.files[0]; if (!file) return;
+    if (file.type.startsWith('video/')) {
+        const v = document.createElement('video'); v.preload='metadata';
+        v.onloadedmetadata = async () => {
+            window.URL.revokeObjectURL(v.src);
+            if (v.duration > MAX_STORY_VIDEO_DURATION) {
+                showToast(`Story videos max 30 seconds.`);
+                return;
+            }
+            await uploadStory(file);
+        };
+        v.src = URL.createObjectURL(file);
+    } else await uploadStory(file);
+    e.target.value = '';
+};
+async function uploadStory(file) {
+    showToast('Uploading…');
+    try {
+        const r = await uploadToCloudinary(file,'stories');
+        await push(ref(db,'stories'),{uid:currentUser.uid,username:currentUserData.username,userPhoto:currentUserData.photoURL,verified:currentUserData.verified||false,mediaUrl:r.secure_url,mediaType:r.resource_type,timestamp:serverTimestamp(),viewed:{[currentUser.uid]:true}});
+        showToast('Story added!');
+    } catch { showToast('Upload failed'); }
+}
+
+window.openStoryViewer = uid => {
+    const group = storyGroups.get(uid); if (!group||!group.stories.length) return;
+    const ids = Array.from(storyGroups.keys()).sort((a,b)=>{if(a===currentUser?.uid)return -1;if(b===currentUser?.uid)return 1;return 0;});
+    currentStoryGroupIndex = ids.indexOf(uid); currentStoryIndex=0;
+    const first = group.stories.findIndex(s=>!s.viewed?.[currentUser?.uid]); if(first!==-1) currentStoryIndex=first;
+    displayCurrentStory();
+};
+
+function getStoryDuration(story, videoEl) {
+    if (story.mediaType === 'video' && videoEl && videoEl.duration && !isNaN(videoEl.duration)) {
+        return Math.min(videoEl.duration * 1000, STORY_MAX_VIDEO_DURATION);
+    }
+    return STORY_IMAGE_DURATION;
+}
+
+function displayCurrentStory() {
+    const ids = Array.from(storyGroups.keys()).sort((a,b)=>{if(a===currentUser?.uid)return -1;if(b===currentUser?.uid)return 1;return 0;});
+    const group = storyGroups.get(ids[currentStoryGroupIndex]);
+    const story = group?.stories[currentStoryIndex]; if (!story) { closeStoryViewer(); return; }
+    document.getElementById('story-viewer-avatar').src      = group.user.photoURL||DEFAULT_AVATAR;
+    document.getElementById('story-viewer-name').textContent = group.user.username;
+    document.getElementById('story-viewer-verified').innerHTML = group.user.verified ? VERIFIED_BADGE_SVG : '';
+    document.getElementById('story-viewer-time').textContent = formatTime(story.timestamp);
+    document.getElementById('delete-story-btn').style.display = story.uid===currentUser?.uid?'block':'none';
+    if (story.uid!==currentUser?.uid) update(ref(db,`stories/${story.id}/viewed`),{[currentUser.uid]:true});
+    updateStoryLikeUI(story);
+
+    const pc = document.getElementById('story-progress-container'); pc.innerHTML='';
+    group.stories.forEach((_,idx)=>{
+        const bar  = document.createElement('div'); bar.className='story-progress-bar';
+        const fill = document.createElement('div'); fill.className='story-progress-fill';
+        if (idx < currentStoryIndex) fill.style.width = '100%';
+        if (idx === currentStoryIndex) fill.id = 'current-progress';
+        bar.appendChild(fill); pc.appendChild(bar);
+    });
+
+    const mc = document.getElementById('story-media-container'); mc.innerHTML='';
+    if (currentVideoElement){currentVideoElement.pause();currentVideoElement=null;}
+    if (storyTimeout) clearTimeout(storyTimeout);
+
+    if (story.mediaType==='video') {
+        const v = document.createElement('video');
+        v.className = 'story-video';
+        v.src = story.mediaUrl;
+        v.autoplay = true;
+        v.playsInline = true;
+        v.ontimeupdate = () => {
+            if (v.currentTime >= 30) {
+                v.pause();
+                navigateStory(1);
+            }
+        };
+        v.onloadedmetadata = () => {
+            const dur = Math.min(v.duration * 1000, STORY_MAX_VIDEO_DURATION);
+            startStoryProgress(dur, v);
+            if (storyTimeout) clearTimeout(storyTimeout);
+            storyTimeout = setTimeout(() => navigateStory(1), dur);
+        };
+        v.onended = () => navigateStory(1);
+        mc.appendChild(v);
+        currentVideoElement = v;
+    } else {
+        const img = document.createElement('img');
+        img.className='story-media'; img.src=story.mediaUrl;
+        mc.appendChild(img);
+        startStoryProgress(STORY_IMAGE_DURATION, null);
+        storyTimeout = setTimeout(() => navigateStory(1), STORY_IMAGE_DURATION);
+    }
+
+    document.getElementById('story-viewer').classList.add('active');
+}
+
+function startStoryProgress(durationMs, videoEl) {
+    const fill = document.getElementById('current-progress');
+    if (!fill) return;
+    fill.style.transition = 'none';
+    fill.style.width = '0%';
+    requestAnimationFrame(() => {
+        fill.style.transition = `width ${durationMs}ms linear`;
+        fill.style.width = '100%';
+    });
+}
+
+window.toggleStoryLike = async () => {
+    const ids = Array.from(storyGroups.keys()).sort((a,b)=>{if(a===currentUser?.uid)return -1;if(b===currentUser?.uid)return 1;return 0;});
+    const group = storyGroups.get(ids[currentStoryGroupIndex]);
+    const story = group?.stories[currentStoryIndex];
+    if (!story||!currentUser) return;
+    const likeRef = ref(db,`stories/${story.id}/likes/${currentUser.uid}`);
+    const snap    = await get(likeRef);
+    if (snap.exists()) { await remove(likeRef); story.likes=story.likes||{}; delete story.likes[currentUser.uid]; }
+    else { await set(likeRef,true); story.likes=story.likes||{}; story.likes[currentUser.uid]=true; if(navigator.vibrate)navigator.vibrate(50); }
+    updateStoryLikeUI(story);
+};
+function updateStoryLikeUI(story) {
+    const likes   = story.likes||{};
+    const userLiked = !!likes[currentUser?.uid];
+    const count   = Object.keys(likes).length;
+    const icon    = document.getElementById('story-like-icon');
+    const countEl = document.getElementById('story-like-count');
+    const btn     = document.getElementById('story-like-btn');
+    if (icon) {
+        icon.innerHTML = userLiked 
+            ? `<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>`
+            : `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>`;
+    }
+    if (countEl) countEl.textContent = count > 0 ? count : '';
+    if (btn)     btn.classList.toggle('liked-story', userLiked);
+}
+
+function setupStoryHold() {
+    const mc = document.getElementById('story-media-container');
+    const holdIndicator = document.getElementById('story-hold-indicator');
+    
+    const startHold = (e) => {
+        if (e.target.closest('.story-nav')||e.target.closest('.story-controls')||e.target.closest('.story-header')) return;
+        if (!document.getElementById('story-viewer').classList.contains('active')) return;
+        holdActive = true;
+        window.pauseStoryPlayback();
+        if (holdIndicator) holdIndicator.classList.add('visible');
+    };
+    
+    const endHold = () => {
+        if (!holdActive) return; holdActive=false;
+        if (holdIndicator) holdIndicator.classList.remove('visible');
+        window.resumeStoryPlayback();
+    };
+    
+    mc.addEventListener('touchstart', startHold,{passive:true}); mc.addEventListener('touchend',endHold); mc.addEventListener('touchcancel',endHold);
+    mc.addEventListener('mousedown',  startHold); mc.addEventListener('mouseup',endHold); mc.addEventListener('mouseleave',endHold);
+}
+
+window.navigateStory = dir => {
+    if (storyTimeout) clearTimeout(storyTimeout);
+    const ids = Array.from(storyGroups.keys()).sort((a,b)=>{if(a===currentUser?.uid)return -1;if(b===currentUser?.uid)return 1;return 0;});
+    const cg  = storyGroups.get(ids[currentStoryGroupIndex]);
+    currentStoryIndex += dir;
+    if (currentStoryIndex>=cg.stories.length) { currentStoryGroupIndex++; currentStoryIndex=0; if(currentStoryGroupIndex>=ids.length){closeStoryViewer();return;} }
+    else if (currentStoryIndex<0) { currentStoryGroupIndex--; if(currentStoryGroupIndex<0){closeStoryViewer();return;} const pg=storyGroups.get(ids[currentStoryGroupIndex]); currentStoryIndex=pg.stories.length-1; }
+    displayCurrentStory();
+};
+window.closeStoryViewer = () => { if(storyTimeout)clearTimeout(storyTimeout); if(currentVideoElement){currentVideoElement.pause();currentVideoElement=null;} document.getElementById('story-viewer').classList.remove('active'); };
+
+window.deleteCurrentStory = () => { 
+    window.pauseStoryPlayback();
+    const ids=Array.from(storyGroups.keys()).sort((a,b)=>{if(a===currentUser?.uid)return -1;if(b===currentUser?.uid)return 1;return 0;}); 
+    const g=storyGroups.get(ids[currentStoryGroupIndex]); 
+    const s=g.stories[currentStoryIndex]; 
+    deleteType='story'; deleteData=s.id; confirmCallback=null; 
+    showConfirmModal('Delete Story?','This story will be permanently removed.','Delete',false); 
 };
 
 // ── COMPOSE ──
@@ -2834,6 +3326,7 @@ pastePopup.addEventListener('click', async (e) => {
     }
 });
 
+
 window.closeCompose = () => { document.getElementById('compose-overlay').classList.remove('active'); clearMedia(); document.getElementById('compose-text').value=''; updatePostButton(); };
 window.updatePostButton = () => {
     const text = document.getElementById('compose-text').value; 
@@ -2853,8 +3346,8 @@ function renderComposeGrid() {
     const grid  = document.getElementById('compose-media-grid');
     if (!selectedMediaFiles.length) { grid.style.display='none'; return; }
     grid.style.display='grid';
-    grid.innerHTML = selectedMediaFiles.map((m,i)=>`<div class="compose-thumb">${m.type==='video'?`<video src="${m.url}" muted playsinline style="pointer-events:none;"></video>`:`<<img src="${m.url}" alt="">`}<button class="compose-thumb-remove" onclick="removeComposeMedia(${i})"><i data-feather="x" style="width:12px;height:12px;"></i></button></div>`).join('');
-    if (selectedMediaFiles.length<<10) { grid.innerHTML+=`<button class="compose-add-more" onclick="document.getElementById('media-input').click()"><i data-feather="plus" style="width:20px;height:20px;"></i></button>`; feather.replace(); }
+    grid.innerHTML = selectedMediaFiles.map((m,i)=>`<div class="compose-thumb">${m.type==='video'?`<video src="${m.url}" muted playsinline style="pointer-events:none;"></video>`:`<img src="${m.url}" alt="">`}<button class="compose-thumb-remove" onclick="removeComposeMedia(${i})"><i data-feather="x" style="width:12px;height:12px;"></i></button></div>`).join('');
+    if (selectedMediaFiles.length<10) { grid.innerHTML+=`<button class="compose-add-more" onclick="document.getElementById('media-input').click()"><i data-feather="plus" style="width:20px;height:20px;"></i></button>`; feather.replace(); }
     feather.replace();
 }
 window.removeComposeMedia = idx => { URL.revokeObjectURL(selectedMediaFiles[idx].url); selectedMediaFiles.splice(idx,1); renderComposeGrid(); updatePostButton(); };
@@ -2869,6 +3362,7 @@ window.createPost = async () => {
     const text = document.getElementById('compose-text').value.trim(); 
     const spotifyUrl = document.getElementById('spotify-url-input').value.trim();
     if (!text && !selectedMediaFiles.length && !spotifyUrl) return;
+    
     const btn  = document.getElementById('post-btn'); btn.disabled=true; btn.textContent='Posting…';
     try {
         let spotifyTrackId = null;
@@ -2882,20 +3376,24 @@ window.createPost = async () => {
                 return;
             }
         }
+
         let mediaUrls = [];
         if (selectedMediaFiles.length>0) {
             const prog=document.getElementById('upload-progress'); const fill=document.getElementById('progress-fill'); prog.classList.add('active');
-            for (let i=0;i<<selectedMediaFiles.length;i++) {
+            for (let i=0;i<selectedMediaFiles.length;i++) {
                 fill.style.width=Math.round(i/selectedMediaFiles.length*100)+'%';
                 const r=await uploadToCloudinary(selectedMediaFiles[i].file,'posts'); mediaUrls.push({url:r.secure_url,type:r.resource_type});
                 fill.style.width=Math.round((i+1)/selectedMediaFiles.length*100)+'%';
             }
             prog.classList.remove('active'); fill.style.width='0%';
         }
+        
         const pd = {uid:currentUser.uid,text,timestamp:serverTimestamp(),likes:{},comments:{}};
         if (spotifyTrackId) pd.spotifyTrackId = spotifyTrackId;
+
         if (mediaUrls.length===1) { pd.mediaUrl=mediaUrls[0].url; pd.mediaType=mediaUrls[0].type; }
         else if (mediaUrls.length>1) { pd.mediaUrls=mediaUrls; pd.mediaType='gallery'; }
+        
         await push(ref(db,'posts'),pd); clearMedia(); closeCompose(); showToast('Posted!');
         window.scrollTo({top:0,behavior:'smooth'});
     } catch(e) { console.error(e); showToast('Upload failed'); }
@@ -2916,17 +3414,17 @@ window.toggleSeeMore = (postId, fullRich) => {
     else { el.innerHTML=truncateRich(fullRich,TRUNCATE); el.classList.add('collapsed'); btn.textContent='more'; }
 };
 function truncateRich(rich, limit) {
-    const stripped = rich.replace(/<<[^>]+>/g,''); if (stripped.length<=limit) return rich;
+    const stripped = rich.replace(/<[^>]+>/g,''); if (stripped.length<=limit) return rich;
     let rc=0, i=0;
-    while (i<<rich.length&&rc<<limit) { if(rich[i]==='<'){while(i<<rich.length&&rich[i]!=='>')i++;}else rc++; i++; }
+    while (i<rich.length&&rc<limit) { if(rich[i]==='<'){while(i<rich.length&&rich[i]!=='>')i++;}else rc++; i++; }
     let cut=i; while(cut>0&&rich[cut]!==' '&&rich[cut]!=='\n')cut--;
     return rich.slice(0,cut)+'…';
 }
 function enrichText(esc) {
     return esc
-        .replace(/(https?:\/\/[^\s<<]+)/g,'<<a class="post-link" href="$1" target="_blank" rel="noopener">$1</a>')
-        .replace(/@([a-zA-Z0-9_]+)/g,'<<span class="mention" onclick="goToProfileByUsername(\'$1\')">@$1</span>')
-        .replace(/#([a-zA-Z0-9_]+)/g,'<<span class="hashtag" onclick="switchMainTab(\'search\')">#$1</span>');
+        .replace(/(https?:\/\/[^\s<]+)/g,'<a class="post-link" href="$1" target="_blank" rel="noopener">$1</a>')
+        .replace(/@([a-zA-Z0-9_]+)/g,'<span class="mention" onclick="goToProfileByUsername(\'$1\')">@$1</span>')
+        .replace(/#([a-zA-Z0-9_]+)/g,'<span class="hashtag" onclick="switchMainTab(\'search\')">#$1</span>');
 }
 window.goToProfileByUsername = async username => {
     try { const s=await get(ref(db,'users')); if(s.exists()) s.forEach(c=>{if(c.val().username===username)window.goToProfile(c.key);}); }
@@ -2983,21 +3481,26 @@ document.addEventListener('click', e => {
     const avatar = e.target.closest('.post-avatar'); if (!avatar) return;
     e.stopPropagation();
     const uid = avatar.dataset.uid;
-    window.goToProfile(uid || currentUser?.uid);
+    
+    if (uid && storyGroups.has(uid)) {
+        openStoryViewer(uid);
+    } else {
+        window.goToProfile(uid || currentUser?.uid);
+    }
 }, true);
 
 // ── CAROUSEL SWIPE ──
 (()=>{
     let tX=0, tEl=null;
     document.addEventListener('touchstart', e=>{const c=e.target.closest('.carousel');if(!c)return;tX=e.touches[0].clientX;tEl=c;},{passive:true});
-    document.addEventListener('touchend',   e=>{if(!tEl)return;const dx=e.changedTouches[0].clientX-tX;if(Math.abs(dx)>40)carouselMove(tEl.id,dx<<0?1:-1);tEl=null;},{passive:true});
+    document.addEventListener('touchend',   e=>{if(!tEl)return;const dx=e.changedTouches[0].clientX-tX;if(Math.abs(dx)>40)carouselMove(tEl.id,dx<0?1:-1);tEl=null;},{passive:true});
 })();
 
 // ── HELPERS ──
 function formatTime(ts) {
     if (!ts) return 'now'; const secs=Math.floor((Date.now()-ts)/1000);
-    if (secs<<60) return 'now'; if (secs<<3600) return Math.floor(secs/60)+'m';
-    if (secs<<86400) return Math.floor(secs/3600)+'h'; return Math.floor(secs/86400)+'d';
+    if (secs<60) return 'now'; if (secs<3600) return Math.floor(secs/60)+'m';
+    if (secs<86400) return Math.floor(secs/3600)+'h'; return Math.floor(secs/86400)+'d';
 }
 function escapeHtml(text) { const d=document.createElement('div'); d.textContent=text; return d.innerHTML; }
 window.showToast        = msg => { const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000); };
@@ -3021,6 +3524,8 @@ if (params.get('compose') === 'true') {
 }
 
 feather.replace();
+
+
 
 /* ══ SERVICE WORKER REGISTRATION ══ */
 if ('serviceWorker' in navigator) {
@@ -3077,6 +3582,7 @@ window.installPWA = async () => {
     }
 };
 
+// Swipe down to dismiss
 pwaPopup.addEventListener('touchstart', (e) => {
     pwaStartY = e.touches[0].clientY;
     pwaPopup.style.transition = 'none';
@@ -3120,7 +3626,6 @@ window.dismissPwaPopup = (permanent = false) => {
 
 </script>
 
-<div id="toast" class="toast"></div>
 
 <div id="pwa-install-popup">
     <div class="pwa-install-inner">
