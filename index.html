@@ -589,19 +589,24 @@
                 <img src="https://i.postimg.cc/T3Nv0Szn/Gemini-Generated-Image-g7omg8g7omg8g7om-removebg-preview.png" alt="Vynix" style="height: 64px; width: auto; cursor: pointer; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));" onclick="window.scrollTo({top:0,behavior:'smooth'})">
             </div>
             <div style="display:flex; align-items:center; gap:16px;">
-                <button style="background:none;border:none;cursor:pointer; display:flex; align-items:center;" onclick="window.location.href='ai.html'" aria-label="Ask Ona">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="url(#gemini-gradient)" stroke="none">
-                        <defs>
-                            <linearGradient id="gemini-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" stop-color="#4A90E2" />
-                                <stop offset="50%" stop-color="#9013FE" />
-                                <stop offset="100%" stop-color="#FF7A59" />
-                            </linearGradient>
-                        </defs>
-                        <path d="M11.5 2C11.5 7.24671 7.24671 11.5 2 11.5C7.24671 11.5 11.5 15.7533 11.5 21C11.5 15.7533 15.7533 11.5 21 11.5C15.7533 11.5 11.5 7.24671 11.5 2Z"></path>
-                        <path d="M20 4C20 5.65685 18.6569 7 17 7C18.6569 7 20 8.34315 20 10C20 8.34315 21.3431 7 23 7C21.3431 7 20 5.65685 20 4Z"></path>
-                    </svg>
-                </button>
+               <button style="background:none; border:none; cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px;" onclick="window.location.href='ai.html'" aria-label="Ask Ona">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <defs>
+            <linearGradient id="ona-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#4A90E2" />
+                <stop offset="50%" stop-color="#9013FE" />
+                <stop offset="100%" stop-color="#FF7A59" />
+            </linearGradient>
+        </defs>
+        <!-- Outer Circle -->
+        <circle cx="12" cy="12" r="10" stroke="url(#ona-gradient)" stroke-width="2" fill="none"></circle>
+        <!-- Inner Dot -->
+        <circle cx="12" cy="12" r="3" fill="url(#ona-gradient)"></circle>
+    </svg>
+    
+    <!-- Label Below -->
+    <span style="font-size: 11px; color: var(--text-primary); font-weight: 500; letter-spacing: 0.5px; line-height: 1;">Ona ai</span>
+</button>
                <button style="background:none;border:none;cursor:pointer;position:relative;" onclick="goToMessages()">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-primary);">
     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
