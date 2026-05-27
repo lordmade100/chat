@@ -66,13 +66,25 @@
         .repost-banner{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:8px;}
 
         /* ── LIVE CARD ── */
-        .live-card{background:var(--background);border-bottom:1px solid var(--border);padding:12px 16px;animation:fadeIn 0.3s ease-out;position:relative;border:2px solid rgba(255,48,64,0.6);border-radius:0;animation:liveCardPulse 2s ease-in-out infinite,fadeIn 0.3s ease-out;}
-        .live-badge{display:inline-flex;align-items:center;gap:4px;background:#FF3040;color:white;font-size:11px;font-weight:800;padding:3px 8px;border-radius:9999px;letter-spacing:0.05em;animation:livePulse 1.8s ease-in-out infinite;}
-        .live-dot{width:6px;height:6px;background:white;border-radius:50%;animation:spin 1s linear infinite;}
-        .live-preview-thumb{width:100%;aspect-ratio:16/9;background:#000;border-radius:8px;overflow:hidden;position:relative;cursor:pointer;margin:10px 0;}
+        .live-card{background:var(--background);border-bottom:1px solid var(--border);padding:14px 16px;position:relative;animation:fadeIn 0.3s ease-out;border-left:3px solid #FF3040;}
+        .live-badge{display:inline-flex;align-items:center;gap:4px;background:#FF3040;color:white;font-size:10px;font-weight:800;padding:3px 8px;border-radius:9999px;letter-spacing:0.08em;animation:livePulse 1.8s ease-in-out infinite;}
+        .live-dot{width:5px;height:5px;background:white;border-radius:50%;animation:liveDotBlink 1s ease-in-out infinite;}
+        @keyframes liveDotBlink{0%,100%{opacity:1;}50%{opacity:0.3;}}
+        .live-preview-thumb{width:100%;aspect-ratio:16/9;background:#111;border-radius:12px;overflow:hidden;position:relative;cursor:pointer;margin:10px 0;box-shadow:0 4px 16px rgba(255,48,64,0.2);}
         .live-preview-thumb video{width:100%;height:100%;object-fit:cover;}
-        .live-preview-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.35);}
-        .live-viewer-count{position:absolute;bottom:8px;left:8px;background:rgba(0,0,0,0.6);color:white;font-size:12px;font-weight:600;padding:3px 10px;border-radius:9999px;display:flex;align-items:center;gap:5px;backdrop-filter:blur(4px);}
+        .live-preview-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(to bottom,rgba(0,0,0,0.1),rgba(0,0,0,0.45));}
+        .live-play-btn{width:52px;height:52px;background:rgba(255,255,255,0.18);backdrop-filter:blur(8px);border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid rgba(255,255,255,0.4);transition:transform 0.2s;}
+        .live-preview-thumb:active .live-play-btn{transform:scale(0.92);}
+        .live-viewer-count{position:absolute;bottom:8px;left:8px;background:rgba(0,0,0,0.65);color:white;font-size:11px;font-weight:600;padding:3px 10px;border-radius:9999px;display:flex;align-items:center;gap:5px;backdrop-filter:blur(6px);}
+        /* Live avatar ring */
+        .live-avatar-ring{position:relative;flex-shrink:0;cursor:pointer;}
+        .live-avatar-ring img{width:42px;height:42px;border-radius:50%;object-fit:cover;border:2.5px solid var(--background);display:block;}
+        .live-avatar-ring::before{content:'';position:absolute;inset:-3px;border-radius:50%;background:conic-gradient(#FF3040,#FF6B35,#FF3040);animation:liveRingSpin 3s linear infinite;z-index:-1;}
+        @keyframes liveRingSpin{to{transform:rotate(360deg);}}
+        /* Search live user avatar ring */
+        .search-live-ring{position:relative;display:inline-block;}
+        .search-live-ring::before{content:'';position:absolute;inset:-3px;border-radius:50%;background:conic-gradient(#FF3040,#FF6B35,#FF3040);animation:liveRingSpin 3s linear infinite;z-index:0;}
+        .search-live-ring img{position:relative;z-index:1;border:2px solid var(--background) !important;}
 
         .post-header{display:flex;gap:10px;margin-bottom:8px;padding-right:32px;align-items:center;}
         .avatar{width:36px;height:36px;border-radius:50%;object-fit:cover;cursor:pointer;border:1px solid var(--border);}
@@ -868,29 +880,33 @@ function renderLiveCards(){
         card.className='live-card';
         card.id=`live-card-${uid}`;
         card.innerHTML=`
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-                <img src="${user.photoURL||DEFAULT_AVATAR}" onerror="this.src='${DEFAULT_AVATAR}'" class="avatar">
-                <div style="flex:1;">
-                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                        <span style="font-weight:700;font-size:14px;">${escapeHtml(user.username||'User')}</span>
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+                <div class="live-avatar-ring" onclick="goToProfile('${uid}')">
+                    <img src="${user.photoURL||DEFAULT_AVATAR}" onerror="this.src='${DEFAULT_AVATAR}'" alt="${escapeHtml(user.username||'User')}">
+                </div>
+                <div style="flex:1;min-width:0;">
+                    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                        <span style="font-weight:700;font-size:14px;color:var(--text-primary);">${escapeHtml(user.username||'User')}</span>
                         ${user.verified?`<span class="verified-badge">${VERIFIED_BADGE_SVG}</span>`:''}
                         <span class="live-badge"><span class="live-dot"></span>LIVE</span>
                     </div>
-                    <div style="font-size:13px;color:var(--text-secondary);margin-top:2px;">${escapeHtml(session.title||'Live stream')}</div>
+                    <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(session.title||'Live stream')}</div>
                 </div>
-                ${isOwn?`<button onclick="endMyLive()" style="background:rgba(255,48,64,0.12);color:#FF3040;border:1px solid rgba(255,48,64,0.3);padding:6px 14px;border-radius:9999px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">End</button>`:''}
+                ${isOwn?`<button onclick="endMyLive()" style="background:rgba(255,48,64,0.1);color:#FF3040;border:1px solid rgba(255,48,64,0.25);padding:6px 12px;border-radius:9999px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;transition:all 0.2s;">End Live</button>`:''}
             </div>
             <div class="live-preview-thumb" onclick="window.location.href='live.html?join=${uid}'">
                 <div class="live-preview-overlay">
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    <div class="live-play-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+                    </div>
                 </div>
                 <div class="live-viewer-count">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3" fill="black"/></svg>
                     ${viewerCount} watching
                 </div>
             </div>
-            <button onclick="window.location.href='live.html?join=${uid}'" style="display:flex;align-items:center;justify-content:center;width:100%;padding:10px;background:var(--surface2);border:none;border-radius:10px;font-size:14px;font-weight:600;color:var(--text-primary);cursor:pointer;font-family:inherit;gap:8px;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="2" fill="currentColor"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49"/><path d="M7.76 16.24a6 6 0 0 1 0-8.49"/></svg>
+            <button onclick="window.location.href='live.html?join=${uid}'" style="display:flex;align-items:center;justify-content:center;width:100%;padding:11px;background:linear-gradient(135deg,rgba(255,48,64,0.12),rgba(255,107,53,0.08));border:1px solid rgba(255,48,64,0.25);border-radius:12px;font-size:14px;font-weight:700;color:#FF3040;cursor:pointer;font-family:inherit;gap:8px;transition:all 0.2s;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="2" fill="currentColor"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49"/><path d="M7.76 16.24a6 6 0 0 1 0-8.49"/></svg>
                 Join Live
             </button>
         `;
@@ -922,7 +938,10 @@ window.endMyLive=async()=>{
 
 /* ══ SEARCH ══ */
 function renderSearchVideoStrip(){
-    const videos=allPostsCache.filter(p=>p.mediaType==='video'||(p.mediaUrls&&p.mediaUrls.some(m=>m.type==='video'))).slice(0,20);
+    let videos=allPostsCache.filter(p=>p.mediaType==='video'||(p.mediaUrls&&p.mediaUrls.some(m=>m.type==='video')));
+    // Shuffle using Fisher-Yates
+    for(let i=videos.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[videos[i],videos[j]]=[videos[j],videos[i]];}
+    videos=videos.slice(0,20);
     const strip=document.getElementById('search-video-strip');
     const scroll=document.getElementById('search-video-scroll');
     if(!videos.length){strip.style.display='none';return;}
@@ -948,10 +967,7 @@ window.showRecentSearchPosts=()=>{
     const recent=allPostsCache.filter(p=>p.mediaUrl||p.text).slice(0,15);
     if(!recent.length){container.innerHTML='<div class="empty-state">Find your friends on Vynix.</div>';return;}
     container.innerHTML=`<div style="padding:12px 16px;font-weight:600;font-size:15px;">Discover</div>`+
-        recent.map(p=>`<div class="search-result-item" onclick="goToPost('${p.id}')" style="align-items:flex-start;">
-            <img src="${p.user?.photoURL||DEFAULT_AVATAR}" class="avatar" style="width:40px;height:40px;">
-            <div style="flex:1;"><div style="font-weight:600;font-size:14px;">${escapeHtml(p.user?.username||'User')}</div><div style="font-size:13px;color:var(--text-primary);margin-top:4px;">${escapeHtml((p.text||'').substring(0,100))}${p.text?.length>100?'...':''}</div></div>
-            ${p.mediaUrls?`<img src="${p.mediaUrls[0].url}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;">`:(p.mediaUrl?`<img src="${p.mediaUrl}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;">`:'')}</div>`).join('');
+        recent.map(p=>{const isLive=[...activeLiveSessions.keys()].includes(p.uid);const avatarHtml=isLive?`<div class="search-live-ring" onclick="event.stopPropagation();window.location.href='live.html?join=${p.uid}'" style="cursor:pointer;width:40px;height:40px;border-radius:50%;flex-shrink:0;"><img src="${p.user?.photoURL||DEFAULT_AVATAR}" style="width:40px;height:40px;object-fit:cover;border-radius:50%;border:2px solid var(--background);position:relative;z-index:1;display:block;"></div>`:`<img src="${p.user?.photoURL||DEFAULT_AVATAR}" class="avatar" style="width:40px;height:40px;">`;return`<div class="search-result-item" onclick="goToPost('${p.id}')" style="align-items:flex-start;">${avatarHtml}<div style="flex:1;"><div style="font-weight:600;font-size:14px;display:flex;align-items:center;gap:5px;">${escapeHtml(p.user?.username||'User')}${isLive?`<span class="live-badge" style="font-size:9px;padding:2px 6px;"><span class="live-dot"></span>LIVE</span>`:''}</div><div style="font-size:13px;color:var(--text-primary);margin-top:4px;">${escapeHtml((p.text||'').substring(0,100))}${p.text?.length>100?'...':''}</div></div>${p.mediaUrls?`<img src="${p.mediaUrls[0].url}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;">`:(p.mediaUrl?`<img src="${p.mediaUrl}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;">`:'')}</div>`;}).join('');
 };
 
 window.handleMainSearch=async(query)=>{
@@ -963,7 +979,7 @@ window.handleMainSearch=async(query)=>{
     const userResults=users.filter(u=>u.username?.toLowerCase().includes(q)||u.displayName?.toLowerCase().includes(q)).slice(0,6);
     const postResults=allPostsCache.filter(p=>(p.text||'').toLowerCase().includes(q)||(p.user?.username||'').toLowerCase().includes(q)).slice(0,15);
     let html='';
-    if(userResults.length){html+=`<div style="padding:12px 16px 4px;font-weight:600;font-size:13px;color:var(--text-secondary);">Users</div>`;html+=userResults.map(u=>`<div class="search-result-item" onclick="goToProfile('${u.uid}')"><img src="${u.photoURL||DEFAULT_AVATAR}" class="avatar"><div style="flex:1;"><div style="font-weight:600;font-size:15px;display:flex;align-items:center;gap:4px;">${escapeHtml(u.displayName||u.username)} ${u.verified?VERIFIED_BADGE_SVG:''}</div><div style="font-size:13px;color:var(--text-secondary);">@${escapeHtml(u.username)}</div></div></div>`).join('');}
+    if(userResults.length){html+=`<div style="padding:12px 16px 4px;font-weight:600;font-size:13px;color:var(--text-secondary);">Users</div>`;html+=userResults.map(u=>{const isLive=[...activeLiveSessions.keys()].includes(u.uid);const avatarHtml=isLive?`<div class="search-live-ring" onclick="window.location.href='live.html?join=${u.uid}'" style="cursor:pointer;width:40px;height:40px;border-radius:50%;flex-shrink:0;"><img src="${u.photoURL||DEFAULT_AVATAR}" class="avatar" style="width:40px;height:40px;border-radius:50%;"></div>`:`<img src="${u.photoURL||DEFAULT_AVATAR}" class="avatar">`;return`<div class="search-result-item" onclick="goToProfile('${u.uid}')">${avatarHtml}<div style="flex:1;"><div style="font-weight:600;font-size:15px;display:flex;align-items:center;gap:4px;">${escapeHtml(u.displayName||u.username)} ${u.verified?VERIFIED_BADGE_SVG:''}${isLive?`<span class="live-badge" style="font-size:9px;padding:2px 6px;"><span class="live-dot"></span>LIVE</span>`:''}</div><div style="font-size:13px;color:var(--text-secondary);">@${escapeHtml(u.username)}</div></div></div>`;}).join('');}
     if(postResults.length){html+=`<div style="padding:12px 16px 4px;font-weight:600;font-size:13px;color:var(--text-secondary);">Posts</div>`;html+=postResults.map(p=>`<div class="search-result-item" onclick="goToPost('${p.id}')" style="align-items:flex-start;"><img src="${p.user?.photoURL||DEFAULT_AVATAR}" class="avatar" style="width:36px;height:36px;"><div style="flex:1;"><div style="font-weight:600;font-size:13px;">${escapeHtml(p.user?.username||'User')}</div><div style="font-size:13px;color:var(--text-primary);margin-top:2px;">${escapeHtml((p.text||'').substring(0,80))}${p.text?.length>80?'...':''}</div></div>${p.mediaUrls?`<img src="${p.mediaUrls[0].url}" style="width:48px;height:48px;object-fit:cover;border-radius:6px;">`:(p.mediaUrl?`<img src="${p.mediaUrl}" style="width:48px;height:48px;object-fit:cover;border-radius:6px;">`:'')}</div>`).join('');}
     if(!html)html='<div class="empty-state">No results found.</div>';
     container.innerHTML=html;
