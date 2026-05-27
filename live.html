@@ -4,410 +4,596 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Vynix Live</title>
-    <meta name="theme-color" content="#FF3040">
     <script src="https://unpkg.com/feather-icons"></script>
     <style>
-        :root,[data-theme="light"]{--primary:#0095F6;--primary-rgb:0,149,246;--background:#FFFFFF;--surface:#FFFFFF;--surface2:#EFEFEF;--border:#DBDBDB;--text-primary:#000000;--text-secondary:#737373;--text-muted:#A8A8A8;--like:#FF3040;--toggle-on:#34C759;--toggle-off:#E9E9EB;--verified:#0095F6;}
-        [data-theme="dark"]{--primary:#0095F6;--primary-rgb:0,149,246;--background:#000000;--surface:#000000;--surface2:#262626;--border:#363636;--text-primary:#F5F5F5;--text-secondary:#A8A8A8;--text-muted:#737373;--like:#FF3040;--toggle-on:#32D74B;--toggle-off:#39393D;--verified:#0095F6;}
-        [data-theme="midnight"]{--primary:#C084FC;--background:#09090B;--surface:#09090B;--surface2:#27272A;--border:#3F3F46;--text-primary:#FAFAFA;--text-secondary:#A1A1AA;--text-muted:#71717A;--like:#F472B6;--toggle-on:#C084FC;--toggle-off:#39393D;--verified:#C084FC;}
-        [data-theme="ocean"]{--primary:#06B6D4;--background:#F0F9FF;--surface:#F0F9FF;--surface2:#E0F2FE;--border:#BAE6FD;--text-primary:#0C4A6E;--text-secondary:#0369A1;--text-muted:#7DD3FC;--like:#F43F5E;--toggle-on:#06B6D4;--toggle-off:#BAE6FD;--verified:#06B6D4;}
-        [data-theme="rose"]{--primary:#E11D48;--background:#FFF1F2;--surface:#FFF1F2;--surface2:#FFE4E6;--border:#FECDD3;--text-primary:#881337;--text-secondary:#9F1239;--text-muted:#FDA4AF;--like:#E11D48;--toggle-on:#E11D48;--toggle-off:#FECDD3;--verified:#E11D48;}
+        :root {
+            --primary: #0095F6;
+            --background: #000000; /* Live streams look best on full black background */
+            --surface: #121212;
+            --surface2: #262626;
+            --border: #363636;
+            --text-primary: #F5F5F5;
+            --text-secondary: #A8A8A8;
+            --like: #FF3040;
+        }
 
-        *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-        body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:#000;color:#fff;-webkit-font-smoothing:antialiased;overflow:hidden;height:100dvh;}
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-        .live-container{position:relative;width:100%;height:100%;max-width:600px;margin:0 auto;background:#000;display:flex;flex-direction:column;}
-        
-        /* Video Container */
-        .video-wrapper{position:absolute;inset:0;width:100%;height:100%;z-index:1;}
-        video, .placeholder-stream{width:100%;height:100%;object-fit:cover;}
-        .placeholder-stream{display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(180deg, #111, #221111);color:var(--text-muted);gap:12px;}
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: var(--background);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
 
-        /* Overlay Interface */
-        .live-ui{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;justify-content:between;padding:calc(16px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom));background:linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, transparent 20%, transparent 60%, rgba(0,0,0,0.6) 100%);pointer-events:none;}
-        .live-ui > * {pointer-events:auto;}
+        .live-container {
+            position: relative;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #000;
+        }
 
-        /* Top Bar */
-        .live-top-bar{display:flex;align-items:center;justify-content:space-between;width:100%;margin-bottom:auto;}
-        .host-info{display:flex;align-items:center;gap:10px;background:rgba(0,0,0,0.5);padding:6px 12px 6px 6px;border-radius:9999px;backdrop-filter:blur(8px);max-width:70%;}
-        .host-avatar{width:32px;height:32px;border-radius:50%;object-fit:cover;border:1px solid rgba(255,255,255,0.2);}
-        .host-meta{min-width:0;display:flex;flex-direction:column;}
-        .host-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:3px;color:#fff;}
-        .live-badges{display:flex;align-items:center;gap:6px;}
-        .badge-live{background:#FF3040;color:#fff;font-size:10px;font-weight:800;padding:3px 8px;border-radius:9999px;letter-spacing:0.04em;display:flex;align-items:center;gap:4px;}
-        .badge-live span{width:5px;height:5px;background:#fff;border-radius:50%;animation:pulse 1s infinite;}
-        .badge-viewers{background:rgba(0,0,0,0.6);color:#fff;font-size:11px;font-weight:600;padding:3px 8px;border-radius:9999px;display:flex;align-items:center;gap:4px;}
-        .btn-close{background:rgba(255,255,255,0.2);border:none;color:#fff;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(8px);}
+        /* Video Display Frame */
+        .video-wrapper {
+            position: relative;
+            flex: 1;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-        /* Setup Display Screen */
-        .setup-screen{position:absolute;inset:0;z-index:10;background:var(--background);color:var(--text-primary);display:flex;flex-direction:column;padding:calc(20px + env(safe-area-inset-top)) 20px calc(20px + env(safe-area-inset-bottom));justify-content:space-between;}
-        .setup-header{display:flex;align-items:center;justify-content:space-between;}
-        .setup-body{display:flex;flex-direction:column;gap:20px;margin:auto 0;width:100%;max-width:400px;align-self:center;}
-        .setup-title{font-size:22px;font-weight:800;letter-spacing:-0.02em;}
-        .input-title{width:100%;border:1px solid var(--border);background:var(--surface2);color:var(--text-primary);padding:14px 16px;border-radius:14px;font-size:16px;outline:none;font-family:inherit;transition:border-color 0.2s;}
-        .input-title:focus{border-color:var(--primary);}
-        .btn-start-stream{width:100%;padding:14px;background:linear-gradient(135deg,#FF3040 0%,#FF6B35 100%);color:white;border:none;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(255,48,64,0.3);}
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+        }
 
-        /* Bottom Section - Chat */
-        .live-bottom-area{display:flex;flex-direction:column;width:100%;gap:12px;margin-top:auto;}
-        .chat-scroller{height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding-right:8px;scrollbar-width:none;mask-image:linear-gradient(to top, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%);-webkit-mask-image:linear-gradient(to top, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%);}
-        .chat-scroller::-webkit-scrollbar{display:none;}
-        .chat-msg{display:flex;align-items:flex-start;gap:8px;background:rgba(0,0,0,0.3);padding:6px 10px;border-radius:10px;backdrop-filter:blur(4px);align-self:flex-start;max-width:85%;font-size:13px;line-height:1.4;animation:msgFadeIn 0.2s ease-out both;}
-        .chat-msg-author{font-weight:700;color:rgba(255,255,255,0.9);white-space:nowrap;}
-        .chat-msg-text{color:#fff;word-break:break-word;}
-        
-        .chat-input-row{display:flex;align-items:center;gap:10px;}
-        .chat-input-wrap{flex:1;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.1);border-radius:9999px;padding:8px 16px;display:flex;align-items:center;backdrop-filter:blur(10px);}
-        .chat-input{flex:1;background:none;border:none;outline:none;color:#fff;font-size:14px;font-family:inherit;}
-        .chat-input::placeholder{color:rgba(255,255,255,0.6);}
-        .btn-send-msg{background:none;border:none;color:#fff;cursor:pointer;opacity:0.5;transition:opacity 0.2s;display:flex;align-items:center;}
-        .btn-send-msg.active{opacity:1;color:var(--primary)}
+        /* Stream Loading State Indicator */
+        #stream-placeholder {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #000;
+            z-index: 2;
+            color: var(--text-secondary);
+            gap: 12px;
+            font-size: 14px;
+        }
 
-        /* End Overlay Screen */
-        .ended-screen{position:absolute;inset:0;z-index:20;background:#000;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;color:#fff;}
-        .ended-title{font-size:24px;font-weight:800;margin-bottom:8px;}
-        .ended-text{font-size:15px;color:var(--text-muted);margin-bottom:24px;}
-        .btn-return{background:var(--primary);color:#fff;border:none;padding:12px 28px;border-radius:9999px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;}
+        .spinner {
+            width: 36px;
+            height: 36px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
 
-        @keyframes pulse { 0%,100%{opacity:0.4;} 50%{opacity:1;} }
-        @keyframes msgFadeIn { from{opacity:0;transform:translateY(6px);} to{opacity:1;transform:translateY(0);} }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* HUD Headers & Badges */
+        .top-overlay {
+            position: absolute;
+            top: calc(12px + env(safe-area-inset-top));
+            left: 12px;
+            right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .meta-badges {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            pointer-events: auto;
+        }
+
+        .badge-live {
+            background: var(--like);
+            color: #fff;
+            font-weight: 800;
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .badge-viewers {
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            color: #fff;
+            font-weight: 600;
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .close-btn {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            border: none;
+            color: #fff;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            pointer-events: auto;
+        }
+
+        /* Bottom Floating Chat Room Layer */
+        .bottom-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 20px 16px calc(16px + env(safe-area-inset-bottom));
+            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 60%, transparent 100%);
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            pointer-events: none;
+            max-height: 50vh;
+        }
+
+        .chat-scroller {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            pointer-events: auto;
+            mask-image: linear-gradient(to bottom, transparent 0%, white 15%);
+            -webkit-mask-image: linear-gradient(to bottom, transparent 0%, white 15%);
+            padding-top: 20px;
+        }
+
+        .chat-scroller::-webkit-scrollbar { display: none; }
+
+        .chat-msg {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            line-height: 1.4;
+            align-self: flex-start;
+            max-width: 85%;
+            word-wrap: break-word;
+        }
+
+        .chat-user {
+            font-weight: 700;
+            color: var(--primary);
+            margin-right: 6px;
+        }
+
+        .chat-text {
+            color: #fff;
+        }
+
+        /* Message Action Input Control bar */
+        .input-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            pointer-events: auto;
+        }
+
+        .live-input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 12px 16px;
+            border-radius: 9999px;
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+            backdrop-filter: blur(10px);
+        }
+
+        .live-input::placeholder { color: rgba(255,255,255,0.6); }
+
+        .send-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .send-btn:active { transform: scale(0.9); }
+
+        /* Broadcaster Intermediary Ready Screen */
+        #setup-screen {
+            position: absolute;
+            inset: 0;
+            background: var(--surface);
+            z-index: 20;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            text-align: center;
+        }
+
+        .setup-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .setup-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+            max-width: 280px;
+        }
+
+        .start-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 9999px;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(0, 149, 246, 0.4);
+        }
     </style>
 </head>
 <body>
 
-<div class="live-container">
-    
-    <!-- Setup Screen (Only visible for Broadcasters before starting) -->
-    <div class="setup-screen" id="setup-screen" style="display:none;">
-        <div class="setup-header">
-            <button class="btn-close" onclick="exitLivePage()" style="background:var(--surface2); color:var(--text-primary);"><i data-feather="x"></i></button>
-            <h3 style="font-size:16px; font-weight:700;">Go Live</h3>
-            <div style="width:36px;"></div>
-        </div>
-        <div class="setup-body">
-            <h2 class="setup-title">Stream Settings</h2>
-            <input type="text" id="stream-title-input" class="input-title" placeholder="Enter stream topic or title..." max="60">
-            <button class="btn-start-stream" onclick="startBroadcastingSession()">Go Live Now</button>
-        </div>
-        <div></div>
-    </div>
-
-    <!-- Active Media Layer -->
-    <div class="video-wrapper">
-        <video id="live-video" autoplay playsinline muted></video>
-        <div class="placeholder-stream" id="stream-placeholder" style="display:none;">
-            <i data-feather="video-off" style="width:48px; height:48px;"></i>
-            <p id="placeholder-message">Connecting to stream source...</p>
-        </div>
-    </div>
-
-    <!-- Interface Layers -->
-    <div class="live-ui" id="live-ui">
-        <div class="live-top-bar">
-            <div class="host-info">
-                <img src="" id="ui-host-avatar" class="host-avatar" alt="">
-                <div class="host-meta">
-                    <span class="host-name" id="ui-host-name">Loading...</span>
-                    <div class="live-badges">
-                        <span class="badge-live"><span class="live-dot"></span>LIVE</span>
-                        <span class="badge-viewers"><i data-feather="eye" style="width:12px; height:12px;"></i><span id="ui-viewer-count">0</span></span>
-                    </div>
-                </div>
-            </div>
-            <button class="btn-close" onclick="handleExitRequest()"><i data-feather="x"></i></button>
-        </div>
-
-        <div class="live-bottom-area">
-            <!-- Messages Loop Area -->
-            <div class="chat-scroller" id="chat-scroller"></div>
+    <div class="live-container">
+        <div class="video-wrapper">
+            <video id="live-video" autoplay playsinline></video>
             
-            <!-- Message Input Area -->
-            <div class="chat-input-row">
-                <div class="chat-input-wrap">
-                    <input type="text" id="chat-input-field" class="chat-input" placeholder="Say something beautiful..." oninput="updateSendButton(this.value)" onkeypress="if(event.key==='Enter')sendLiveMessage()">
-                    <button class="btn-send-msg" id="btn-send" onclick="sendLiveMessage()"><i data-feather="send" style="width:18px;height:18px;"></i></button>
+            <div id="stream-placeholder">
+                <div class="spinner"></div>
+                <span id="placeholder-text">Connecting to stream source...</span>
+            </div>
+        </div>
+
+        <div class="top-overlay">
+            <div class="meta-badges">
+                <div class="badge-live">LIVE</div>
+                <div class="badge-viewers">
+                    <i data-feather="eye" style="width:14px; height:14px;"></i>
+                    <span id="viewer-count">0</span>
                 </div>
             </div>
+            <button class="close-btn" onclick="exitLive()">
+                <i data-feather="x" style="width:20px; height:20px;"></i>
+            </button>
+        </div>
+
+        <div class="bottom-overlay">
+            <div class="chat-scroller" id="chat-messages"></div>
+            <div class="input-row">
+                <input type="text" id="chat-input" class="live-input" placeholder="Say something..." onkeydown="if(event.key==='Enter') sendLiveMessage()">
+                <button class="send-btn" onclick="sendLiveMessage()">
+                    <i data-feather="send" style="width:16px; height:16px; margin-left: 2px;"></i>
+                </button>
+            </div>
+        </div>
+
+        <div id="setup-screen">
+            <i data-feather="video" style="width:48px; height:48px; color: var(--primary); margin-bottom: 16px;"></i>
+            <div class="setup-title">Go Live on Vynix</div>
+            <div class="setup-desc">Your followers will be able to watch your broadcast in real time.</div>
+            <button class="start-btn" onclick="startBroadcasting()">Start Live Stream</button>
         </div>
     </div>
 
-    <!-- Live Stream Ended Display screen overlay -->
-    <div class="ended-screen" id="ended-screen">
-        <h2 class="ended-title" id="ended-screen-title">Stream Closed</h2>
-        <p class="ended-text" id="ended-screen-msg">This broadcast session has terminated.</p>
-        <button class="btn-return" onclick="exitLivePage()">Return Home</button>
-    </div>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
-</div>
-
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getDatabase, ref, set, push, onValue, update, remove, serverTimestamp, onChildAdded, runTransaction } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-
-    // Application System Data Configuration Mirror
-    const firebaseConfig = {
-        apiKey: "AIzaSyBOyZ3As4GTuNvjemvPF_SpsC6m6vqtNhc",
-        authDomain: "fire-b-a8878.firebaseapp.com",
-        databaseURL: "https://fire-b-a8878.firebaseio.com",
-        projectId: "fire-b-a8878",
-        storageBucket: "fire-b-a8878.appspot.com",
-        messagingSenderId: "658673187627",
-        appId: "1:658673187627:web:6e4c29af661785f0afa36e"
-    };
-
-    const DEFAULT_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23A8A8A8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' style='background-color:%23EFEFEF'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3C/svg%3E";
-    
-    // Core Parameters Parsing
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getDatabase(app);
-
-    const urlParams = new URLSearchParams(window.location.search);
-    const targetJoinUid = urlParams.get('join'); // Presence determines mode (Viewer vs Broadcaster)
-    
-    let currentUser = null;
-    let currentUserData = null;
-    let isBroadcaster = !targetJoinUid;
-    let targetSessionRefKey = null;
-    let localMediaStream = null;
-    let heartbeatTimer = null;
-
-    // Synchronize UI Styles Preferences from Local Device Engine Cache
-    const savedTheme = localStorage.getItem('vynix_theme') || 'light';
-    document.documentElement.setAttribute('data-theme', savedTheme);
-    feather.replace();
-
-    // Authenticate App Access
-    onAuthStateChanged(auth, async (user) => {
-        if (!user) {
-            alert("Authentication Required to access Live rooms.");
-            window.close();
-            exitLivePage();
-            return;
-        }
-        currentUser = user;
-        
-        // Fetch User Database Properties Profile node
-        onValue(ref(db, `users/${user.uid}`), (snap) => {
-            if(snap.exists()) {
-                currentUserData = snap.val();
-                initializeLiveWorkflow();
-            }
-        });
-    });
-
-    function initializeLiveWorkflow() {
-        if (isBroadcaster) {
-            targetSessionRefKey = currentUser.uid;
-            document.getElementById('setup-screen').style.display = 'flex';
-            setupBroadcasterPreview();
-        } else {
-            targetSessionRefKey = targetJoinUid;
-            document.getElementById('live-video').style.display = 'none';
-            document.getElementById('stream-placeholder').style.display = 'flex';
-            connectAsViewer();
-        }
-    }
-
-    /* ── BROADCASTER RUNTIME LOGIC ── */
-    async function setupBroadcasterPreview() {
-        try {
-            localMediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: true });
-            const videoEl = document.getElementById('live-video');
-            videoEl.srcObject = localMediaStream;
-        } catch (err) {
-            console.error("Media interface capture fault:", err);
-            document.getElementById('stream-placeholder').style.display = 'flex';
-            document.getElementById('placeholder-message').textContent = "Camera/Microphone permission denied.";
-        }
-    }
-
-    window.startBroadcastingSession = async () => {
-        const titleInput = document.getElementById('stream-title-input').value.trim();
-        const sessionTitle = titleInput || `${currentUserData.username || 'User'}'s Live Room`;
-        
-        const sessionPayload = {
-            uid: currentUser.uid,
-            title: sessionTitle,
-            active: true,
-            viewerCount: 0,
-            timestamp: serverTimestamp()
+    <script>
+        // 🚨 IMPORTANT: Replace with your exact Firebase project config credentials
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            databaseURL: "YOUR_DATABASE_URL",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
         };
 
-        await set(ref(db, `liveSessions/${currentUser.uid}`), sessionPayload);
-        
-        // Clear old sessions messages logic loop tree safely
-        await set(ref(db, `liveSessions/${currentUser.uid}/chat`), null);
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
 
-        document.getElementById('setup-screen').style.display = 'none';
-        
-        // Match UI elements header metadata properties parameters
-        document.getElementById('ui-host-avatar').src = currentUserData.photoURL || DEFAULT_AVATAR;
-        document.getElementById('ui-host-name').textContent = currentUserData.username || 'Host';
+        const database = firebase.database();
+        const auth = firebase.auth();
 
-        attachSystemListeners();
-        startHeartbeatLoop();
-    };
+        // Detect launch context parameters (?mode=host or ?mode=viewer&id=HOST_UID)
+        const urlParams = new URLSearchParams(window.location.search);
+        const mode = urlParams.get('mode') || 'viewer';
+        const targetJoinUid = urlParams.get('id');
 
-    function startHeartbeatLoop() {
-        // Disconnect insurance hook update reference node via Firebase rule properties fallback
-        const sessionRef = ref(db, `liveSessions/${currentUser.uid}`);
-        // Handle explicit exit states cleanly mapping disconnect updates structural nodes on network break drops
-        const statusUpdate = { active: false };
-        // Firebase native lifecycle connection tracking rules update properties node
-        // (Ensures room disappears from feed if host loses network completely)
-        const presenceRef = ref(db, `.info/connected`);
-        onValue(presenceRef, (snap) => {
-            if (snap.val() === true) {
-                // Node sets active state to false if connections abort
-                ref(db, `liveSessions/${currentUser.uid}/active`).onDisconnect().set(false);
+        let currentUser = null;
+        let localStream = null;
+        let peerConnections = {}; // Track connection per viewer for host room: { viewerUid: RTCPeerConnection }
+        let singlePeerConnection = null; // Track connection to host for viewer
+        let targetSessionRefKey = null;
+
+        // Public reliable STUN servers for WebRTC NAT traversal
+        const rtcConfig = {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' }
+            ]
+        };
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUser = user;
+                feather.replace();
+                initLiveStreamSession();
+            } else {
+                alert("Please log in to enter live sessions.");
+                window.location.href = "index.html";
             }
         });
-    }
 
-    /* ── VIEWER RUNTIME LOGIC ── */
-    async function connectAsViewer() {
-        // Track connection room states metrics loop
-        const sessionRef = ref(db, `liveSessions/${targetSessionRefKey}`);
-        
-        onValue(sessionRef, (snapshot) => {
-            if (!snapshot.exists() || snapshot.val().active === false) {
-                displayEndOverlayScreen();
-                return;
+        function initLiveStreamSession() {
+            if (mode === 'host') {
+                targetSessionRefKey = currentUser.uid;
+                document.getElementById('setup-screen').style.display = 'flex';
+                document.getElementById('placeholder-text').innerText = "Setting up local camera feed...";
+                
+                // Get broadcaster media capture devices ahead of time
+                navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+                    .then(stream => {
+                        localStream = stream;
+                        const videoEl = document.getElementById('live-video');
+                        videoEl.srcObject = stream;
+                        videoEl.muted = true; // Avoid feedback looping on host hardware
+                        document.getElementById('stream-placeholder').style.display = 'none';
+                    })
+                    .catch(err => {
+                        console.error("Camera access failed:", err);
+                        alert("Camera or Microphone permissions are mandatory to host a stream.");
+                    });
+            } else {
+                if (!targetJoinUid) {
+                    alert("Invalid Live Stream ID.");
+                    window.location.href = "index.html";
+                    return;
+                }
+                targetSessionRefKey = targetJoinUid;
+                document.getElementById('setup-screen').style.display = 'none';
+                connectAsViewer();
             }
 
-            const activeSessionData = snapshot.val();
-            document.getElementById('ui-host-name').textContent = activeSessionData.title;
+            // Bind the active engagement pipelines immediately
+            setupLiveChatAndCounters();
+        }
+
+        // ========================================================
+        // HOST BROADCASTER PIPELINE MANAGEMENT
+        // ========================================================
+        function startBroadcasting() {
+            document.getElementById('setup-screen').style.display = 'none';
             
-            // Retrieve accurate Broadcaster details
-            onValue(ref(db, `users/${targetSessionRefKey}`), (userSnap) => {
-                if (userSnap.exists()) {
-                    const profile = userSnap.val();
-                    document.getElementById('ui-host-avatar').src = profile.photoURL || DEFAULT_AVATAR;
-                    document.getElementById('ui-host-name').innerHTML = `${profile.username || 'User'} ${profile.verified ? `<span style="display:inline-flex; vertical-align:middle; margin-left:2px; color:#0095F6"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.33 2.19c-1.4-.46-2.91-.2-3.92.81s-1.26 2.52-.8 3.91c-1.31.67-2.2 1.91-2.2 3.34s.89 2.67 2.2 3.34c-.46 1.39-.21 2.9.8 3.91s2.52 1.26 3.91.81c.67 1.31 1.91 2.19 3.34 2.19s2.68-.88 3.34-2.19c1.39.45 2.9.2 3.91-.81s1.27-2.52.81-3.91c1.31-.67 2.19-1.91 2.19-3.34zm-11.71 4.2L6.8 12.22l1.41-1.41 2.83 2.83 5.66-5.66 1.41 1.41-7.07 7.22z"/></svg></span>` : ''}`;
+            const sessionRef = database.ref(`live_sessions/${currentUser.uid}`);
+            sessionRef.set({
+                status: "live",
+                hostName: currentUser.displayName || "Vynix Creator",
+                hostAvatar: currentUser.photoURL || "",
+                viewerCount: 0,
+                createdAt: firebase.database.ServerValue.TIMESTAMP
+            });
+
+            // Disconnect handlers to perform cleanup safely
+            sessionRef.onDisconnect().remove();
+            database.ref(`live_sessions/${currentUser.uid}/signals`).onDisconnect().remove();
+
+            // Actively listen for incoming unique webRTC negotiation channels launched by viewers
+            database.ref(`live_sessions/${currentUser.uid}/signals`).on('child_added', snapshot => {
+                const viewerUid = snapshot.key;
+                handleIncomingViewerConnection(viewerUid);
+            });
+        }
+
+        function handleIncomingViewerConnection(viewerUid) {
+            const pc = new RTCPeerConnection(rtcConfig);
+            peerConnections[viewerUid] = pc;
+
+            // Attach host media tracks to the peer connection container instance
+            if (localStream) {
+                localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+            }
+
+            // Collect local negotiation icecandidates and push to viewer pipeline branch
+            pc.onicecandidate = event => {
+                if (event.candidate) {
+                    database.ref(`live_sessions/${currentUser.uid}/signals/${viewerUid}/broadcasterCandidates`).push(event.candidate.toJSON());
+                }
+            };
+
+            const viewerSignalRef = database.ref(`live_sessions/${currentUser.uid}/signals/${viewerUid}`);
+
+            // Fetch and set remote session details from viewer offer structural payload
+            viewerSignalRef.child('offer').once('value', async snapshot => {
+                const offer = snapshot.val();
+                if (!offer) return;
+
+                await pc.setRemoteDescription(new RTCSessionDescription(offer));
+                const answer = await pc.createAnswer();
+                await pc.setLocalDescription(answer);
+
+                // Publish generated answer session verification state matching viewer expectation
+                viewerSignalRef.child('answer').set({
+                    type: answer.type,
+                    sdp: answer.sdp
+                });
+            });
+
+            // Stream icecandidate components generated continuously on client layer
+            viewerSignalRef.child('viewerCandidates').on('child_added', snapshot => {
+                const candidate = snapshot.val();
+                if (candidate) {
+                    pc.addIceCandidate(new RTCIceCandidate(candidate)).catch(e => console.error(e));
                 }
             });
-        });
+        }
 
-        // Mutate dynamic interaction updates node properties via transaction arrays logic blocks safely
-        incrementViewerCounter(1);
-        
-        // Setup structural teardown rules validation logic mapping disconnect lifecycle events
-        ref(db, `liveSessions/${targetSessionRefKey}/viewerCount`).onDisconnect().runTransaction((currentCount) => {
-            return (currentCount || 1) - 1;
-        });
+        // ========================================================
+        // PARTICIPANT VIEWER PIPELINE MANAGEMENT
+        // ========================================================
+        async function connectAsViewer() {
+            // Manage and sync room audience sizes safely using transactional shifts
+            const countRef = database.ref(`live_sessions/${targetSessionRefKey}/viewerCount`);
+            countRef.transaction(current => (current || 0) + 1);
+            countRef.onDisconnect().transaction(current => (current ? current - 1 : 0));
 
-        attachSystemListeners();
-    }
+            singlePeerConnection = new RTCPeerConnection(rtcConfig);
 
-    function incrementViewerCounter(offset) {
-        const countRef = ref(db, `liveSessions/${targetSessionRefKey}/viewerCount`);
-        runTransaction(countRef, (currentValue) => {
-            return (currentValue || 0) + offset;
-        });
-    }
+            // Catch remote live streams pushed down by the remote stream host
+            singlePeerConnection.ontrack = event => {
+                const videoEl = document.getElementById('live-video');
+                if (event.streams && event.streams[0]) {
+                    videoEl.srcObject = event.streams[0];
+                    
+                    // ✨ CRITICAL: Hide the "Connecting..." placeholder view now that data is arriving!
+                    document.getElementById('stream-placeholder').style.display = 'none';
+                }
+            };
 
-    /* ── SHARED REAL-TIME DATA HANDLING ── */
-    function attachSystemListeners() {
-        // Stream Meta Changes Loop
-        onValue(ref(db, `liveSessions/${targetSessionRefKey}/viewerCount`), (snap) => {
-            if(snap.exists()) {
-                document.getElementById('ui-viewer-count').textContent = snap.val();
+            singlePeerConnection.onicecandidate = event => {
+                if (event.candidate) {
+                    database.ref(`live_sessions/${targetSessionRefKey}/signals/${currentUser.uid}/viewerCandidates`).push(event.candidate.toJSON());
+                }
+            };
+
+            const signalRef = database.ref(`live_sessions/${targetSessionRefKey}/signals/${currentUser.uid}`);
+
+            // Initialize structural downstream subscription negotiation offer
+            const offer = await singlePeerConnection.createOffer({ offerToReceiveVideo: true, offerToReceiveAudio: true });
+            await singlePeerConnection.setLocalDescription(offer);
+
+            await signalRef.set({
+                offer: {
+                    type: offer.type,
+                    sdp: offer.sdp
+                }
+            });
+
+            // Await processing confirmation verification response parameters from remote broadcaster
+            signalRef.child('answer').on('value', async snapshot => {
+                const answer = snapshot.val();
+                if (answer && singlePeerConnection.signalingState !== "stable") {
+                    await singlePeerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+                }
+            });
+
+            signalRef.child('broadcasterCandidates').on('child_added', snapshot => {
+                const candidate = snapshot.val();
+                if (candidate) {
+                    singlePeerConnection.addIceCandidate(new RTCIceCandidate(candidate)).catch(e => console.error(e));
+                }
+            });
+
+            // Gracefully handle live suspension signals dispatched by space moderators
+            database.ref(`live_sessions/${targetSessionRefKey}/status`).on('value', snapshot => {
+                if (snapshot.exists() && snapshot.val() !== "live") {
+                    alert("This live stream has ended.");
+                    exitLive();
+                }
+            });
+        }
+
+        // ========================================================
+        // REAL-TIME ENGAGEMENT ARCHITECTURE
+        // ========================================================
+        function setupLiveChatAndCounters() {
+            // Bind Audience Count Node changes
+            database.ref(`live_sessions/${targetSessionRefKey}/viewerCount`).on('value', snapshot => {
+                document.getElementById('viewer-count').innerText = snapshot.val() || 0;
+            });
+
+            // Bind Room Comments Event Streams
+            const chatMessagesContainer = document.getElementById('chat-messages');
+            database.ref(`live_sessions/${targetSessionRefKey}/chat`).limitToLast(40).on('child_added', snapshot => {
+                const data = snapshot.val();
+                
+                const msgEl = document.createElement('div');
+                msgEl.className = 'chat-msg';
+                msgEl.innerHTML = `<span class="chat-user">${escapeHtml(data.username)}</span><span class="chat-text">${escapeHtml(data.text)}</span>`;
+                
+                chatMessagesContainer.appendChild(msgEl);
+                chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+            });
+        }
+
+        function sendLiveMessage() {
+            const input = document.getElementById('chat-input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            database.ref(`live_sessions/${targetSessionRefKey}/chat`).push({
+                uid: currentUser.uid,
+                username: currentUser.displayName || "Anonymous User",
+                text: text,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            });
+
+            input.value = "";
+        }
+
+        function exitLive() {
+            if (mode === 'viewer') {
+                database.ref(`live_sessions/${targetSessionRefKey}/viewerCount`).transaction(current => (current ? current - 1 : 0));
+                if (singlePeerConnection) singlePeerConnection.close();
+            } else {
+                database.ref(`live_sessions/${currentUser.uid}`).remove();
+                if (localStream) localStream.getTracks().forEach(track => track.stop());
+                Object.values(peerConnections).forEach(pc => pc.close());
             }
-        });
-
-        // Real-time Chat Streams Sync Listener Hooks
-        const chatRef = ref(db, `liveSessions/${targetSessionRefKey}/chat`);
-        onChildAdded(chatRef, (childSnapshot) => {
-            if (childSnapshot.exists()) {
-                appendChatMessageToUI(childSnapshot.val());
-            }
-        });
-    }
-
-    window.updateSendButton = (val) => {
-        const btn = document.getElementById('btn-send');
-        if(val.trim().length > 0) btn.classList.add('active');
-        else btn.classList.remove('active');
-    };
-
-    window.sendLiveMessage = async () => {
-        const field = document.getElementById('chat-input-field');
-        const text = field.value.trim();
-        if (!text) return;
-
-        const chatMsgPayload = {
-            username: currentUserData.username || 'User',
-            text: text,
-            timestamp: serverTimestamp()
-        };
-
-        field.value = '';
-        updateSendButton('');
-        
-        try {
-            const chatListRef = ref(db, `liveSessions/${targetSessionRefKey}/chat`);
-            await push(chatListRef, chatMsgPayload);
-        } catch (e) {
-            console.error("Message injection exception event dropped:", e);
+            window.location.href = "index.html";
         }
-    };
 
-    function appendChatMessageToUI(msg) {
-        const scroller = document.getElementById('chat-scroller');
-        const msgNode = document.createElement('div');
-        msgNode.className = 'chat-msg';
-        msgNode.innerHTML = `
-            <span class="chat-msg-author">${escapeHtml(msg.username)}:</span>
-            <span class="chat-msg-text">${escapeHtml(msg.text)}</span>
-        `;
-        scroller.appendChild(msgNode);
-        scroller.scrollTo({ top: scroller.scrollHeight, behavior: 'smooth' });
-    }
-
-    /* ── TEARDOWN & NAVIGATION TERMINALS ── */
-    window.handleExitRequest = async () => {
-        if (isBroadcaster) {
-            if (confirm("Are you sure you want to end this live broadcast session?")) {
-                await terminateBroadcastingRoom();
-            }
-        } else {
-            incrementViewerCounter(-1);
-            exitLivePage();
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
-    };
-
-    async function terminateBroadcastingRoom() {
-        if (localMediaStream) {
-            localMediaStream.getTracks().forEach(track => track.stop());
-        }
-        // Mutate target state reference markers
-        await update(ref(db, `liveSessions/${currentUser.uid}`), { active: false });
-        displayEndOverlayScreen();
-    }
-
-    function displayEndOverlayScreen() {
-        document.getElementById('live-ui').style.pointerEvents = 'none';
-        document.getElementById('live-ui').style.display = 'none';
-        const ended = document.getElementById('ended-screen');
-        if (isBroadcaster) {
-            document.getElementById('ended-screen-title').textContent = "Broadcast Complete";
-            document.getElementById('ended-screen-msg').textContent = "Your session was successfully converted and summarized.";
-        }
-        ended.style.display = 'flex';
-    }
-
-    window.exitLivePage = () => {
-        window.location.href = 'index.html'; // Fallback to index landing framework architecture hub interface
-    };
-
-    function escapeHtml(str) {
-        if (!str) return '';
-        const div = document.createElement('div');
-        div.appendChild(document.createTextNode(str));
-        return div.innerHTML;
-    }
-</script>
+    </script>
 </body>
 </html>
