@@ -115,7 +115,6 @@
         .heart-burst svg{width:60px;height:60px;fill:var(--like);filter:drop-shadow(0 4px 12px rgba(0,0,0,0.4));animation:heartBurst 0.8s cubic-bezier(0.175,0.885,0.32,1.275) forwards;}
         @keyframes heartBurst{0%{transform:translate(-50%,-50%) scale(0);}40%{transform:translate(-50%,-50%) scale(1.3);}70%{transform:translate(-50%,-50%) scale(0.9);}100%{transform:translate(-50%,-50%) scale(0);opacity:0;}}
     </style>
-<base target="_blank">
 </head>
 <body>
 
@@ -283,11 +282,44 @@ async function initLive() {
     if (joinTargetUid) {
         isHost = false;
         hostUid = joinTargetUid;
-        await showJoinScreen();
+        await autoJoinLive();
     } else {
         isHost = true;
         hostUid = currentUser.uid;
         await startHostStream();
+    }
+}
+
+async function autoJoinLive() {
+    document.getElementById('live-loading').classList.add('active');
+    document.getElementById('host-controls-bar').style.display = 'none';
+
+    const hostSnap = await get(ref(db, `users/${hostUid}`));
+    const host = hostSnap.val() || {};
+    const sessionSnap = await get(ref(db, 'liveSessions'));
+    let session = null;
+    if (sessionSnap.exists()) {
+        sessionSnap.forEach(child => {
+            if (child.val().uid === hostUid && child.val().active) {
+                session = { id: child.key, ...child.val() };
+            }
+        });
+    }
+    if (!session) {
+        document.getElementById('live-loading').classList.remove('active');
+        showToast('This live stream has ended');
+        setTimeout(goBack, 2000);
+        return;
+    }
+    sessionId = session.id;
+
+    try {
+        await enterAsViewer();
+        document.getElementById('live-loading').classList.remove('active');
+        setupViewerUI();
+    } catch (e) {
+        showToast('Failed to join live');
+        goBack();
     }
 }
 
