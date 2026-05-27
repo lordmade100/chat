@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Vynix Live</title>
+    <meta name="theme-color" content="#FF3040">
+    <script src="https://unpkg.com/feather-icons"></script>
+    <style>
+        :root,[data-theme="light"]{--primary:#0095F6;--primary-rgb:0,149,246;--background:#FFFFFF;--surface:#FFFFFF;--surface2:#EFEFEF;--border:#DBDBDB;--text-primary:#000000;--text-secondary:#737373;--text-muted:#A8A8A8;--like:#FF3040;--toggle-on:#34C759;--toggle-off:#E9E9EB;--verified:#0095F6;}
+        [data-theme="dark"]{--primary:#0095F6;--primary-rgb:0,149,246;--background:#000000;--surface:#000000;--surface2:#262626;--border:#363636;--text-primary:#F5F5F5;--text-secondary:#A8A8A8;--text-muted:#737373;--like:#FF3040;--toggle-on:#32D74B;--toggle-off:#39393D;--verified:#0095F6;}
+        [data-theme="midnight"]{--primary:#C084FC;--background:#09090B;--surface:#09090B;--surface2:#27272A;--border:#3F3F46;--text-primary:#FAFAFA;--text-secondary:#A1A1AA;--text-muted:#71717A;--like:#F472B6;--toggle-on:#C084FC;--toggle-off:#39393D;--verified:#C084FC;}
+        [data-theme="ocean"]{--primary:#06B6D4;--background:#F0F9FF;--surface:#F0F9FF;--surface2:#E0F2FE;--border:#BAE6FD;--text-primary:#0C4A6E;--text-secondary:#0369A1;--text-muted:#7DD3FC;--like:#F43F5E;--toggle-on:#06B6D4;--toggle-off:#BAE6FD;--verified:#06B6D4;}
+        [data-theme="rose"]{--primary:#E11D48;--background:#FFF1F2;--surface:#FFF1F2;--surface2:#FFE4E6;--border:#FECDD3;--text-primary:#881337;--text-secondary:#9F1239;--text-muted:#FDA4AF;--like:#E11D48;--toggle-on:#E11D48;--toggle-off:#FECDD3;--verified:#E11D48;}
+
+        *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+        body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:#000;color:#fff;-webkit-font-smoothing:antialiased;overflow:hidden;height:100dvh;}
+
+        .live-container{position:relative;width:100%;height:100%;max-width:600px;margin:0 auto;background:#000;display:flex;flex-direction:column;}
+        
+        /* Video Container */
+        .video-wrapper{position:absolute;inset:0;width:100%;height:100%;z-index:1;}
+        video, .placeholder-stream{width:100%;height:100%;object-fit:cover;}
+        .placeholder-stream{display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(180deg, #111, #221111);color:var(--text-muted);gap:12px;}
+
+        /* Overlay Interface */
+        .live-ui{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;justify-content:between;padding:calc(16px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom));background:linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, transparent 20%, transparent 60%, rgba(0,0,0,0.6) 100%);pointer-events:none;}
+        .live-ui > * {pointer-events:auto;}
+
+        /* Top Bar */
+        .live-top-bar{display:flex;align-items:center;justify-content:space-between;width:100%;margin-bottom:auto;}
+        .host-info{display:flex;align-items:center;gap:10px;background:rgba(0,0,0,0.5);padding:6px 12px 6px 6px;border-radius:9999px;backdrop-filter:blur(8px);max-width:70%;}
+        .host-avatar{width:32px;height:32px;border-radius:50%;object-fit:cover;border:1px solid rgba(255,255,255,0.2);}
+        .host-meta{min-width:0;display:flex;flex-direction:column;}
+        .host-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:3px;color:#fff;}
+        .live-badges{display:flex;align-items:center;gap:6px;}
+        .badge-live{background:#FF3040;color:#fff;font-size:10px;font-weight:800;padding:3px 8px;border-radius:9999px;letter-spacing:0.04em;display:flex;align-items:center;gap:4px;}
+        .badge-live span{width:5px;height:5px;background:#fff;border-radius:50%;animation:pulse 1s infinite;}
+        .badge-viewers{background:rgba(0,0,0,0.6);color:#fff;font-size:11px;font-weight:600;padding:3px 8px;border-radius:9999px;display:flex;align-items:center;gap:4px;}
+        .btn-close{background:rgba(255,255,255,0.2);border:none;color:#fff;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(8px);}
+
+        /* Setup Display Screen */
+        .setup-screen{position:absolute;inset:0;z-index:10;background:var(--background);color:var(--text-primary);display:flex;flex-direction:column;padding:calc(20px + env(safe-area-inset-top)) 20px calc(20px + env(safe-area-inset-bottom));justify-content:space-between;}
+        .setup-header{display:flex;align-items:center;justify-content:space-between;}
+        .setup-body{display:flex;flex-direction:column;gap:20px;margin:auto 0;width:100%;max-width:400px;align-self:center;}
+        .setup-title{font-size:22px;font-weight:800;letter-spacing:-0.02em;}
+        .input-title{width:100%;border:1px solid var(--border);background:var(--surface2);color:var(--text-primary);padding:14px 16px;border-radius:14px;font-size:16px;outline:none;font-family:inherit;transition:border-color 0.2s;}
+        .input-title:focus{border-color:var(--primary);}
+        .btn-start-stream{width:100%;padding:14px;background:linear-gradient(135deg,#FF3040 0%,#FF6B35 100%);color:white;border:none;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(255,48,64,0.3);}
+
+        /* Bottom Section - Chat */
+        .live-bottom-area{display:flex;flex-direction:column;width:100%;gap:12px;margin-top:auto;}
+        .chat-scroller{height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding-right:8px;scrollbar-width:none;mask-image:linear-gradient(to top, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%);-webkit-mask-image:linear-gradient(to top, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%);}
+        .chat-scroller::-webkit-scrollbar{display:none;}
+        .chat-msg{display:flex;align-items:flex-start;gap:8px;background:rgba(0,0,0,0.3);padding:6px 10px;border-radius:10px;backdrop-filter:blur(4px);align-self:flex-start;max-width:85%;font-size:13px;line-height:1.4;animation:msgFadeIn 0.2s ease-out both;}
+        .chat-msg-author{font-weight:700;color:rgba(255,255,255,0.9);white-space:nowrap;}
+        .chat-msg-text{color:#fff;word-break:break-word;}
+        
+        .chat-input-row{display:flex;align-items:center;gap:10px;}
+        .chat-input-wrap{flex:1;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.1);border-radius:9999px;padding:8px 16px;display:flex;align-items:center;backdrop-filter:blur(10px);}
+        .chat-input{flex:1;background:none;border:none;outline:none;color:#fff;font-size:14px;font-family:inherit;}
+        .chat-input::placeholder{color:rgba(255,255,255,0.6);}
+        .btn-send-msg{background:none;border:none;color:#fff;cursor:pointer;opacity:0.5;transition:opacity 0.2s;display:flex;align-items:center;}
+        .btn-send-msg.active{opacity:1;color:var(--primary)}
+
+        /* End Overlay Screen */
+        .ended-screen{position:absolute;inset:0;z-index:20;background:#000;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;color:#fff;}
+        .ended-title{font-size:24px;font-weight:800;margin-bottom:8px;}
+        .ended-text{font-size:15px;color:var(--text-muted);margin-bottom:24px;}
+        .btn-return{background:var(--primary);color:#fff;border:none;padding:12px 28px;border-radius:9999px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;}
+
+        @keyframes pulse { 0%,100%{opacity:0.4;} 50%{opacity:1;} }
+        @keyframes msgFadeIn { from{opacity:0;transform:translateY(6px);} to{opacity:1;transform:translateY(0);} }
+    </style>
+</head>
+<body>
+
+<div class="live-container">
+    
+    <!-- Setup Screen (Only visible for Broadcasters before starting) -->
+    <div class="setup-screen" id="setup-screen" style="display:none;">
+        <div class="setup-header">
+            <button class="btn-close" onclick="exitLivePage()" style="background:var(--surface2); color:var(--text-primary);"><i data-feather="x"></i></button>
+            <h3 style="font-size:16px; font-weight:700;">Go Live</h3>
+            <div style="width:36px;"></div>
+        </div>
+        <div class="setup-body">
+            <h2 class="setup-title">Stream Settings</h2>
+            <input type="text" id="stream-title-input" class="input-title" placeholder="Enter stream topic or title..." max="60">
+            <button class="btn-start-stream" onclick="startBroadcastingSession()">Go Live Now</button>
+        </div>
+        <div></div>
+    </div>
+
+    <!-- Active Media Layer -->
+    <div class="video-wrapper">
+        <video id="live-video" autoplay playsinline muted></video>
+        <div class="placeholder-stream" id="stream-placeholder" style="display:none;">
+            <i data-feather="video-off" style="width:48px; height:48px;"></i>
+            <p id="placeholder-message">Connecting to stream source...</p>
+        </div>
+    </div>
+
+    <!-- Interface Layers -->
+    <div class="live-ui" id="live-ui">
+        <div class="live-top-bar">
+            <div class="host-info">
+                <img src="" id="ui-host-avatar" class="host-avatar" alt="">
+                <div class="host-meta">
+                    <span class="host-name" id="ui-host-name">Loading...</span>
+                    <div class="live-badges">
+                        <span class="badge-live"><span class="live-dot"></span>LIVE</span>
+                        <span class="badge-viewers"><i data-feather="eye" style="width:12px; height:12px;"></i><span id="ui-viewer-count">0</span></span>
+                    </div>
+                </div>
+            </div>
+            <button class="btn-close" onclick="handleExitRequest()"><i data-feather="x"></i></button>
+        </div>
+
+        <div class="live-bottom-area">
+            <!-- Messages Loop Area -->
+            <div class="chat-scroller" id="chat-scroller"></div>
+            
+            <!-- Message Input Area -->
+            <div class="chat-input-row">
+                <div class="chat-input-wrap">
+                    <input type="text" id="chat-input-field" class="chat-input" placeholder="Say something beautiful..." oninput="updateSendButton(this.value)" onkeypress="if(event.key==='Enter')sendLiveMessage()">
+                    <button class="btn-send-msg" id="btn-send" onclick="sendLiveMessage()"><i data-feather="send" style="width:18px;height:18px;"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Live Stream Ended Display screen overlay -->
+    <div class="ended-screen" id="ended-screen">
+        <h2 class="ended-title" id="ended-screen-title">Stream Closed</h2>
+        <p class="ended-text" id="ended-screen-msg">This broadcast session has terminated.</p>
+        <button class="btn-return" onclick="exitLivePage()">Return Home</button>
+    </div>
+
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getDatabase, ref, set, push, onValue, update, remove, serverTimestamp, onChildAdded, runTransaction } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+    // Application System Data Configuration Mirror
+    const firebaseConfig = {
+        apiKey: "AIzaSyBOyZ3As4GTuNvjemvPF_SpsC6m6vqtNhc",
+        authDomain: "fire-b-a8878.firebaseapp.com",
+        databaseURL: "https://fire-b-a8878.firebaseio.com",
+        projectId: "fire-b-a8878",
+        storageBucket: "fire-b-a8878.appspot.com",
+        messagingSenderId: "658673187627",
+        appId: "1:658673187627:web:6e4c29af661785f0afa36e"
+    };
+
+    const DEFAULT_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23A8A8A8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' style='background-color:%23EFEFEF'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3C/svg%3E";
+    
+    // Core Parameters Parsing
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetJoinUid = urlParams.get('join'); // Presence determines mode (Viewer vs Broadcaster)
+    
+    let currentUser = null;
+    let currentUserData = null;
+    let isBroadcaster = !targetJoinUid;
+    let targetSessionRefKey = null;
+    let localMediaStream = null;
+    let heartbeatTimer = null;
+
+    // Synchronize UI Styles Preferences from Local Device Engine Cache
+    const savedTheme = localStorage.getItem('vynix_theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    feather.replace();
+
+    // Authenticate App Access
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+            alert("Authentication Required to access Live rooms.");
+            window.close();
+            exitLivePage();
+            return;
+        }
+        currentUser = user;
+        
+        // Fetch User Database Properties Profile node
+        onValue(ref(db, `users/${user.uid}`), (snap) => {
+            if(snap.exists()) {
+                currentUserData = snap.val();
+                initializeLiveWorkflow();
+            }
+        });
+    });
+
+    function initializeLiveWorkflow() {
+        if (isBroadcaster) {
+            targetSessionRefKey = currentUser.uid;
+            document.getElementById('setup-screen').style.display = 'flex';
+            setupBroadcasterPreview();
+        } else {
+            targetSessionRefKey = targetJoinUid;
+            document.getElementById('live-video').style.display = 'none';
+            document.getElementById('stream-placeholder').style.display = 'flex';
+            connectAsViewer();
+        }
+    }
+
+    /* ── BROADCASTER RUNTIME LOGIC ── */
+    async function setupBroadcasterPreview() {
+        try {
+            localMediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: true });
+            const videoEl = document.getElementById('live-video');
+            videoEl.srcObject = localMediaStream;
+        } catch (err) {
+            console.error("Media interface capture fault:", err);
+            document.getElementById('stream-placeholder').style.display = 'flex';
+            document.getElementById('placeholder-message').textContent = "Camera/Microphone permission denied.";
+        }
+    }
+
+    window.startBroadcastingSession = async () => {
+        const titleInput = document.getElementById('stream-title-input').value.trim();
+        const sessionTitle = titleInput || `${currentUserData.username || 'User'}'s Live Room`;
+        
+        const sessionPayload = {
+            uid: currentUser.uid,
+            title: sessionTitle,
+            active: true,
+            viewerCount: 0,
+            timestamp: serverTimestamp()
+        };
+
+        await set(ref(db, `liveSessions/${currentUser.uid}`), sessionPayload);
+        
+        // Clear old sessions messages logic loop tree safely
+        await set(ref(db, `liveSessions/${currentUser.uid}/chat`), null);
+
+        document.getElementById('setup-screen').style.display = 'none';
+        
+        // Match UI elements header metadata properties parameters
+        document.getElementById('ui-host-avatar').src = currentUserData.photoURL || DEFAULT_AVATAR;
+        document.getElementById('ui-host-name').textContent = currentUserData.username || 'Host';
+
+        attachSystemListeners();
+        startHeartbeatLoop();
+    };
+
+    function startHeartbeatLoop() {
+        // Disconnect insurance hook update reference node via Firebase rule properties fallback
+        const sessionRef = ref(db, `liveSessions/${currentUser.uid}`);
+        // Handle explicit exit states cleanly mapping disconnect updates structural nodes on network break drops
+        const statusUpdate = { active: false };
+        // Firebase native lifecycle connection tracking rules update properties node
+        // (Ensures room disappears from feed if host loses network completely)
+        const presenceRef = ref(db, `.info/connected`);
+        onValue(presenceRef, (snap) => {
+            if (snap.val() === true) {
+                // Node sets active state to false if connections abort
+                ref(db, `liveSessions/${currentUser.uid}/active`).onDisconnect().set(false);
+            }
+        });
+    }
+
+    /* ── VIEWER RUNTIME LOGIC ── */
+    async function connectAsViewer() {
+        // Track connection room states metrics loop
+        const sessionRef = ref(db, `liveSessions/${targetSessionRefKey}`);
+        
+        onValue(sessionRef, (snapshot) => {
+            if (!snapshot.exists() || snapshot.val().active === false) {
+                displayEndOverlayScreen();
+                return;
+            }
+
+            const activeSessionData = snapshot.val();
+            document.getElementById('ui-host-name').textContent = activeSessionData.title;
+            
+            // Retrieve accurate Broadcaster details
+            onValue(ref(db, `users/${targetSessionRefKey}`), (userSnap) => {
+                if (userSnap.exists()) {
+                    const profile = userSnap.val();
+                    document.getElementById('ui-host-avatar').src = profile.photoURL || DEFAULT_AVATAR;
+                    document.getElementById('ui-host-name').innerHTML = `${profile.username || 'User'} ${profile.verified ? `<span style="display:inline-flex; vertical-align:middle; margin-left:2px; color:#0095F6"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.33 2.19c-1.4-.46-2.91-.2-3.92.81s-1.26 2.52-.8 3.91c-1.31.67-2.2 1.91-2.2 3.34s.89 2.67 2.2 3.34c-.46 1.39-.21 2.9.8 3.91s2.52 1.26 3.91.81c.67 1.31 1.91 2.19 3.34 2.19s2.68-.88 3.34-2.19c1.39.45 2.9.2 3.91-.81s1.27-2.52.81-3.91c1.31-.67 2.19-1.91 2.19-3.34zm-11.71 4.2L6.8 12.22l1.41-1.41 2.83 2.83 5.66-5.66 1.41 1.41-7.07 7.22z"/></svg></span>` : ''}`;
+                }
+            });
+        });
+
+        // Mutate dynamic interaction updates node properties via transaction arrays logic blocks safely
+        incrementViewerCounter(1);
+        
+        // Setup structural teardown rules validation logic mapping disconnect lifecycle events
+        ref(db, `liveSessions/${targetSessionRefKey}/viewerCount`).onDisconnect().runTransaction((currentCount) => {
+            return (currentCount || 1) - 1;
+        });
+
+        attachSystemListeners();
+    }
+
+    function incrementViewerCounter(offset) {
+        const countRef = ref(db, `liveSessions/${targetSessionRefKey}/viewerCount`);
+        runTransaction(countRef, (currentValue) => {
+            return (currentValue || 0) + offset;
+        });
+    }
+
+    /* ── SHARED REAL-TIME DATA HANDLING ── */
+    function attachSystemListeners() {
+        // Stream Meta Changes Loop
+        onValue(ref(db, `liveSessions/${targetSessionRefKey}/viewerCount`), (snap) => {
+            if(snap.exists()) {
+                document.getElementById('ui-viewer-count').textContent = snap.val();
+            }
+        });
+
+        // Real-time Chat Streams Sync Listener Hooks
+        const chatRef = ref(db, `liveSessions/${targetSessionRefKey}/chat`);
+        onChildAdded(chatRef, (childSnapshot) => {
+            if (childSnapshot.exists()) {
+                appendChatMessageToUI(childSnapshot.val());
+            }
+        });
+    }
+
+    window.updateSendButton = (val) => {
+        const btn = document.getElementById('btn-send');
+        if(val.trim().length > 0) btn.classList.add('active');
+        else btn.classList.remove('active');
+    };
+
+    window.sendLiveMessage = async () => {
+        const field = document.getElementById('chat-input-field');
+        const text = field.value.trim();
+        if (!text) return;
+
+        const chatMsgPayload = {
+            username: currentUserData.username || 'User',
+            text: text,
+            timestamp: serverTimestamp()
+        };
+
+        field.value = '';
+        updateSendButton('');
+        
+        try {
+            const chatListRef = ref(db, `liveSessions/${targetSessionRefKey}/chat`);
+            await push(chatListRef, chatMsgPayload);
+        } catch (e) {
+            console.error("Message injection exception event dropped:", e);
+        }
+    };
+
+    function appendChatMessageToUI(msg) {
+        const scroller = document.getElementById('chat-scroller');
+        const msgNode = document.createElement('div');
+        msgNode.className = 'chat-msg';
+        msgNode.innerHTML = `
+            <span class="chat-msg-author">${escapeHtml(msg.username)}:</span>
+            <span class="chat-msg-text">${escapeHtml(msg.text)}</span>
+        `;
+        scroller.appendChild(msgNode);
+        scroller.scrollTo({ top: scroller.scrollHeight, behavior: 'smooth' });
+    }
+
+    /* ── TEARDOWN & NAVIGATION TERMINALS ── */
+    window.handleExitRequest = async () => {
+        if (isBroadcaster) {
+            if (confirm("Are you sure you want to end this live broadcast session?")) {
+                await terminateBroadcastingRoom();
+            }
+        } else {
+            incrementViewerCounter(-1);
+            exitLivePage();
+        }
+    };
+
+    async function terminateBroadcastingRoom() {
+        if (localMediaStream) {
+            localMediaStream.getTracks().forEach(track => track.stop());
+        }
+        // Mutate target state reference markers
+        await update(ref(db, `liveSessions/${currentUser.uid}`), { active: false });
+        displayEndOverlayScreen();
+    }
+
+    function displayEndOverlayScreen() {
+        document.getElementById('live-ui').style.pointerEvents = 'none';
+        document.getElementById('live-ui').style.display = 'none';
+        const ended = document.getElementById('ended-screen');
+        if (isBroadcaster) {
+            document.getElementById('ended-screen-title').textContent = "Broadcast Complete";
+            document.getElementById('ended-screen-msg').textContent = "Your session was successfully converted and summarized.";
+        }
+        ended.style.display = 'flex';
+    }
+
+    window.exitLivePage = () => {
+        window.location.href = 'index.html'; // Fallback to index landing framework architecture hub interface
+    };
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        const div = document.createElement('div');
+        div.appendChild(document.createTextNode(str));
+        return div.innerHTML;
+    }
+</script>
+</body>
+</html>
