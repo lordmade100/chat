@@ -3,18 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Vynix Live</title>
+    <title>Vynix Live Stream</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://unpkg.com/feather-icons"></script>
+
     <style>
         :root {
             --primary: #0095F6;
-            --background: #000000; /* Live streams look best on full black background */
+            --background: #000000;
             --surface: #121212;
             --surface2: #262626;
             --border: #363636;
             --text-primary: #F5F5F5;
             --text-secondary: #A8A8A8;
-            --like: #FF3040;
+            --live-red: #FF3040;
         }
 
         * {
@@ -28,115 +32,175 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background: var(--background);
             color: var(--text-primary);
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
             overflow: hidden;
+            height: 100vh;
         }
 
-        .live-container {
-            position: relative;
-            flex: 1;
+        .app-container {
+            max-width: 100%;
+            margin: 0 auto;
+            height: 100%;
             display: flex;
             flex-direction: column;
-            background: #000;
+            position: relative;
+        }
+        @media(min-width: 1024px) {
+            .app-container {
+                max-width: 450px;
+                border-left: 1px solid var(--border);
+                border-right: 1px solid var(--border);
+            }
         }
 
-        /* Video Display Frame */
-        .video-wrapper {
-            position: relative;
-            flex: 1;
+        /* Views management */
+        .view {
+            display: none;
             width: 100%;
             height: 100%;
+            flex-direction: column;
+            position: absolute;
+            inset: 0;
+        }
+        .view.active {
+            display: flex;
+        }
+
+        /* Lobby / Setup View styling */
+        .lobby-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
+            gap: 20px;
+            text-align: center;
+        }
+        .logo-mark {
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+        .lobby-title {
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+        .lobby-subtitle {
+            color: var(--text-secondary);
+            font-size: 14px;
+            max-width: 280px;
+            margin-bottom: 20px;
+        }
+        .vynix-input {
+            width: 100%;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 16px;
+            color: white;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .vynix-input:focus {
+            border-color: var(--primary);
+        }
+        .vynix-btn {
+            width: 100%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 14px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
+            gap: 8px;
+            transition: transform 0.1s, opacity 0.2s;
+        }
+        .vynix-btn:active {
+            transform: scale(0.98);
+        }
+        .vynix-btn.secondary {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+        }
+        .divider {
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin: 10px 0;
         }
 
+        /* Streaming View Layout */
+        .video-container {
+            position: relative;
+            flex: 1;
+            background: #000;
+            width: 100%;
+            height: 100%;
+        }
         video {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            position: absolute;
-            inset: 0;
-            z-index: 1;
         }
 
-        /* Stream Loading State Indicator */
-        #stream-placeholder {
+        /* Live HUD Elements Overlay */
+        .live-overlay-hud {
             position: absolute;
             inset: 0;
+            padding: calc(16px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom)) 16px;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background: #000;
-            z-index: 2;
-            color: var(--text-secondary);
-            gap: 12px;
-            font-size: 14px;
-        }
-
-        .spinner {
-            width: 36px;
-            height: 36px;
-            border: 3px solid rgba(255, 255, 255, 0.1);
-            border-top-color: var(--primary);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* HUD Headers & Badges */
-        .top-overlay {
-            position: absolute;
-            top: calc(12px + env(safe-area-inset-top));
-            left: 12px;
-            right: 12px;
-            display: flex;
-            align-items: center;
             justify-content: space-between;
-            z-index: 10;
             pointer-events: none;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, transparent 20%, transparent 60%, rgba(0,0,0,0.6) 100%);
+            z-index: 10;
         }
-
-        .meta-badges {
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        .hud-interactive {
             pointer-events: auto;
         }
-
-        .badge-live {
-            background: var(--like);
-            color: #fff;
-            font-weight: 800;
-            font-size: 12px;
-            padding: 4px 10px;
-            border-radius: 4px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
+        .hud-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
         }
-
-        .badge-viewers {
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(8px);
-            color: #fff;
-            font-weight: 600;
+        .badge-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .live-badge {
+            background: var(--live-red);
+            color: white;
             font-size: 12px;
+            font-weight: 800;
             padding: 4px 10px;
-            border-radius: 4px;
+            border-radius: 6px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        .viewer-count {
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 6px;
         }
-
-        .close-btn {
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(8px);
+        .close-hud-btn {
+            background: rgba(0,0,0,0.5);
             border: none;
-            color: #fff;
+            color: white;
             width: 36px;
             height: 36px;
             border-radius: 50%;
@@ -144,456 +208,464 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            pointer-events: auto;
         }
 
-        /* Bottom Floating Chat Room Layer */
-        .bottom-overlay {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 20px 16px calc(16px + env(safe-area-inset-bottom));
-            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 60%, transparent 100%);
-            z-index: 10;
+        /* Scrollable overlay comments system */
+        .hud-bottom {
             display: flex;
             flex-direction: column;
-            justify-content: flex-end;
-            pointer-events: none;
-            max-height: 50vh;
+            gap: 12px;
+            width: 100%;
         }
-
-        .chat-scroller {
-            flex: 1;
+        .comments-display-area {
+            max-height: 220px;
             overflow-y: auto;
-            margin-bottom: 12px;
             display: flex;
             flex-direction: column;
             gap: 8px;
-            pointer-events: auto;
-            mask-image: linear-gradient(to bottom, transparent 0%, white 15%);
-            -webkit-mask-image: linear-gradient(to bottom, transparent 0%, white 15%);
-            padding-top: 20px;
+            padding-right: 40px;
+            scrollbar-width: none;
         }
-
-        .chat-scroller::-webkit-scrollbar { display: none; }
-
-        .chat-msg {
-            background: rgba(0, 0, 0, 0.3);
+        .comments-display-area::-webkit-scrollbar {
+            display: none;
+        }
+        .live-msg {
+            background: rgba(0, 0, 0, 0.4);
             padding: 6px 12px;
             border-radius: 12px;
             font-size: 13px;
             line-height: 1.4;
             align-self: flex-start;
-            max-width: 85%;
-            word-wrap: break-word;
+            word-break: break-word;
+            max-width: 90%;
+            animation: slideInUp 0.2s ease-out;
         }
-
-        .chat-user {
+        .live-msg .username {
             font-weight: 700;
-            color: var(--primary);
+            color: #58C0FF;
             margin-right: 6px;
         }
-
-        .chat-text {
-            color: #fff;
+        .live-msg.system-msg .username {
+            color: #FF7BA9;
         }
 
-        /* Message Action Input Control bar */
-        .input-row {
+        /* Action Row inputs */
+        .input-action-row {
             display: flex;
-            align-items: center;
             gap: 10px;
-            pointer-events: auto;
+            align-items: center;
+            width: 100%;
         }
-
-        .live-input {
+        .hud-input {
             flex: 1;
             background: rgba(255, 255, 255, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 12px 16px;
-            border-radius: 9999px;
-            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 12px 18px;
+            color: white;
             font-size: 14px;
             outline: none;
-            backdrop-filter: blur(10px);
         }
-
-        .live-input::placeholder { color: rgba(255,255,255,0.6); }
-
-        .send-btn {
-            background: var(--primary);
-            color: white;
-            border: none;
+        .hud-input::placeholder {
+            color: rgba(255,255,255,0.7);
+        }
+        .hud-circle-btn {
             width: 44px;
             height: 44px;
             border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.2);
+            backdrop-filter: blur(20px);
+            color: white;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: transform 0.1s;
+            flex-shrink: 0;
+        }
+        .hud-circle-btn.heart-btn {
+            background: rgba(255, 48, 64, 0.2);
+            border-color: rgba(255, 48, 64, 0.4);
+            color: var(--live-red);
         }
 
-        .send-btn:active { transform: scale(0.9); }
-
-        /* Broadcaster Intermediary Ready Screen */
-        #setup-screen {
+        /* Floating Hearts Layer animations */
+        .hearts-emitter {
             position: absolute;
-            inset: 0;
-            background: var(--surface);
-            z-index: 20;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 24px;
-            text-align: center;
+            right: 20px;
+            bottom: 80px;
+            width: 60px;
+            height: 300px;
+            pointer-events: none;
+            z-index: 15;
+            overflow: hidden;
+        }
+        .floating-heart {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--live-red);
+            opacity: 0;
+            animation: floatUpHeart 2s ease-in-out forwards;
         }
 
-        .setup-title {
-            font-size: 20px;
-            font-weight: 700;
-            margin-bottom: 8px;
+        @keyframes slideInUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-
-        .setup-desc {
-            font-size: 14px;
-            color: var(--text-secondary);
-            margin-bottom: 24px;
-            max-width: 280px;
-        }
-
-        .start-btn {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 14px 32px;
-            border-radius: 9999px;
-            font-weight: 600;
-            font-size: 15px;
-            cursor: pointer;
-            box-shadow: 0 4px 14px rgba(0, 149, 246, 0.4);
+        @keyframes floatUpHeart {
+            0% { transform: translateX(-50%) translateY(0) scale(0.6); opacity: 0; }
+            10% { opacity: 0.9; transform: translateX(-30%) scale(1.1); }
+            50% { transform: translateX(20px) translateY(-100px) scale(1); }
+            100% { transform: translateX(-20px) translateY(-260px) scale(0.7); opacity: 0; }
         }
     </style>
 </head>
 <body>
 
-    <div class="live-container">
-        <div class="video-wrapper">
-            <video id="live-video" autoplay playsinline></video>
+<div class="app-container">
+
+    <div id="lobby-view" class="view active">
+        <div class="lobby-content">
+            <div class="logo-mark"><i data-feather="video" style="width: 54px; height: 54px;"></i></div>
+            <h1 class="lobby-title">Vynix Live</h1>
+            <p class="lobby-subtitle">Broadcast your screen or camera instantly, or tune into an existing live feed.</p>
             
-            <div id="stream-placeholder">
-                <div class="spinner"></div>
-                <span id="placeholder-text">Connecting to stream source...</span>
-            </div>
-        </div>
-
-        <div class="top-overlay">
-            <div class="meta-badges">
-                <div class="badge-live">LIVE</div>
-                <div class="badge-viewers">
-                    <i data-feather="eye" style="width:14px; height:14px;"></i>
-                    <span id="viewer-count">0</span>
-                </div>
-            </div>
-            <button class="close-btn" onclick="exitLive()">
-                <i data-feather="x" style="width:20px; height:20px;"></i>
+            <input type="text" id="stream-title-input" class="vynix-input" placeholder="Give your live stream a title...">
+            <button id="start-broadcast-btn" class="vynix-btn">
+                <i data-feather="radio"></i> Start Live Broadcast
             </button>
-        </div>
-
-        <div class="bottom-overlay">
-            <div class="chat-scroller" id="chat-messages"></div>
-            <div class="input-row">
-                <input type="text" id="chat-input" class="live-input" placeholder="Say something..." onkeydown="if(event.key==='Enter') sendLiveMessage()">
-                <button class="send-btn" onclick="sendLiveMessage()">
-                    <i data-feather="send" style="width:16px; height:16px; margin-left: 2px;"></i>
-                </button>
-            </div>
-        </div>
-
-        <div id="setup-screen">
-            <i data-feather="video" style="width:48px; height:48px; color: var(--primary); margin-bottom: 16px;"></i>
-            <div class="setup-title">Go Live on Vynix</div>
-            <div class="setup-desc">Your followers will be able to watch your broadcast in real time.</div>
-            <button class="start-btn" onclick="startBroadcasting()">Start Live Stream</button>
+            
+            <div class="divider">OR</div>
+            
+            <input type="text" id="stream-id-input" class="vynix-input" placeholder="Enter Stream ID to join...">
+            <button id="join-broadcast-btn" class="vynix-btn secondary">
+                <i data-feather="tv"></i> Tune In / Watch
+            </button>
         </div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <div id="stream-view" class="view">
+        <div class="video-container">
+            <video id="live-video" autoplay playsinline muted></video>
+            
+            <div class="hearts-emitter" id="hearts-box"></div>
 
-    <script>
-        // 🚨 IMPORTANT: Replace with your exact Firebase project config credentials
-        const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_AUTH_DOMAIN",
-            databaseURL: "YOUR_DATABASE_URL",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_STORAGE_BUCKET",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
+            <div class="live-overlay-hud">
+                <div class="hud-top">
+                    <div class="badge-row">
+                        <div class="live-badge">LIVE</div>
+                        <div class="viewer-count">
+                            <i data-feather="users" style="width: 14px; height: 14px;"></i>
+                            <span id="live-viewer-val">0</span>
+                        </div>
+                    </div>
+                    <button class="close-hud-btn hud-interactive" id="end-stream-btn">
+                        <i data-feather="x"></i>
+                    </button>
+                </div>
+
+                <div class="hud-bottom">
+                    <div class="comments-display-area" id="comments-box">
+                        </div>
+
+                    <div class="input-action-row hud-interactive">
+                        <input type="text" id="chat-message-input" class="hud-input" placeholder="Say something beautiful...">
+                        <button class="hud-circle-btn" id="send-chat-btn">
+                            <i data-feather="send" style="width: 18px; height: 18px;"></i>
+                        </button>
+                        <button class="hud-circle-btn heart-btn" id="trigger-heart-btn">
+                            <i data-feather="heart" style="fill: currentColor; width: 18px; height: 18px;"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // 1. Injected Configuration Credentials
+    const firebaseConfig = {
+        apiKey: "AIzaSyBOyZ3As4GTuNvjemvPF_SpsC6m6vqtNhc",
+        authDomain: "fire-b-a8878.firebaseapp.com",
+        databaseURL: "https://fire-b-a8878.firebaseio.com",
+        projectId: "fire-b-a8878",
+        storageBucket: "fire-b-a8878.appspot.com",
+        messagingSenderId: "658673187627",
+        appId: "1:658673187627:web:6e4c29af661785f0afa36e"
+    };
+
+    // Initialize Firebase Engine Instance
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.database();
+
+    // 2. State & Component Hookups
+    let localStream = null;
+    let peerConnections = {}; // Dynamic mesh collection tracking { viewerId: RTCPeerConnection }
+    let activeStreamRef = null;
+    let streamId = null;
+    let userRole = null; // 'host' or 'viewer'
+    let username = "User_" + Math.floor(Math.random() * 9000 + 1000);
+
+    const rtcConfiguration = {
+        iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' }
+        ]
+    };
+
+    feather.replace();
+
+    // Navigation triggers
+    function switchView(viewId) {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.getElementById(viewId).classList.add('active');
+    }
+
+    // Dynamic message printer
+    function appendLiveMessage(user, text, isSystem = false) {
+        const box = document.getElementById('comments-box');
+        const msg = document.createElement('div');
+        msg.className = `live-msg ${isSystem ? 'system-msg' : ''}`;
+        msg.innerHTML = `<span class="username">${user}</span><span>${text}</span>`;
+        box.appendChild(msg);
+        box.scrollTop = box.scrollHeight;
+    }
+
+    // Visual heart generator animation
+    function popHeartVisual() {
+        const emitter = document.getElementById('hearts-box');
+        const icon = document.createElement('div');
+        icon.className = 'floating-heart';
+        icon.innerHTML = `<i data-feather="heart" style="fill: currentColor; width: 20px; height: 20px;"></i>`;
+        emitter.appendChild(icon);
+        feather.replace();
+
+        // Randomize slight variance in drift track
+        icon.style.left = Math.floor(Math.random() * 60) + 20 + '%';
+        
+        setTimeout(() => icon.remove(), 2000);
+    }
+
+    // 3. BROADCASTER (HOST LOGIC)
+    document.getElementById('start-broadcast-btn').onclick = async () => {
+        const title = document.getElementById('stream-title-input').value.trim() || "Untitled Live Feed";
+        streamId = "live_" + Math.floor(Math.random() * 90000 + 10000);
+        userRole = 'host';
+
+        try {
+            // Grab secure camera & audio streams
+            localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            document.getElementById('live-video').srcObject = localStream;
+            document.getElementById('live-video').muted = true; // Avoid feedback echo loop
+            
+            switchView('stream-view');
+            appendLiveMessage("System", `Broadcast generated! Stream ID: ${streamId}`, true);
+
+            activeStreamRef = db.ref(`streams/${streamId}`);
+            
+            // Set base node metadata structure
+            await activeStreamRef.set({
+                id: streamId,
+                title: title,
+                host: username,
+                active: true,
+                viewerCount: 0
+            });
+
+            // Wipe setup tree cleanly if application context resets
+            activeStreamRef.onDisconnect().update({ active: false });
+
+            // Monitor Incoming Viewer Connect Offer Requests
+            activeStreamRef.child('viewers').on('child_added', snapshot => {
+                const viewerId = snapshot.key;
+                handleIncomingViewerOffer(viewerId, snapshot.val());
+            });
+
+            // Handle real-time communication events setup (Comments/Likes listeners)
+            initSharedFeatures();
+
+        } catch (err) {
+            alert("Could not access media hardware capture: " + err.message);
+        }
+    };
+
+    async function handleIncomingViewerOffer(viewerId, data) {
+        if (!data.offer) return;
+
+        const pc = new RTCPeerConnection(rtcConfiguration);
+        peerConnections[viewerId] = pc;
+
+        // Add media tracks onto signaling pipeline
+        localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+
+        // Network gathering candidate sync hooks
+        pc.onicecandidate = event => {
+            if (event.candidate) {
+                db.ref(`streams/${streamId}/viewers/${viewerId}/hostCandidates`).push(event.candidate.toJSON());
+            }
         };
 
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
+        // Apply incoming remote connection string structural rules
+        await pc.setRemoteDescription(new RTCSessionDescription(JSON.parse(data.offer)));
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+
+        // Upload connection response data package back down signaling wire
+        await db.ref(`streams/${streamId}/viewers/${viewerId}/answer`).set(JSON.stringify(answer));
+
+        // Sync viewer network nodes trickling in
+        db.ref(`streams/${streamId}/viewers/${viewerId}/viewerCandidates`).on('child_added', snap => {
+            if (snap.val()) {
+                pc.addIceCandidate(new RTCIceCandidate(snap.val())).catch(e => console.error(e));
+            }
+        });
+    }
+
+
+    // 4. AUDIENCE (VIEWER LOGIC)
+    document.getElementById('join-broadcast-btn').onclick = async () => {
+        const targetId = document.getElementById('stream-id-input').value.trim();
+        if (!targetId) return alert("Please present a valid stream ID context token.");
+        
+        streamId = targetId;
+        userRole = 'viewer';
+        activeStreamRef = db.ref(`streams/${streamId}`);
+
+        // Verify active stream node state validity status
+        const meta = await activeStreamRef.once('value');
+        if (!meta.exists() || !meta.val().active) {
+            return alert("Live feed channel either offline, nonexistent or expired.");
         }
 
-        const database = firebase.database();
-        const auth = firebase.auth();
+        switchView('stream-view');
+        appendLiveMessage("System", "Connecting to stream source...", true);
 
-        // Detect launch context parameters (?mode=host or ?mode=viewer&id=HOST_UID)
-        const urlParams = new URLSearchParams(window.location.search);
-        const mode = urlParams.get('mode') || 'viewer';
-        const targetJoinUid = urlParams.get('id');
+        // Create random connection node instance identity allocation
+        const viewerConnectionId = "view_" + Math.floor(Math.random() * 100000);
+        
+        const pc = new RTCPeerConnection(rtcConfiguration);
+        peerConnections[viewerConnectionId] = pc;
 
-        let currentUser = null;
-        let localStream = null;
-        let peerConnections = {}; // Track connection per viewer for host room: { viewerUid: RTCPeerConnection }
-        let singlePeerConnection = null; // Track connection to host for viewer
-        let targetSessionRefKey = null;
-
-        // Public reliable STUN servers for WebRTC NAT traversal
-        const rtcConfig = {
-            iceServers: [
-                { urls: 'stun:stun.l.google.com:19302' },
-                { urls: 'stun:stun1.l.google.com:19302' }
-            ]
+        // Bind playback surface destination link assignments
+        pc.ontrack = event => {
+            const videoElem = document.getElementById('live-video');
+            if (!videoElem.srcObject) {
+                videoElem.srcObject = event.streams[0];
+                videoElem.muted = false; // Turn on audio for viewers
+            }
         };
 
-        auth.onAuthStateChanged(user => {
-            if (user) {
-                currentUser = user;
-                feather.replace();
-                initLiveStreamSession();
-            } else {
-                alert("Please log in to enter live sessions.");
-                window.location.href = "index.html";
+        pc.onicecandidate = event => {
+            if (event.candidate) {
+                db.ref(`streams/${streamId}/viewers/${viewerConnectionId}/viewerCandidates`).push(event.candidate.toJSON());
+            }
+        };
+
+        // Create pipeline request channel structures
+        const offer = await pc.createOffer({ offerToReceiveVideo: true, offerToReceiveAudio: true });
+        await pc.setLocalDescription(offer);
+
+        // Broadcast local offer upstream
+        const sessionRef = db.ref(`streams/${streamId}/viewers/${viewerConnectionId}`);
+        await sessionRef.set({ offer: JSON.stringify(offer) });
+
+        // Await matching structural signaling return package payload mapping definitions
+        sessionRef.child('answer').on('value', async snapshot => {
+            if (snapshot.exists()) {
+                const ans = snapshot.val();
+                await pc.setRemoteDescription(new RTCSessionDescription(JSON.parse(ans)));
             }
         });
 
-        function initLiveStreamSession() {
-            if (mode === 'host') {
-                targetSessionRefKey = currentUser.uid;
-                document.getElementById('setup-screen').style.display = 'flex';
-                document.getElementById('placeholder-text').innerText = "Setting up local camera feed...";
-                
-                // Get broadcaster media capture devices ahead of time
-                navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-                    .then(stream => {
-                        localStream = stream;
-                        const videoEl = document.getElementById('live-video');
-                        videoEl.srcObject = stream;
-                        videoEl.muted = true; // Avoid feedback looping on host hardware
-                        document.getElementById('stream-placeholder').style.display = 'none';
-                    })
-                    .catch(err => {
-                        console.error("Camera access failed:", err);
-                        alert("Camera or Microphone permissions are mandatory to host a stream.");
-                    });
-            } else {
-                if (!targetJoinUid) {
-                    alert("Invalid Live Stream ID.");
-                    window.location.href = "index.html";
-                    return;
-                }
-                targetSessionRefKey = targetJoinUid;
-                document.getElementById('setup-screen').style.display = 'none';
-                connectAsViewer();
+        // Watch for trickling network routing vectors directly mapped out by host side
+        sessionRef.child('hostCandidates').on('child_added', snap => {
+            if (snap.val()) {
+                pc.addIceCandidate(new RTCIceCandidate(snap.val())).catch(e => console.error(e));
             }
+        });
 
-            // Bind the active engagement pipelines immediately
-            setupLiveChatAndCounters();
-        }
+        // Increment dynamic concurrent viewers tracking variable counter node indicators
+        activeStreamRef.child('viewerCount').transaction(current => (current || 0) + 1);
+        sessionRef.onDisconnect().remove(); // Clean viewer signaling node when leaving
+        activeStreamRef.child('viewerCount').onDisconnect().transaction(current => Math.max(0, (current || 1) - 1));
 
-        // ========================================================
-        // HOST BROADCASTER PIPELINE MANAGEMENT
-        // ========================================================
-        function startBroadcasting() {
-            document.getElementById('setup-screen').style.display = 'none';
-            
-            const sessionRef = database.ref(`live_sessions/${currentUser.uid}`);
-            sessionRef.set({
-                status: "live",
-                hostName: currentUser.displayName || "Vynix Creator",
-                hostAvatar: currentUser.photoURL || "",
-                viewerCount: 0,
-                createdAt: firebase.database.ServerValue.TIMESTAMP
-            });
+        initSharedFeatures();
+    };
 
-            // Disconnect handlers to perform cleanup safely
-            sessionRef.onDisconnect().remove();
-            database.ref(`live_sessions/${currentUser.uid}/signals`).onDisconnect().remove();
 
-            // Actively listen for incoming unique webRTC negotiation channels launched by viewers
-            database.ref(`live_sessions/${currentUser.uid}/signals`).on('child_added', snapshot => {
-                const viewerUid = snapshot.key;
-                handleIncomingViewerConnection(viewerUid);
-            });
-        }
+    // 5. DATA SYNC HOOKS (COMMENTS & INTERACTION HEART SYNC ENGINE)
+    function initSharedFeatures() {
+        // Track live count view change metrics updates downstream dynamically
+        activeStreamRef.child('viewerCount').on('value', snap => {
+            document.getElementById('live-viewer-val').innerText = snap.val() || 0;
+        });
 
-        function handleIncomingViewerConnection(viewerUid) {
-            const pc = new RTCPeerConnection(rtcConfig);
-            peerConnections[viewerUid] = pc;
+        // Stream chat distribution synchronization loops engine
+        activeStreamRef.child('comments').on('child_added', snap => {
+            const data = snap.val();
+            appendLiveMessage(data.user, data.msg, data.isSystem);
+        });
 
-            // Attach host media tracks to the peer connection container instance
+        // Broadcast heart animation trigger updates across structural boundaries instantly
+        activeStreamRef.child('hearts_pulse').on('value', snap => {
+            if (snap.val()) popHeartVisual();
+        });
+    }
+
+    // Handle outbound content message uploads execution processing loop routines
+    function submitTextMessage() {
+        const input = document.getElementById('chat-message-input');
+        const text = input.value.trim();
+        if (!text) return;
+
+        activeStreamRef.child('comments').push({
+            user: username,
+            msg: text,
+            isSystem: false,
+            timestamp: Date.now()
+        });
+        input.value = "";
+    }
+
+    document.getElementById('send-chat-btn').onclick = submitTextMessage;
+    document.getElementById('chat-message-input').onkeydown = (e) => {
+        if (e.key === 'Enter') submitTextMessage();
+    };
+
+    // Heart click signaling integration
+    document.getElementById('trigger-heart-btn').onclick = () => {
+        activeStreamRef.child('hearts_pulse').set(firebase.database.ServerValue.increment(1));
+    };
+
+    // Session termination / Shutdown clean up execution steps processing logic
+    document.getElementById('end-stream-btn').onclick = () => {
+        if (userRole === 'host') {
+            if (activeStreamRef) activeStreamRef.update({ active: false });
             if (localStream) {
-                localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+                localStream.getTracks().forEach(track => track.stop());
             }
-
-            // Collect local negotiation icecandidates and push to viewer pipeline branch
-            pc.onicecandidate = event => {
-                if (event.candidate) {
-                    database.ref(`live_sessions/${currentUser.uid}/signals/${viewerUid}/broadcasterCandidates`).push(event.candidate.toJSON());
-                }
-            };
-
-            const viewerSignalRef = database.ref(`live_sessions/${currentUser.uid}/signals/${viewerUid}`);
-
-            // Fetch and set remote session details from viewer offer structural payload
-            viewerSignalRef.child('offer').once('value', async snapshot => {
-                const offer = snapshot.val();
-                if (!offer) return;
-
-                await pc.setRemoteDescription(new RTCSessionDescription(offer));
-                const answer = await pc.createAnswer();
-                await pc.setLocalDescription(answer);
-
-                // Publish generated answer session verification state matching viewer expectation
-                viewerSignalRef.child('answer').set({
-                    type: answer.type,
-                    sdp: answer.sdp
-                });
-            });
-
-            // Stream icecandidate components generated continuously on client layer
-            viewerSignalRef.child('viewerCandidates').on('child_added', snapshot => {
-                const candidate = snapshot.val();
-                if (candidate) {
-                    pc.addIceCandidate(new RTCIceCandidate(candidate)).catch(e => console.error(e));
-                }
-            });
         }
+        
+        // Reset local elements
+        document.getElementById('live-video').srcObject = null;
+        document.getElementById('comments-box').innerHTML = "";
+        
+        // Disconnect all peer instances mapping allocations inside arrays blocks loop sets
+        Object.keys(peerConnections).forEach(k => {
+            peerConnections[k].close();
+        });
+        peerConnections = {};
 
-        // ========================================================
-        // PARTICIPANT VIEWER PIPELINE MANAGEMENT
-        // ========================================================
-        async function connectAsViewer() {
-            // Manage and sync room audience sizes safely using transactional shifts
-            const countRef = database.ref(`live_sessions/${targetSessionRefKey}/viewerCount`);
-            countRef.transaction(current => (current || 0) + 1);
-            countRef.onDisconnect().transaction(current => (current ? current - 1 : 0));
-
-            singlePeerConnection = new RTCPeerConnection(rtcConfig);
-
-            // Catch remote live streams pushed down by the remote stream host
-            singlePeerConnection.ontrack = event => {
-                const videoEl = document.getElementById('live-video');
-                if (event.streams && event.streams[0]) {
-                    videoEl.srcObject = event.streams[0];
-                    
-                    // ✨ CRITICAL: Hide the "Connecting..." placeholder view now that data is arriving!
-                    document.getElementById('stream-placeholder').style.display = 'none';
-                }
-            };
-
-            singlePeerConnection.onicecandidate = event => {
-                if (event.candidate) {
-                    database.ref(`live_sessions/${targetSessionRefKey}/signals/${currentUser.uid}/viewerCandidates`).push(event.candidate.toJSON());
-                }
-            };
-
-            const signalRef = database.ref(`live_sessions/${targetSessionRefKey}/signals/${currentUser.uid}`);
-
-            // Initialize structural downstream subscription negotiation offer
-            const offer = await singlePeerConnection.createOffer({ offerToReceiveVideo: true, offerToReceiveAudio: true });
-            await singlePeerConnection.setLocalDescription(offer);
-
-            await signalRef.set({
-                offer: {
-                    type: offer.type,
-                    sdp: offer.sdp
-                }
-            });
-
-            // Await processing confirmation verification response parameters from remote broadcaster
-            signalRef.child('answer').on('value', async snapshot => {
-                const answer = snapshot.val();
-                if (answer && singlePeerConnection.signalingState !== "stable") {
-                    await singlePeerConnection.setRemoteDescription(new RTCSessionDescription(answer));
-                }
-            });
-
-            signalRef.child('broadcasterCandidates').on('child_added', snapshot => {
-                const candidate = snapshot.val();
-                if (candidate) {
-                    singlePeerConnection.addIceCandidate(new RTCIceCandidate(candidate)).catch(e => console.error(e));
-                }
-            });
-
-            // Gracefully handle live suspension signals dispatched by space moderators
-            database.ref(`live_sessions/${targetSessionRefKey}/status`).on('value', snapshot => {
-                if (snapshot.exists() && snapshot.val() !== "live") {
-                    alert("This live stream has ended.");
-                    exitLive();
-                }
-            });
-        }
-
-        // ========================================================
-        // REAL-TIME ENGAGEMENT ARCHITECTURE
-        // ========================================================
-        function setupLiveChatAndCounters() {
-            // Bind Audience Count Node changes
-            database.ref(`live_sessions/${targetSessionRefKey}/viewerCount`).on('value', snapshot => {
-                document.getElementById('viewer-count').innerText = snapshot.val() || 0;
-            });
-
-            // Bind Room Comments Event Streams
-            const chatMessagesContainer = document.getElementById('chat-messages');
-            database.ref(`live_sessions/${targetSessionRefKey}/chat`).limitToLast(40).on('child_added', snapshot => {
-                const data = snapshot.val();
-                
-                const msgEl = document.createElement('div');
-                msgEl.className = 'chat-msg';
-                msgEl.innerHTML = `<span class="chat-user">${escapeHtml(data.username)}</span><span class="chat-text">${escapeHtml(data.text)}</span>`;
-                
-                chatMessagesContainer.appendChild(msgEl);
-                chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
-            });
-        }
-
-        function sendLiveMessage() {
-            const input = document.getElementById('chat-input');
-            const text = input.value.trim();
-            if (!text) return;
-
-            database.ref(`live_sessions/${targetSessionRefKey}/chat`).push({
-                uid: currentUser.uid,
-                username: currentUser.displayName || "Anonymous User",
-                text: text,
-                timestamp: firebase.database.ServerValue.TIMESTAMP
-            });
-
-            input.value = "";
-        }
-
-        function exitLive() {
-            if (mode === 'viewer') {
-                database.ref(`live_sessions/${targetSessionRefKey}/viewerCount`).transaction(current => (current ? current - 1 : 0));
-                if (singlePeerConnection) singlePeerConnection.close();
-            } else {
-                database.ref(`live_sessions/${currentUser.uid}`).remove();
-                if (localStream) localStream.getTracks().forEach(track => track.stop());
-                Object.values(peerConnections).forEach(pc => pc.close());
-            }
-            window.location.href = "index.html";
-        }
-
-        function escapeHtml(str) {
-            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-        }
-    </script>
+        switchView('lobby-view');
+        location.reload(); // Hard refresh guarantees complete cleaning of WebRTC states
+    };
+</script>
 </body>
 </html>
