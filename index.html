@@ -348,6 +348,207 @@
         .upload-progress{height:2px;background:var(--surface2);border-radius:1px;overflow:hidden;margin:12px 0;display:none;}
         .upload-progress.active{display:block;}
         .progress-bar-fill{height:100%;background:var(--primary);width:0%;transition:width 0.3s;}
+
+        /* ══════════════════════════════════════
+           TABLET  ≥768px  —  icon-only sidebar
+           ══════════════════════════════════════ */
+        .sidebar{display:none;}
+        .right-panel{display:none;}
+
+        @media(min-width:768px){
+            body{padding-bottom:0;}
+            .bottom-nav{display:none !important;}
+
+            /* page shell: sidebar + scrollable center */
+            .page-shell{display:flex;min-height:100vh;}
+
+            /* ── SIDEBAR ── */
+            .sidebar{
+                display:flex;flex-direction:column;align-items:center;
+                position:fixed;left:0;top:0;bottom:0;width:68px;
+                background:var(--background);border-right:1px solid var(--border);
+                z-index:200;padding:12px 0 20px;gap:2px;overflow-y:auto;
+                transition:background 0.3s,border-color 0.3s;
+            }
+            .sidebar::-webkit-scrollbar{display:none;}
+            .sidebar-logo{
+                width:44px;height:44px;display:flex;align-items:center;
+                justify-content:center;cursor:pointer;margin-bottom:8px;flex-shrink:0;
+            }
+            .sidebar-logo img{width:36px;height:36px;object-fit:contain;
+                filter:drop-shadow(0 2px 4px rgba(0,0,0,0.1));}
+            .sidebar-item{
+                width:44px;height:44px;display:flex;align-items:center;
+                justify-content:center;border-radius:12px;cursor:pointer;
+                border:none;background:none;color:var(--text-primary);
+                transition:background 0.15s,color 0.2s;position:relative;
+                font-family:inherit;flex-shrink:0;
+            }
+            .sidebar-item:hover{background:var(--surface2);}
+            .sidebar-item.active{color:var(--primary);}
+            .sidebar-item svg{width:22px;height:22px;flex-shrink:0;}
+            .sidebar-item .sidebar-label{display:none;}
+            /* filled/outline icon swap for sidebar active state */
+            .sidebar-item .nav-icon-filled{display:none;}
+            .sidebar-item .nav-icon-outline{display:block;}
+            .sidebar-item.active .nav-icon-filled{display:block;}
+            .sidebar-item.active .nav-icon-outline{display:none;}
+            .sidebar-post-btn{
+                width:44px;height:44px;background:var(--primary);color:white;
+                border:none;border-radius:12px;display:flex;align-items:center;
+                justify-content:center;cursor:pointer;font-family:inherit;
+                transition:opacity 0.2s,transform 0.15s;flex-shrink:0;
+                margin-top:4px;
+            }
+            .sidebar-post-btn:hover{opacity:0.88;}
+            .sidebar-post-btn:active{transform:scale(0.93);}
+            .sidebar-post-btn svg{width:20px;height:20px;}
+            .sidebar-post-label{display:none;}
+            .sidebar-spacer{flex:1;}
+            .sidebar-badge{
+                position:absolute;top:5px;right:5px;width:8px;height:8px;
+                border-radius:50%;background:var(--like);border:2px solid var(--background);
+                display:none;animation:badgePop 0.3s ease-out;
+            }
+            .sidebar-badge.show{display:block;}
+
+            /* ── MAIN CONTENT ── */
+            #main-swipe-container{
+                margin-left:68px;width:100%;
+                border-right:1px solid var(--border);
+                min-height:100vh;
+            }
+            /* remove the old 1024px override */
+            .app-container{max-width:none;border-left:none;border-right:none;}
+
+            /* inline chat panel stays full-screen but behind sidebar */
+            #inline-chat-panel{left:68px !important;}
+
+            /* toast lower (no bottom nav) */
+            .toast{bottom:20px;}
+            #pwa-install-popup{bottom:20px;}
+
+            /* new-posts pill accounts for sidebar */
+            .new-posts-pill{left:calc(68px + 50%);transform:translateX(-50%) translateY(-20px);}
+            .new-posts-pill.visible{transform:translateX(-50%) translateY(0);}
+        }
+
+        /* ══════════════════════════════════════
+           DESKTOP  ≥1200px  —  full sidebar + right panel
+           ══════════════════════════════════════ */
+        @media(min-width:1200px){
+            .sidebar{
+                width:220px;align-items:flex-start;
+                padding:16px 12px 20px;gap:2px;
+            }
+            .sidebar-logo{
+                width:auto;justify-content:flex-start;
+                padding:0 8px;margin-bottom:12px;
+            }
+            .sidebar-logo img{width:40px;height:40px;}
+            .sidebar-item{
+                width:100%;height:50px;border-radius:9999px;
+                padding:0 14px;gap:14px;justify-content:flex-start;
+            }
+            .sidebar-item .sidebar-label{
+                display:block;font-size:15px;font-weight:600;white-space:nowrap;
+            }
+            .sidebar-post-btn{
+                width:100%;height:50px;border-radius:9999px;
+                gap:8px;padding:0 20px;font-size:15px;font-weight:700;
+                justify-content:center;margin-top:8px;
+            }
+            .sidebar-post-label{display:block;}
+
+            /* main column: fixed width, centred relative to viewport minus panels */
+            #main-swipe-container{
+                margin-left:220px;
+                max-width:600px;
+            }
+
+            /* inline chat panel offset for wide sidebar */
+            #inline-chat-panel{left:220px !important;}
+
+            /* new-posts pill centred in feed column */
+            .new-posts-pill{left:calc(220px + 300px);}
+
+            /* ── RIGHT PANEL ── */
+            .right-panel{
+                display:block;
+                position:fixed;
+                top:0;
+                left:820px;   /* 220 sidebar + 600 main */
+                width:300px;
+                height:100vh;
+                overflow-y:auto;
+                padding:20px 16px 40px;
+                border-left:1px solid var(--border);
+                background:var(--background);
+                transition:background 0.3s,border-color 0.3s;
+            }
+            .right-panel::-webkit-scrollbar{display:none;}
+
+            /* right panel widgets */
+            .rp-search{
+                display:flex;align-items:center;background:var(--surface2);
+                border-radius:9999px;padding:10px 14px;gap:8px;margin-bottom:20px;
+            }
+            .rp-search input{
+                flex:1;border:none;background:transparent;outline:none;
+                font-size:14px;color:var(--text-primary);font-family:inherit;
+            }
+            .rp-card{
+                background:var(--surface2);border-radius:16px;
+                overflow:hidden;margin-bottom:16px;
+            }
+            .rp-card-title{
+                font-size:16px;font-weight:700;padding:16px 16px 8px;
+                color:var(--text-primary);
+            }
+            .rp-follow-item{
+                display:flex;align-items:center;gap:10px;
+                padding:10px 16px;cursor:pointer;transition:background 0.15s;
+            }
+            .rp-follow-item:hover{background:rgba(0,0,0,0.04);}
+            .rp-follow-item img{
+                width:40px;height:40px;border-radius:50%;object-fit:cover;
+                flex-shrink:0;border:1px solid var(--border);
+            }
+            .rp-follow-info{flex:1;min-width:0;}
+            .rp-follow-name{font-size:14px;font-weight:700;color:var(--text-primary);
+                white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+            .rp-follow-handle{font-size:12px;color:var(--text-secondary);}
+            .rp-follow-btn{
+                background:var(--text-primary);color:var(--background);
+                border:none;padding:6px 14px;border-radius:9999px;
+                font-size:13px;font-weight:700;cursor:pointer;
+                font-family:inherit;flex-shrink:0;transition:opacity 0.2s;
+            }
+            .rp-follow-btn:hover{opacity:0.8;}
+            .rp-follow-btn.following{
+                background:transparent;border:1px solid var(--border);
+                color:var(--text-primary);
+            }
+            .rp-footer{
+                font-size:12px;color:var(--text-muted);line-height:1.8;
+                padding:0 4px;
+            }
+            .rp-footer a{color:var(--text-muted);text-decoration:none;}
+            .rp-footer a:hover{text-decoration:underline;}
+
+            /* toast / pill offset with right panel */
+            .toast{left:calc(220px + 300px);transform:translateX(-50%) translateY(100px);}
+            .toast.show{transform:translateX(-50%) translateY(0);}
+        }
+
+        /* ══ Ultra-wide: center the 3-column layout ══ */
+        @media(min-width:1440px){
+            .sidebar{left:calc(50% - 560px);}
+            #main-swipe-container{margin-left:calc(50% - 340px);}
+            .right-panel{left:calc(50% + 260px);}
+            .new-posts-pill{left:calc(50% - 340px + 300px);}
+            .toast{left:calc(50% - 340px + 300px);}
+        }
     </style>
     <base target="_blank">
 </head>
@@ -554,24 +755,111 @@
 
 </div>
 
+<!-- ══ SIDEBAR (tablet / desktop) ══ -->
+<nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo" onclick="goToHome()" title="Vynix">
+        <img src="https://i.postimg.cc/T3Nv0Szn/Gemini-Generated-Image-g7omg8g7omg8g7om-removebg-preview.png" alt="Vynix">
+    </div>
+
+    <button class="sidebar-item active" data-nav="home" onclick="goToHome()" title="Home">
+        <svg class="nav-icon-outline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10v11h6v-7h6v7h6V10L12 3l-9 7z"/></svg>
+        <svg class="nav-icon-filled" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><path d="M12 3L2 12h3v8h14v-8h3L12 3z"/></svg>
+        <span class="sidebar-label">Home</span>
+    </button>
+
+    <button class="sidebar-item" data-nav="search" onclick="switchMainTab('search')" title="Search">
+        <svg class="nav-icon-outline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <svg class="nav-icon-filled" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+        <span class="sidebar-label">Search</span>
+    </button>
+
+    <button class="sidebar-item" data-nav="notifications" onclick="switchMainTab('notifications')" title="Notifications" style="position:relative;">
+        <svg class="nav-icon-outline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <svg class="nav-icon-filled" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9m-4.27 13a2 2 0 0 1-3.46 0"/></svg>
+        <span class="sidebar-label">Notifications</span>
+        <span class="sidebar-badge" id="sidebar-badge-notifications"></span>
+    </button>
+
+    <button class="sidebar-item" data-nav="messages" onclick="switchMainTab('messages')" title="Messages" style="position:relative;">
+        <svg class="nav-icon-outline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <svg class="nav-icon-filled" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span class="sidebar-label">Messages</span>
+        <span class="sidebar-badge" id="sidebar-badge-messages"></span>
+    </button>
+
+    <button class="sidebar-item" data-nav="profile" onclick="goToProfile()" title="Profile">
+        <div class="nav-avatar-ring" style="width:28px;height:28px;flex-shrink:0;">
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23A8A8A8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' style='background-color:%23EFEFEF'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3C/svg%3E" id="sidebar-profile-avatar" alt="Profile" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
+        </div>
+        <span class="sidebar-label">Profile</span>
+    </button>
+
+    <!-- Ona AI -->
+    <button class="sidebar-item" onclick="window.location.href='ai.html'" title="Ona AI">
+        <svg viewBox="0 0 24 24" fill="none" style="width:22px;height:22px;">
+            <defs><linearGradient id="ona-g2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4A90E2"/><stop offset="50%" stop-color="#9013FE"/><stop offset="100%" stop-color="#FF7A59"/></linearGradient></defs>
+            <circle cx="12" cy="12" r="10" stroke="url(#ona-g2)" stroke-width="2" fill="none"/>
+            <circle cx="12" cy="12" r="3" fill="url(#ona-g2)"/>
+        </svg>
+        <span class="sidebar-label">Ona AI</span>
+    </button>
+
+    <!-- Post button -->
+    <button class="sidebar-post-btn" onclick="openCompose()" title="New Post">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span class="sidebar-post-label">Post</span>
+    </button>
+
+    <div class="sidebar-spacer"></div>
+
+    <!-- Settings at bottom -->
+    <button class="sidebar-item" onclick="goToSettings()" title="Settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span class="sidebar-label">Settings</span>
+    </button>
+</nav>
+
+<!-- ══ RIGHT PANEL (desktop ≥1200px) ══ -->
+<aside class="right-panel" id="right-panel">
+    <div class="rp-search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text-secondary);flex-shrink:0;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="Search Vynix" oninput="handleMainSearch(this.value);switchMainTab('search');" autocomplete="off">
+    </div>
+    <div class="rp-card" id="rp-suggestions">
+        <div class="rp-card-title">Who to follow</div>
+        <div id="rp-suggestions-list">
+            <div class="rp-follow-item"><div class="shimmer" style="width:40px;height:40px;border-radius:50%;flex-shrink:0;"></div><div style="flex:1;margin-left:10px;"><div class="shimmer" style="width:90px;height:13px;border-radius:4px;margin-bottom:5px;"></div><div class="shimmer" style="width:60px;height:11px;border-radius:4px;"></div></div></div>
+            <div class="rp-follow-item"><div class="shimmer" style="width:40px;height:40px;border-radius:50%;flex-shrink:0;"></div><div style="flex:1;margin-left:10px;"><div class="shimmer" style="width:110px;height:13px;border-radius:4px;margin-bottom:5px;"></div><div class="shimmer" style="width:70px;height:11px;border-radius:4px;"></div></div></div>
+            <div class="rp-follow-item"><div class="shimmer" style="width:40px;height:40px;border-radius:50%;flex-shrink:0;"></div><div style="flex:1;margin-left:10px;"><div class="shimmer" style="width:75px;height:13px;border-radius:4px;margin-bottom:5px;"></div><div class="shimmer" style="width:55px;height:11px;border-radius:4px;"></div></div></div>
+        </div>
+    </div>
+    <div class="rp-footer">
+        <p>Made with ❤️ in Mzansi</p>
+        <p style="margin-top:4px;">
+            <a href="settings.html">Settings</a> · <a href="ai.html">Ona AI</a>
+        </p>
+        <p style="margin-top:4px;opacity:0.6;">© 2025 Vynix</p>
+    </div>
+</aside>
+
 <nav class="bottom-nav" id="bottom-nav">
-    <button class="nav-item active" id="nav-home" onclick="goToHome()">
+    <button class="nav-item active" id="nav-home" data-nav="home" onclick="goToHome()">
         <svg class="nav-icon-filled" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3L2 12h3v8h14v-8h3L12 3z"/></svg>
         <svg class="nav-icon-outline" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 10v11h6v-7h6v7h6V10L12 3l-9 7z"/></svg>
     </button>
-    <button class="nav-item" id="nav-search" onclick="switchMainTab('search')">
+    <button class="nav-item" id="nav-search" data-nav="search" onclick="switchMainTab('search')">
         <svg class="nav-icon-filled" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
         <svg class="nav-icon-outline" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
     </button>
     <button class="nav-item" onclick="openCompose()" aria-label="Create post">
         <svg class="nav-icon-outline" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="18" height="18" rx="4" ry="4"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
     </button>
-    <button class="nav-item" id="nav-messages" onclick="switchMainTab('messages')" style="position:relative;">
+    <button class="nav-item" id="nav-messages" data-nav="messages" onclick="switchMainTab('messages')" style="position:relative;">
         <svg class="nav-icon-filled" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         <svg class="nav-icon-outline" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         <span class="nav-badge" id="badge-messages"></span>
     </button>
-    <button class="nav-item" id="nav-profile" onclick="goToProfile()">
+    <button class="nav-item" id="nav-profile" data-nav="profile" onclick="goToProfile()">
         <div class="nav-avatar-ring">
             <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23A8A8A8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' style='background-color:%23EFEFEF'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3C/svg%3E" id="nav-profile-avatar" alt="Profile">
         </div>
@@ -694,7 +982,7 @@ let activeLiveSessions=new Map(); // uid -> liveData
 
 /* ══ OFFLINE CACHE ══ */
 function saveOfflineData(){try{localStorage.setItem('vynix_posts',JSON.stringify(allPostsCache.slice(0,50)));if(currentUserData)localStorage.setItem('vynix_user',JSON.stringify(currentUserData));}catch(e){}}
-function loadOfflineData(){try{const sp=localStorage.getItem('vynix_posts');if(sp){allPostsCache=JSON.parse(sp);rerenderFeed();}const su=localStorage.getItem('vynix_user');if(su){currentUserData=JSON.parse(su);document.getElementById('compose-avatar').src=currentUserData.photoURL||DEFAULT_AVATAR;document.getElementById('nav-profile-avatar').src=currentUserData.photoURL||DEFAULT_AVATAR;}}catch(e){}}
+function loadOfflineData(){try{const sp=localStorage.getItem('vynix_posts');if(sp){allPostsCache=JSON.parse(sp);rerenderFeed();}const su=localStorage.getItem('vynix_user');if(su){currentUserData=JSON.parse(su);const av=currentUserData.photoURL||DEFAULT_AVATAR;document.getElementById('compose-avatar').src=av;document.getElementById('nav-profile-avatar').src=av;const sav=document.getElementById('sidebar-profile-avatar');if(sav)sav.src=av;}}catch(e){}}
 loadOfflineData();
 
 /* ══ TAB SWITCHING ══ */
@@ -703,7 +991,11 @@ let currentMainTabIdx=0;
 const tabScrolls={home:0,search:0,messages:0,notifications:0,profile:0};
 
 window.setNavActive=(name)=>{
-    document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
+    // clear all nav items (bottom-nav + sidebar)
+    document.querySelectorAll('.nav-item,.sidebar-item').forEach(el=>el.classList.remove('active'));
+    // activate matching items in both navs
+    document.querySelectorAll(`[data-nav="${name}"]`).forEach(el=>el.classList.add('active'));
+    // keep legacy ID-based activation for bottom nav
     const t=document.getElementById(`nav-${name}`);if(t)t.classList.add('active');
 };
 
@@ -752,6 +1044,7 @@ window.saveProfile=async()=>{
         currentUserData.username=un;currentUserData.photoURL=photoURL;
         document.getElementById('compose-avatar').src=photoURL||DEFAULT_AVATAR;
         document.getElementById('nav-profile-avatar').src=photoURL||DEFAULT_AVATAR;
+        const sav=document.getElementById('sidebar-profile-avatar');if(sav)sav.src=photoURL||DEFAULT_AVATAR;
         showToast('Profile updated');closeEditProfile();loadProfile(currentUser.uid);
         allPostsCache.forEach(p=>{if(p.uid===currentUser.uid&&p.user){p.user.username=un;p.user.photoURL=photoURL;}});
         rerenderFeed();saveOfflineData();
@@ -1161,6 +1454,8 @@ async function loadUserData(){
     onValue(ref(db,`users/${currentUser.uid}/following`),s=>{currentUserData.following=s.val()||{};document.querySelectorAll('.follow-btn').forEach(btn=>{const targetUid=Array.from(btn.classList).find(c=>c.startsWith('follow-btn-'))?.replace('follow-btn-','');if(targetUid){const isFollowing=!!currentUserData.following[targetUid];btn.textContent=isFollowing?'Following':'Follow';btn.className=`follow-btn follow-btn-${targetUid} ${isFollowing?'following':'primary'}`;;}});});
     document.getElementById('compose-avatar').src=currentUserData.photoURL||DEFAULT_AVATAR;
     document.getElementById('nav-profile-avatar').src=currentUserData.photoURL||DEFAULT_AVATAR;
+    const sav=document.getElementById('sidebar-profile-avatar');if(sav)sav.src=currentUserData.photoURL||DEFAULT_AVATAR;
+    loadRightPanel();
 }
 
 window.toggleFollow=async(targetUid,event)=>{
@@ -1173,9 +1468,58 @@ window.toggleFollow=async(targetUid,event)=>{
     try{if(isFollowing){await remove(followRef);await remove(followerRef);}else{await set(followRef,true);await set(followerRef,true);await push(ref(db,`notifications/${targetUid}`),{type:'follow',actorId:currentUser.uid,read:false,timestamp:Date.now()});}}catch(e){showToast('Error updating follow status');}
 };
 
-function setupNotificationsListener(){onValue(ref(db,`notifications/${currentUser.uid}`),(snapshot)=>{let unread=0;if(snapshot.exists())snapshot.forEach(child=>{if(!child.val().read)unread++;});updateBadge('badge-notifications-header',unread);});}
-function setupMessagesListener(){onValue(ref(db,`userChats/${currentUser.uid}`),(snapshot)=>{let count=0;if(snapshot.exists())snapshot.forEach(child=>{count+=child.val().unreadCount||0;});updateBadge('badge-messages',count);});}
+function setupNotificationsListener(){onValue(ref(db,`notifications/${currentUser.uid}`),(snapshot)=>{let unread=0;if(snapshot.exists())snapshot.forEach(child=>{if(!child.val().read)unread++;});updateBadge('badge-notifications-header',unread);updateBadge('sidebar-badge-notifications',unread);});}
+function setupMessagesListener(){onValue(ref(db,`userChats/${currentUser.uid}`),(snapshot)=>{let count=0;if(snapshot.exists())snapshot.forEach(child=>{count+=child.val().unreadCount||0;});updateBadge('badge-messages',count);updateBadge('sidebar-badge-messages',count);});}
 function updateBadge(id,count){const badge=document.getElementById(id);if(!badge)return;count>0?badge.classList.add('show'):badge.classList.remove('show');}
+
+/* ══ RIGHT PANEL ══ */
+async function loadRightPanel(){
+    const list=document.getElementById('rp-suggestions-list');
+    if(!list||window.innerWidth<1200)return;
+    try{
+        const [usersSnap,followingSnap]=await Promise.all([
+            get(ref(db,'users')),
+            get(ref(db,`users/${currentUser.uid}/following`))
+        ]);
+        const followingSet=new Set(followingSnap.exists()?Object.keys(followingSnap.val()):[]);
+        const suggestions=[];
+        if(usersSnap.exists()){
+            usersSnap.forEach(c=>{
+                if(c.key===currentUser.uid||followingSet.has(c.key))return;
+                suggestions.push({uid:c.key,...c.val()});
+            });
+        }
+        // shuffle & take up to 5
+        suggestions.sort(()=>Math.random()-0.5);
+        const picks=suggestions.slice(0,5);
+        if(!picks.length){document.getElementById('rp-suggestions').style.display='none';return;}
+        list.innerHTML=picks.map(u=>`
+            <div class="rp-follow-item" onclick="goToProfile('${u.uid}')">
+                <img src="${u.photoURL||DEFAULT_AVATAR}" onerror="this.src='${DEFAULT_AVATAR}'" alt="">
+                <div class="rp-follow-info">
+                    <div class="rp-follow-name">${escapeHtml(u.username||u.displayName||'User')}</div>
+                    <div class="rp-follow-handle">@${escapeHtml(u.username||'user')}</div>
+                </div>
+                <button class="rp-follow-btn" id="rp-follow-${u.uid}" onclick="event.stopPropagation();rpToggleFollow('${u.uid}')">Follow</button>
+            </div>`).join('');
+    }catch(e){document.getElementById('rp-suggestions').style.display='none';}
+}
+
+window.rpToggleFollow=async(uid)=>{
+    const btn=document.getElementById(`rp-follow-${uid}`);if(!btn)return;
+    const isFollowing=btn.classList.contains('following');
+    const followRef=ref(db,`users/${currentUser.uid}/following/${uid}`);
+    const followerRef=ref(db,`users/${uid}/followers/${currentUser.uid}`);
+    try{
+        if(isFollowing){
+            await Promise.all([remove(followRef),remove(followerRef)]);
+            btn.textContent='Follow';btn.classList.remove('following');
+        }else{
+            await Promise.all([set(followRef,true),set(followerRef,true)]);
+            btn.textContent='Following';btn.classList.add('following');
+        }
+    }catch{showToast('Could not update follow');}
+};
 
 async function loadPosts(){
     const feed=document.getElementById('feed');
