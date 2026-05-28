@@ -452,14 +452,14 @@
                     </svg>
                     <span style="font-size:11px;color:var(--text-primary);font-weight:500;letter-spacing:0.5px;line-height:1;">Ona ai</span>
                 </button>
-                <button style="background:none;border:none;cursor:pointer;position:relative;" onclick="goToMessages()">
+                <button style="background:none;border:none;cursor:pointer;position:relative;" onclick="switchMainTab('notifications')">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-primary);">
-                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
                     </svg>
-                    <span class="nav-badge" id="badge-messages-header" style="top:-2px;right:-4px;"></span>
+                    <span class="nav-badge" id="badge-notifications-header" style="top:-2px;right:-4px;"></span>
                 </button>
                 <button style="background:none;border:none;cursor:pointer;" onclick="goToSettings()">
-                    <i data-feather="menu" style="width:24px;height:24px;color:var(--text-primary);"></i>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-primary);"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
                 </button>
             </div>
         </header>
@@ -524,6 +524,18 @@
         <div id="notifications-list"></div>
     </div>
 
+    <div id="view-messages" class="view-container">
+        <header class="header">
+            <h3 style="margin:0;font-size:18px;font-weight:700;">Messages</h3>
+            <a href="messages.html" style="background:none;border:none;cursor:pointer;color:var(--primary);font-size:13px;font-weight:600;text-decoration:none;">Open full</a>
+        </header>
+        <div id="messages-tab-body" style="padding:0;">
+            <div class="loading-more active" id="messages-tab-loading" style="padding:40px 0;">
+                <div style="width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--text-secondary);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto;"></div>
+            </div>
+        </div>
+    </div>
+
     <div id="view-profile" class="view-container">
         <header class="header">
             <button onclick="goToHome()" style="background:none;border:none;cursor:pointer;color:var(--text-primary);"><i data-feather="arrow-left"></i></button>
@@ -547,10 +559,10 @@
     <button class="nav-item" onclick="openCompose()" aria-label="Create post">
         <svg class="nav-icon-outline" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="18" height="18" rx="4" ry="4"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
     </button>
-    <button class="nav-item" id="nav-notifications" onclick="switchMainTab('notifications')" style="position:relative;">
-        <svg class="nav-icon-filled" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-        <svg class="nav-icon-outline" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-        <span class="nav-badge" id="badge-notifications"></span>
+    <button class="nav-item" id="nav-messages" onclick="switchMainTab('messages')" style="position:relative;">
+        <svg class="nav-icon-filled" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <svg class="nav-icon-outline" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span class="nav-badge" id="badge-messages"></span>
     </button>
     <button class="nav-item" id="nav-profile" onclick="goToProfile()">
         <div class="nav-avatar-ring">
@@ -679,9 +691,9 @@ function loadOfflineData(){try{const sp=localStorage.getItem('vynix_posts');if(s
 loadOfflineData();
 
 /* ══ TAB SWITCHING ══ */
-const mainTabsList=['home','search','notifications','profile'];
+const mainTabsList=['home','search','messages','notifications','profile'];
 let currentMainTabIdx=0;
-const tabScrolls={home:0,search:0,notifications:0,profile:0};
+const tabScrolls={home:0,search:0,messages:0,notifications:0,profile:0};
 
 window.setNavActive=(name)=>{
     document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
@@ -696,6 +708,7 @@ window.switchMainTab=(tabId,args=null)=>{
     currentMainTabIdx=mainTabsList.indexOf(tabId);
     if(tabId==='profile')loadProfile(args||currentUser?.uid);
     if(tabId==='notifications')loadNotifications();
+    if(tabId==='messages')loadMessagesTab(args||null);
     if(tabId==='search'){const si=document.getElementById('main-search-input');if(!si.value)showRecentSearchPosts();}
     window.scrollTo(0,tabScrolls[tabId]||0);
 };
@@ -1027,7 +1040,7 @@ window.loadProfile=async(uid)=>{
         const isFollowing=!!currentUserData?.following?.[uid];
         let actionBtn='';
         if(isOwn){actionBtn=`<button class="profile-action-btn edit" onclick="openEditProfile()">Edit Profile</button>`;}
-        else{actionBtn=`<div style="display:flex;gap:8px;width:100%;max-width:250px;"><button style="flex:1;" class="profile-action-btn ${isFollowing?'following':'primary'} follow-btn-${uid}" onclick="toggleFollow('${uid}',event)">${isFollowing?'Following':'Follow'}</button><button style="flex:1;" class="profile-action-btn edit" onclick="window.location.href='messages.html?userid=${uid}'">Message</button></div>`;}
+        else{actionBtn=`<div style="display:flex;gap:8px;width:100%;max-width:250px;"><button style="flex:1;" class="profile-action-btn ${isFollowing?'following':'primary'} follow-btn-${uid}" onclick="toggleFollow('${uid}',event)">${isFollowing?'Following':'Follow'}</button><button style="flex:1;" class="profile-action-btn edit" onclick="goToMessages('${uid}')">Message</button></div>`;}
         content.innerHTML=`<div class="profile-header-card"><img src="${uData.photoURL||DEFAULT_AVATAR}" class="profile-avatar-large" onclick="openImageViewer(this.src)"><div style="font-weight:700;font-size:20px;display:flex;align-items:center;justify-content:center;gap:4px;">@${escapeHtml(uData.username)} ${uData.verified?VERIFIED_BADGE_SVG:''}</div><div class="profile-stats"><div class="stat"><strong id="profile-post-count">0</strong> Posts</div><div class="stat"><strong>${followersCount}</strong> Followers</div><div class="stat"><strong>${followingCount}</strong> Following</div></div>${actionBtn}</div><div class="profile-grid" id="profile-grid"></div>`;
         const userPosts=allPostsCache.filter(p=>p.uid===uid).sort((a,b)=>b.timestamp-a.timestamp);
         const grid=document.getElementById('profile-grid');
@@ -1125,8 +1138,8 @@ window.toggleFollow=async(targetUid,event)=>{
     try{if(isFollowing){await remove(followRef);await remove(followerRef);}else{await set(followRef,true);await set(followerRef,true);await push(ref(db,`notifications/${targetUid}`),{type:'follow',actorId:currentUser.uid,read:false,timestamp:Date.now()});}}catch(e){showToast('Error updating follow status');}
 };
 
-function setupNotificationsListener(){onValue(ref(db,`notifications/${currentUser.uid}`),(snapshot)=>{let unread=0;if(snapshot.exists())snapshot.forEach(child=>{if(!child.val().read)unread++;});updateBadge('badge-notifications',unread);});}
-function setupMessagesListener(){onValue(ref(db,`userChats/${currentUser.uid}`),(snapshot)=>{let count=0;if(snapshot.exists())snapshot.forEach(child=>{count+=child.val().unreadCount||0;});updateBadge('badge-messages-header',count);});}
+function setupNotificationsListener(){onValue(ref(db,`notifications/${currentUser.uid}`),(snapshot)=>{let unread=0;if(snapshot.exists())snapshot.forEach(child=>{if(!child.val().read)unread++;});updateBadge('badge-notifications-header',unread);});}
+function setupMessagesListener(){onValue(ref(db,`userChats/${currentUser.uid}`),(snapshot)=>{let count=0;if(snapshot.exists())snapshot.forEach(child=>{count+=child.val().unreadCount||0;});updateBadge('badge-messages',count);});}
 function updateBadge(id,count){const badge=document.getElementById(id);if(!badge)return;count>0?badge.classList.add('show'):badge.classList.remove('show');}
 
 async function loadPosts(){
@@ -1647,9 +1660,89 @@ document.addEventListener('click',e=>{const avatar=e.target.closest('.post-avata
 function formatTime(ts){if(!ts)return'now';const secs=Math.floor((Date.now()-ts)/1000);if(secs<60)return'now';if(secs<3600)return Math.floor(secs/60)+'m';if(secs<86400)return Math.floor(secs/3600)+'h';return Math.floor(secs/86400)+'d';}
 function escapeHtml(text){const d=document.createElement('div');d.textContent=text;return d.innerHTML;}
 window.showToast=msg=>{const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);};
-window.goToMessages=()=>window.location.href='messages.html';
+window.goToMessages=(uid)=>{switchMainTab('messages',uid||null);};
 window.goToSettings=()=>window.location.href='settings.html';
 window.togglePostMenu=(postId,e)=>{e.stopPropagation();document.getElementById(`dropdown-${postId}`).classList.toggle('active');};
+
+/* ══ MESSAGES TAB ══ */
+let activeChatUid=null,activeChatListener=null;
+window.loadMessagesTab=async(openUid=null)=>{
+    const body=document.getElementById('messages-tab-body');
+    body.innerHTML=`<div style="padding:40px 0;display:flex;justify-content:center;"><div style="width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--text-secondary);border-radius:50%;animation:spin 0.8s linear infinite;"></div></div>`;
+    try{
+        const convSnap=await get(ref(db,'conversations'));
+        const usersSnap=await get(ref(db,'users'));
+        const allUsers={};if(usersSnap.exists())usersSnap.forEach(c=>{allUsers[c.key]=c.val();});
+        let convList=[];
+        if(convSnap.exists()){
+            convSnap.forEach(child=>{
+                const conv=child.val();
+                const members=Object.keys(conv.members||{});
+                if(!members.includes(currentUser.uid))return;
+                const otherId=members.find(m=>m!==currentUser.uid);
+                if(!otherId)return;
+                const other=allUsers[otherId]||{username:'User'};
+                convList.push({id:child.key,otherId,other,lastMessage:conv.lastMessage||'',lastTimestamp:conv.lastTimestamp||0,unread:conv.unread?.[currentUser.uid]||0});
+            });
+        }
+        convList.sort((a,b)=>b.lastTimestamp-a.lastTimestamp);
+        if(!convList.length&&!openUid){
+            body.innerHTML=`<div style="padding:60px 24px;text-align:center;"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--text-muted);margin:0 auto 12px;display:block;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><div style="font-size:16px;font-weight:600;color:var(--text-primary);margin-bottom:6px;">No messages yet</div><div style="font-size:14px;color:var(--text-secondary);">Start a conversation from someone's profile.</div></div>`;
+            return;
+        }
+        body.innerHTML=`<div id="messages-conv-list">${convList.map(c=>`<div class="search-result-item" onclick="openInlineChat('${c.otherId}','${encodeURIComponent(JSON.stringify(c.other))}')" style="gap:12px;padding:12px 16px;"><img src="${c.other.photoURL||DEFAULT_AVATAR}" onerror="this.src='${DEFAULT_AVATAR}'" style="width:44px;height:44px;border-radius:50%;object-fit:cover;flex-shrink:0;"><div style="flex:1;min-width:0;"><div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-weight:700;font-size:14px;color:var(--text-primary);">${escapeHtml(c.other.username||'User')}</span><span style="font-size:11px;color:var(--text-muted);">${formatTime(c.lastTimestamp)}</span></div><div style="font-size:13px;color:var(--text-secondary);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(c.lastMessage||'Tap to chat')}</div></div>${c.unread>0?`<span style="background:var(--primary);color:white;border-radius:50%;min-width:18px;height:18px;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0 4px;">${c.unread}</span>`:''}</div>`).join('')}</div><div id="inline-chat-panel" style="display:none;"></div>`;
+        if(openUid){
+            const other=allUsers[openUid]||{username:'User'};
+            openInlineChat(openUid,encodeURIComponent(JSON.stringify(other)));
+        }
+    }catch(e){body.innerHTML=`<div class="empty-state">Could not load messages.</div>`;}
+};
+
+window.openInlineChat=async(uid,userEncoded)=>{
+    activeChatUid=uid;
+    const other=JSON.parse(decodeURIComponent(userEncoded));
+    const list=document.getElementById('messages-conv-list');
+    const panel=document.getElementById('inline-chat-panel');
+    if(!list||!panel)return;
+    list.style.display='none';
+    panel.style.cssText='display:flex;flex-direction:column;height:calc(100dvh - 115px);';
+    panel.innerHTML=`<div style="display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--border);background:var(--background);"><button onclick="closeInlineChat()" style="background:none;border:none;cursor:pointer;color:var(--text-primary);padding:4px 4px 4px 0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg></button><img src="${other.photoURL||DEFAULT_AVATAR}" onerror="this.src='${DEFAULT_AVATAR}'" style="width:34px;height:34px;border-radius:50%;object-fit:cover;"><span style="font-weight:700;font-size:15px;color:var(--text-primary);flex:1;">${escapeHtml(other.username||'User')}</span><a href="messages.html?userid=${uid}" style="font-size:12px;color:var(--primary);font-weight:600;text-decoration:none;">Full view</a></div><div id="inline-chat-messages" style="flex:1;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:8px;"></div><div style="padding:10px 16px;border-top:1px solid var(--border);background:var(--background);display:flex;gap:10px;align-items:center;"><div style="flex:1;background:var(--surface2);border-radius:9999px;padding:9px 14px;display:flex;align-items:center;"><input type="text" id="inline-chat-input" placeholder="Message..." style="flex:1;border:none;background:transparent;outline:none;font-size:14px;color:var(--text-primary);font-family:inherit;" onkeypress="if(event.key==='Enter')sendInlineChat()"></div><button onclick="sendInlineChat()" style="background:var(--primary);border:none;border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button></div>`;
+    const convId=[currentUser.uid,uid].sort().join('_');
+    const chatRef=ref(db,`directMessages/${convId}/messages`);
+    if(activeChatListener)off(chatRef);
+    const msgsEl=document.getElementById('inline-chat-messages');
+    activeChatListener=onChildAdded(chatRef,(snap)=>{
+        const msg=snap.val();if(!msg)return;
+        const isMe=msg.senderId===currentUser.uid;
+        const div=document.createElement('div');
+        div.style.cssText=`display:flex;justify-content:${isMe?'flex-end':'flex-start'};`;
+        div.innerHTML=`<div style="max-width:72%;padding:9px 13px;border-radius:${isMe?'16px 16px 4px 16px':'16px 16px 16px 4px'};background:${isMe?'var(--primary)':'var(--surface2)'};color:${isMe?'white':'var(--text-primary)'};font-size:14px;line-height:1.4;word-break:break-word;">${escapeHtml(msg.text||'')}</div>`;
+        msgsEl.appendChild(div);
+        msgsEl.scrollTop=msgsEl.scrollHeight;
+    });
+    update(ref(db,`conversations/${convId}/unread`),{[currentUser.uid]:0}).catch(()=>{});
+};
+window.closeInlineChat=()=>{
+    const list=document.getElementById('messages-conv-list');
+    const panel=document.getElementById('inline-chat-panel');
+    if(list)list.style.display='block';
+    if(panel)panel.style.display='none';
+    activeChatUid=null;
+};
+window.sendInlineChat=async()=>{
+    const input=document.getElementById('inline-chat-input');
+    const text=input?.value?.trim();
+    if(!text||!activeChatUid)return;
+    input.value='';
+    const convId=[currentUser.uid,activeChatUid].sort().join('_');
+    try{
+        await push(ref(db,`directMessages/${convId}/messages`),{senderId:currentUser.uid,text,timestamp:serverTimestamp()});
+        await update(ref(db,`conversations/${convId}`),{members:{[currentUser.uid]:true,[activeChatUid]:true},lastMessage:text,lastTimestamp:Date.now()});
+        // Update conv list last message if visible
+        const items=document.querySelectorAll('#messages-conv-list .search-result-item');
+        // reload to refresh order
+    }catch(e){showToast('Failed to send');}
+};
 
 const hash=window.location.hash;
 if(hash.startsWith('#post-')){setTimeout(()=>{const el=document.getElementById(`post-${hash.slice(6)}`);if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.style.background='rgba(var(--primary-rgb),0.06)';setTimeout(()=>el.style.background='',2000);}},1500);}
