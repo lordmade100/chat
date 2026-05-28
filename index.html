@@ -341,6 +341,10 @@
         .mention-item{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;transition:background 0.15s;}
         .mention-item:active,.mention-item.selected{background:var(--surface2);}
         .mention-item img{width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;border:1px solid var(--border);}
+        /* ── INLINE CHAT PANEL – NO SELECTION / HIGHLIGHT ── */
+        #inline-chat-panel,#inline-chat-messages,#chat-topbar{
+            -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+        }
         .upload-progress{height:2px;background:var(--surface2);border-radius:1px;overflow:hidden;margin:12px 0;display:none;}
         .upload-progress.active{display:block;}
         .progress-bar-fill{height:100%;background:var(--primary);width:0%;transition:width 0.3s;}
@@ -531,7 +535,6 @@
     <div id="view-messages" class="view-container">
         <header class="header">
             <h3 style="margin:0;font-size:18px;font-weight:700;">Messages</h3>
-            <a href="messages.html" style="background:none;border:none;cursor:pointer;color:var(--primary);font-size:13px;font-weight:600;text-decoration:none;">Open full</a>
         </header>
         <div id="messages-tab-body" style="padding:0;">
             <div class="loading-more active" id="messages-tab-loading" style="padding:40px 0;">
@@ -1775,7 +1778,7 @@ window.openInlineChat=async(uid,userEncoded)=>{
     if(!list||!panel)return;
 
     list.style.display='none';
-    panel.style.cssText='display:flex;flex-direction:column;position:fixed;inset:0;z-index:99;background:var(--background);';
+    panel.style.cssText='display:flex;flex-direction:column;position:fixed;inset:0;z-index:150;background:var(--background);';
     hideNav();
 
     // Push history state for back button
@@ -1830,8 +1833,8 @@ window.openInlineChat=async(uid,userEncoded)=>{
         wrapper.style.cssText=`display:flex;flex-direction:column;align-items:${isMe?'flex-end':'flex-start'};margin-bottom:2px;`;
         const hh=String(new Date(msgTime).getHours()).padStart(2,'0'),mm=String(new Date(msgTime).getMinutes()).padStart(2,'0');
         wrapper.innerHTML=`
-            <div style="max-width:75%;padding:9px 13px;border-radius:${isMe?'18px 18px 4px 18px':'18px 18px 18px 4px'};background:${isMe?'var(--primary)':'var(--surface2)'};color:${isMe?'white':'var(--text-primary)'};font-size:14px;line-height:1.45;word-break:break-word;">${escapeHtml(msg.text||'')}</div>
-            <span style="font-size:10px;color:var(--text-muted);margin-top:3px;padding:0 4px;">${hh}:${mm}</span>`;
+            <div style="max-width:75%;padding:9px 13px;border-radius:${isMe?'18px 18px 4px 18px':'18px 18px 18px 4px'};background:${isMe?'var(--primary)':'var(--surface2)'};color:${isMe?'white':'var(--text-primary)'};font-size:14px;line-height:1.45;word-break:break-word;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;">${escapeHtml(msg.text||'')}</div>
+            <span style="font-size:10px;color:var(--text-muted);margin-top:3px;padding:0 4px;-webkit-user-select:none;user-select:none;">${hh}:${mm}</span>`;
         msgsEl.appendChild(wrapper);
         msgsEl.scrollTop=msgsEl.scrollHeight;
     });
