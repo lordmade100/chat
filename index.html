@@ -150,7 +150,9 @@
         /* Profile Sheet & Extended Settings */
         .profile-card{background:var(--surface);border-radius:24px;padding:32px 20px;text-align:center;box-shadow:var(--shadow-sm);border:1px solid var(--border);margin-top:8px;}
         .profile-avatar-large{width:110px;height:110px;border-radius:32px;object-fit:cover;box-shadow:var(--shadow-md);border:3px solid var(--surface);}
-        .profile-name{font-size:24px;font-weight:800;letter-spacing:-0.5px;margin-bottom:4px;}
+        .profile-name{font-size:24px;font-weight:800;letter-spacing:-0.5px;margin-bottom:4px;display:flex;align-items:center;justify-content:center;}
+        .edit-name-btn { background: none; border: none; color: var(--text-secondary); cursor: pointer; margin-left: 8px; padding: 4px; border-radius: 50%; transition: background 0.2s; }
+        .edit-name-btn:active { background: var(--surface2); }
         .profile-handle{font-size:14px;color:var(--text-secondary);margin-bottom:28px;}
         .profile-btn{width:100%;max-width:220px;padding:14px;border-radius:16px;font-weight:700;font-size:15px;cursor:pointer;border:none;background:var(--surface2);color:var(--text-primary);transition:all 0.2s;}
         .profile-btn.logout{background:rgba(239,68,68,0.08);color:#EF4444;margin-top:12px;}
@@ -199,7 +201,7 @@
 
         <div id="chats-list" class="chats-holder"></div>
         
-        <button class="fab" onclick="openNewChatSheet()">
+        <button class="fab" onclick="window.openNewChatSheet()">
             <i data-feather="plus" style="width:24px;height:24px;"></i>
         </button>
     </div>
@@ -498,33 +500,41 @@ async function loadChatsTab() {
 
 // --- FAB & Global Users List (New Chat) ---
 window.openNewChatSheet = async () => {
-    const listEl = document.getElementById('all-users-list');
-    listEl.innerHTML = getShimmerHTML();
+    // Immediately open the overlay synchronously so the button click feels responsive
     document.getElementById('new-chat-sheet-overlay').classList.add('active');
     
-    if (Object.keys(allUsersCache).length === 0) {
-        const usersSnap = await get(ref(db, 'users'));
-        if (usersSnap.exists()) usersSnap.forEach(c => { allUsersCache[c.key] = c.val(); });
-    }
+    const listEl = document.getElementById('all-users-list');
+    listEl.innerHTML = getShimmerHTML();
+    
+    try {
+        if (Object.keys(allUsersCache).length === 0) {
+            const usersSnap = await get(ref(db, 'users'));
+            if (usersSnap.exists()) {
+                usersSnap.forEach(c => { allUsersCache[c.key] = c.val(); });
+            }
+        }
 
-    const users = Object.keys(allUsersCache)
-        .filter(uid => uid !== currentUser.uid)
-        .map(uid => ({ uid, ...allUsersCache[uid] }));
+        const users = Object.keys(allUsersCache)
+            .filter(uid => uid !== currentUser.uid)
+            .map(uid => ({ uid, ...allUsersCache[uid] }));
 
-    if (!users.length) {
-        listEl.innerHTML = '<div class="empty-state" style="padding:40px 20px;">No other users found on the platform.</div>';
-        return;
-    }
+        if (!users.length) {
+            listEl.innerHTML = '<div class="empty-state" style="padding:40px 20px;">No other users found on the platform.</div>';
+            return;
+        }
 
-    // Notice: New Chat global list has NO long-press functionality. Only standard click.
-    listEl.innerHTML = users.map(u => `
-        <div class="chat-list-item" onclick="closeNewChatSheet(); openChat('${u.uid}')" style="box-shadow:none; border-bottom:1px solid var(--border); border-radius:0;">
-            <img src="${u.photoURL || DEFAULT_AVATAR}" onerror="this.src='${DEFAULT_AVATAR}'" class="avatar" style="border-radius:14px; width:44px; height:44px;">
-            <div class="chat-info">
-                <div class="chat-name">${escapeHtml(u.username || 'User')}</div>
+        // Standard click only. No long-press logic for starting new chats.
+        listEl.innerHTML = users.map(u => `
+            <div class="chat-list-item" onclick="closeNewChatSheet(); openChat('${u.uid}')" style="box-shadow:none; border-bottom:1px solid var(--border); border-radius:0;">
+                <img src="${u.photoURL || DEFAULT_AVATAR}" onerror="this.src='${DEFAULT_AVATAR}'" class="avatar" style="border-radius:14px; width:44px; height:44px;">
+                <div class="chat-info">
+                    <div class="chat-name">${escapeHtml(u.username || 'User')}</div>
+                </div>
             </div>
-        </div>
-    `).join('');
+        `).join('');
+    } catch(err) {
+        listEl.innerHTML = '<div class="empty-state" style="padding:40px 20px;">Failed to load users.</div>';
+    }
 };
 
 window.closeNewChatSheet = () => {
@@ -835,7 +845,12 @@ function renderProfile() {
                 </div>
             </div>
             <input type="file" id="profile-upload" accept="image/*" style="display:none;" onchange="handleProfileUpload(event)">
-            <div class="profile-name">${escapeHtml(currentUserData.username)}</div>
+            
+            <div class="profile-name">
+                ${escapeHtml(currentUserData.username)}
+                <button class="edit-name-btn" onclick="window.editUsername()"><i data-feather="edit-2" style="width:18px;height:18px;"></i></button>
+            </div>
+            
             <div class="profile-handle">${escapeHtml(currentUserData.email)}</div>
             <button class="profile-btn logout" onclick="handleLogout()">Disconnect Session</button>
         </div>
@@ -869,6 +884,21 @@ function renderProfile() {
     `;
     feather.replace();
 }
+
+// Function to handle changing the username
+window.editUsername = async () => {
+    const newName = prompt("Enter new username:", currentUserData.username);
+    if (newName && newName.trim() !== "" && newName.trim() !== currentUserData.username) {
+        try {
+            await update(ref(db, `users/${currentUser.uid}`), { username: newName.trim() });
+            currentUserData.username = newName.trim();
+            renderProfile();
+            showToast("Username updated!");
+        } catch(e) {
+            showToast("Failed to update username.");
+        }
+    }
+};
 
 window.toggleTheme = (el) => {
     el.classList.toggle('active');
