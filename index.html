@@ -39,8 +39,16 @@
             --danger: #F87171;
         }
 
+        /* Prevent text selection and native context menus globally to simulate native app */
         *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;}
         input, textarea { user-select: text; -webkit-user-select: text; }
+        
+        /* Force disable touch callouts on images, avatars, and nav items */
+        img, .avatar, .nav-item, .bottom-nav, .chat-list-item {
+            -webkit-touch-callout: none !important;
+            -webkit-user-drag: none !important;
+        }
+
         body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--background);color:var(--text-primary);-webkit-font-smoothing:antialiased;overflow-x:hidden;padding-bottom:calc(76px + env(safe-area-inset-bottom));transition:background 0.3s,color 0.3s;}
 
         .app-container{max-width:100%;margin:0 auto;padding:16px;}
@@ -94,7 +102,7 @@
         .search-bar input{flex:1;border:none;background:transparent;outline:none;font-size:15px;color:var(--text-primary);font-family:inherit;}
 
         /* Fullscreen Chat Window */
-        .chat-window{position:fixed;inset:0;background:var(--background);z-index:200;display:flex;flex-direction:column;transform:translateX(100%);transition:transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);visibility:hidden;}
+        .chat-window{position:fixed;inset:0;background:var(--background);z-index:200;display:flex;flex-direction:column;transform:translateX(100%);transition:transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);visibility:hidden;}
         .chat-window.active{transform:translateX(0);visibility:visible;}
         @media(min-width:768px){.chat-window{left:calc(50% - 240px);right:calc(50% - 240px);box-shadow:0 0 40px rgba(0,0,0,0.1);}}
         
@@ -123,7 +131,6 @@
         .bottom-sheet-overlay.active { opacity: 1; pointer-events: auto; }
         .bottom-sheet { width: 100%; background: var(--surface); border-radius: 28px 28px 0 0; padding: 20px 24px calc(24px + env(safe-area-inset-bottom)); transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 -8px 32px rgba(0,0,0,0.1); }
         @media(min-width:768px){.bottom-sheet { max-width:480px; margin: 0 auto; border-radius: 28px; bottom: 20px; transform: translateY(120%); } .bottom-sheet-overlay { justify-content: center; align-items: center; padding: 20px; } .bottom-sheet-overlay.active .bottom-sheet { transform: translateY(0); } }
-        .bottom-sheet-overlay.active .bottom-sheet { transform: translateY(0); }
         .sheet-handle { width: 36px; height: 5px; background: var(--border); border-radius: 999px; margin: 0 auto 20px; }
         .sheet-title { font-size: 15px; font-weight: 700; color: var(--text-muted); text-align: center; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 0.5px; }
         .sheet-btn { width: 100%; padding: 16px; border-radius: 16px; font-size: 16px; font-weight: 700; border: none; background: var(--surface2); color: var(--text-primary); display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 10px; cursor: pointer; transition: all 0.2s; }
@@ -205,7 +212,7 @@
 
 <div class="chat-window" id="chat-window">
     <div class="chat-topbar">
-        <button class="back-btn" onclick="closeChat()">
+        <button class="back-btn" onclick="closeChat(false)">
             <i data-feather="arrow-left" style="width:20px;height:20px;"></i>
         </button>
         <img src="" id="chat-header-avatar" class="avatar" style="width:40px;height:40px;border-radius:14px;">
@@ -260,7 +267,7 @@ let longPressTimer = null;
 let selectedConvId = null;
 let selectedTargetUid = null;
 
-// Inject Shimmer Layout
+// Inject Shimmer Layout natively
 const getShimmerHTML = () => Array(4).fill(0).map(() => `
     <div class="shimmer-card">
         <div class="shimmer-element shimmer-avatar"></div>
@@ -275,6 +282,13 @@ document.getElementById('chats-list').innerHTML = getShimmerHTML();
 document.getElementById('profile-content').innerHTML = getShimmerHTML().substring(0, getShimmerHTML().length/4);
 
 feather.replace();
+
+// Disable native long-press popup for images, inputs overrides it dynamically
+document.addEventListener('contextmenu', e => {
+    if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+        e.preventDefault();
+    }
+});
 
 onAuthStateChanged(auth, async (user) => {
     if (!user) {
@@ -296,9 +310,12 @@ async function loadUserData() {
         await set(ref(db, `users/${currentUser.uid}`), currentUserData);
     }
     
+    // Always fall back to default avatar if none exists
+    const safePhotoUrl = currentUserData.photoURL || DEFAULT_AVATAR;
+    
     const navAvatarImg = document.getElementById('nav-profile-avatar');
     if (navAvatarImg) {
-        navAvatarImg.src = currentUserData.photoURL || DEFAULT_AVATAR;
+        navAvatarImg.src = safePhotoUrl;
         navAvatarImg.onerror = () => { navAvatarImg.src = DEFAULT_AVATAR; };
     }
     renderProfile();
@@ -403,7 +420,10 @@ window.endLongPress = (e, targetUid) => {
     if (longPressTimer) {
         clearTimeout(longPressTimer);
         longPressTimer = null;
-        if (targetUid) window.openChat(targetUid);
+        // Proceed to open chat if it was a quick tap
+        if (targetUid && !document.getElementById('action-sheet-overlay').classList.contains('active')) {
+            window.openChat(targetUid);
+        }
     }
 };
 
@@ -427,7 +447,6 @@ window.executeClearChat = async () => {
 window.executeBlockUser = async () => {
     if (!selectedTargetUid || !selectedConvId) return;
     if (confirm("Block this user? You will no longer see this conversation slot.")) {
-        // Deletes the active mapping from your personal conversations object feed tracking
         await remove(ref(db, `conversations/${selectedConvId}`));
         window.closeActionSheet();
     }
@@ -464,14 +483,29 @@ window.handleSearch = (query) => {
                 </div>
             </div>
         `).join('');
-    }, 400);
+    }, 300); // slight simulated delay to allow typing
 };
+
+// --- History API Back Handling ---
+window.addEventListener('popstate', (e) => {
+    // Intercept physical back button to close floating sheets or chats gracefully
+    if (document.getElementById('action-sheet-overlay').classList.contains('active')) {
+        closeActionSheet();
+    }
+    if (document.getElementById('chat-window').classList.contains('active')) {
+        closeChat(true); // Close chat without calling history.back()
+    }
+});
+
 
 // --- Chat Window Workspace ---
 window.openChat = async (targetUid) => {
     const otherUser = allUsersCache[targetUid] || { username: 'User' };
     activeChatUid = targetUid;
     activeChatConvId = [currentUser.uid, targetUid].sort().join('_');
+    
+    // Push history state to capture back button
+    history.pushState({ chatActive: true }, '', '#chat');
     
     document.getElementById('chat-header-name').textContent = otherUser.username;
     document.getElementById('chat-header-avatar').src = otherUser.photoURL || DEFAULT_AVATAR;
@@ -523,7 +557,7 @@ window.openChat = async (targetUid) => {
     });
 };
 
-window.closeChat = () => {
+window.closeChat = (fromPopState = false) => {
     document.getElementById('chat-window').classList.remove('active');
     if (activeChatListener && activeChatConvId) {
         off(ref(db, `directMessages/${activeChatConvId}/messages`));
@@ -531,6 +565,11 @@ window.closeChat = () => {
     }
     activeChatUid = null;
     activeChatConvId = null;
+    
+    // Only call history.back() if we clicked the UI back button, not if we pressed device hardware back
+    if(!fromPopState) {
+        history.back();
+    }
 };
 
 window.sendChatMessage = async () => {
@@ -575,9 +614,11 @@ function renderProfile() {
     const container = document.getElementById('profile-content');
     if(!currentUserData) return;
     
+    const safePhotoUrl = currentUserData.photoURL || DEFAULT_AVATAR;
+    
     container.innerHTML = `
         <div class="profile-card">
-            <img src="${currentUserData.photoURL || DEFAULT_AVATAR}" onerror="this.src='${DEFAULT_AVATAR}'" class="profile-avatar-large">
+            <img src="${safePhotoUrl}" onerror="this.src='${DEFAULT_AVATAR}'" class="profile-avatar-large">
             <div class="profile-name">${escapeHtml(currentUserData.username)}</div>
             <div class="profile-handle">${escapeHtml(currentUserData.email)}</div>
             <button class="profile-btn logout" onclick="handleLogout()">Disconnect Session</button>
