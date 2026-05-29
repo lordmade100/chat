@@ -1,988 +1,620 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Vynix Optimized</title>
-
-  <!-- Feather Icons -->
-  <script defer src="https://unpkg.com/feather-icons"></script>
-
-  <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
-  <style>
-    :root {
-      --bg: #0b1120;
-      --surface: #111827;
-      --surface-light: #1f2937;
-      --surface-hover: #243041;
-      --primary: #6366f1;
-      --primary-hover: #4f46e5;
-      --text: #f8fafc;
-      --muted: #94a3b8;
-      --border: rgba(255,255,255,0.06);
-      --shadow: 0 10px 30px rgba(0,0,0,0.18);
-      --radius: 22px;
-      --danger: #ef4444;
-    }
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    html {
-      scroll-behavior: smooth;
-    }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Inter', sans-serif;
-      overflow-x: hidden;
-      -webkit-font-smoothing: antialiased;
-      text-rendering: optimizeLegibility;
-    }
-
-    img {
-      display: block;
-      max-width: 100%;
-      user-select: none;
-      -webkit-user-drag: none;
-    }
-
-    button {
-      font-family: inherit;
-    }
-
-    .app {
-      display: flex;
-      min-height: 100vh;
-    }
-
-    /* SIDEBAR */
-
-    .sidebar {
-      width: 90px;
-      height: 100vh;
-      position: fixed;
-      left: 0;
-      top: 0;
-      background: rgba(17,24,39,0.88);
-      backdrop-filter: blur(12px);
-      border-right: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px 0;
-      z-index: 100;
-    }
-
-    .logo {
-      width: 56px;
-      height: 56px;
-      border-radius: 18px;
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 30px;
-      box-shadow: var(--shadow);
-    }
-
-    .logo img {
-      width: 40px;
-      height: 40px;
-      object-fit: contain;
-    }
-
-    .nav {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      width: 100%;
-      align-items: center;
-    }
-
-    .nav-btn {
-      width: 56px;
-      height: 56px;
-      border-radius: 18px;
-      border: none;
-      background: transparent;
-      color: var(--muted);
-      cursor: pointer;
-      transition: .25s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .nav-btn:hover {
-      background: var(--surface-light);
-      color: var(--text);
-      transform: translateY(-2px);
-    }
-
-    .nav-btn.active {
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
-      color: white;
-      box-shadow: 0 10px 20px rgba(99,102,241,.35);
-    }
-
-    /* MAIN */
-
-    .main {
-      margin-left: 90px;
-      flex: 1;
-      display: flex;
-      justify-content: center;
-      padding: 24px;
-    }
-
-    .feed-wrap {
-      width: 100%;
-      max-width: 640px;
-    }
-
-    /* HEADER */
-
-    .topbar {
-      position: sticky;
-      top: 18px;
-      z-index: 50;
-      background: rgba(17,24,39,0.78);
-      backdrop-filter: blur(14px);
-      border: 1px solid var(--border);
-      border-radius: 24px;
-      height: 72px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 20px;
-      margin-bottom: 22px;
-      box-shadow: var(--shadow);
-    }
-
-    .topbar h1 {
-      font-size: 22px;
-      font-weight: 800;
-      letter-spacing: -.02em;
-    }
-
-    .top-actions {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .icon-btn {
-      width: 46px;
-      height: 46px;
-      border-radius: 16px;
-      border: 1px solid var(--border);
-      background: var(--surface-light);
-      color: var(--text);
-      cursor: pointer;
-      transition: .2s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .icon-btn:hover {
-      transform: translateY(-2px);
-      background: var(--surface-hover);
-    }
-
-    /* TABS */
-
-    .tabs {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 22px;
-    }
-
-    .tab {
-      flex: 1;
-      height: 50px;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      background: var(--surface);
-      color: var(--muted);
-      font-weight: 700;
-      cursor: pointer;
-      transition: .2s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
-
-    .tab.active {
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
-      color: white;
-      border-color: transparent;
-    }
-
-    /* COMPOSER */
-
-    .composer {
-      background: rgba(17,24,39,0.92);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 18px;
-      margin-bottom: 22px;
-      box-shadow: var(--shadow);
-    }
-
-    .composer-top {
-      display: flex;
-      gap: 14px;
-    }
-
-    .avatar {
-      width: 52px;
-      height: 52px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 2px solid rgba(255,255,255,0.06);
-      flex-shrink: 0;
-    }
-
-    .composer textarea {
-      flex: 1;
-      resize: none;
-      background: transparent;
-      border: none;
-      outline: none;
-      color: var(--text);
-      font-size: 15px;
-      line-height: 1.6;
-      min-height: 70px;
-    }
-
-    .composer textarea::placeholder {
-      color: var(--muted);
-    }
-
-    .composer-bottom {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 16px;
-      padding-top: 16px;
-      border-top: 1px solid var(--border);
-    }
-
-    .composer-tools {
-      display: flex;
-      gap: 10px;
-    }
-
-    .tool-btn {
-      width: 42px;
-      height: 42px;
-      border-radius: 14px;
-      border: none;
-      background: var(--surface-light);
-      color: var(--muted);
-      cursor: pointer;
-      transition: .2s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .tool-btn:hover {
-      background: var(--surface-hover);
-      color: white;
-    }
-
-    .post-btn {
-      border: none;
-      height: 46px;
-      padding: 0 24px;
-      border-radius: 999px;
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
-      color: white;
-      font-weight: 700;
-      cursor: pointer;
-      transition: .2s ease;
-    }
-
-    .post-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 24px rgba(99,102,241,.4);
-    }
-
-    /* POSTS */
-
-    .feed {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-
-    .post {
-      background: rgba(17,24,39,0.92);
-      border: 1px solid var(--border);
-      border-radius: 28px;
-      overflow: hidden;
-      box-shadow: var(--shadow);
-      transition: .25s ease;
-    }
-
-    .post:hover {
-      transform: translateY(-2px);
-    }
-
-    .post-header {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      padding: 18px 18px 12px;
-    }
-
-    .post-meta {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .name-row {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-bottom: 2px;
-    }
-
-    .name {
-      font-size: 15px;
-      font-weight: 700;
-    }
-
-    .handle {
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .follow-btn {
-      height: 38px;
-      padding: 0 18px;
-      border-radius: 999px;
-      border: none;
-      background: var(--surface-light);
-      color: white;
-      font-weight: 700;
-      cursor: pointer;
-      transition: .2s ease;
-    }
-
-    .follow-btn:hover {
-      background: var(--surface-hover);
-    }
-
-    .menu-btn {
-      width: 40px;
-      height: 40px;
-      border-radius: 14px;
-      border: none;
-      background: transparent;
-      color: var(--muted);
-      cursor: pointer;
-    }
-
-    .post-content {
-      padding: 0 18px 18px;
-    }
-
-    .post-text {
-      font-size: 15px;
-      line-height: 1.7;
-      color: #e5e7eb;
-      margin-bottom: 16px;
-    }
-
-    .post-image-wrap {
-      border-radius: 24px;
-      overflow: hidden;
-      position: relative;
-    }
-
-    .post-image {
-      width: 100%;
-      aspect-ratio: 4 / 5;
-      object-fit: cover;
-      transition: transform .4s ease;
-    }
-
-    .post:hover .post-image {
-      transform: scale(1.02);
-    }
-
-    .post-actions {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 16px 18px 18px;
-      border-top: 1px solid var(--border);
-    }
-
-    .left-actions {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .action-btn {
-      height: 42px;
-      padding: 0 14px;
-      border-radius: 14px;
-      border: none;
-      background: var(--surface-light);
-      color: var(--muted);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      transition: .2s ease;
-      font-weight: 600;
-    }
-
-    .action-btn:hover {
-      background: var(--surface-hover);
-      color: white;
-      transform: translateY(-1px);
-    }
-
-    .action-btn.like.active {
-      color: #ff4d6d;
-    }
-
-    /* RIGHT PANEL */
-
-    .right-panel {
-      width: 340px;
-      padding: 24px 24px 24px 0;
-      display: block;
-    }
-
-    .search-box {
-      height: 60px;
-      border-radius: 20px;
-      background: rgba(17,24,39,0.92);
-      border: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 0 18px;
-      margin-bottom: 22px;
-      box-shadow: var(--shadow);
-    }
-
-    .search-box input {
-      flex: 1;
-      border: none;
-      background: transparent;
-      outline: none;
-      color: white;
-      font-size: 14px;
-    }
-
-    .card {
-      background: rgba(17,24,39,0.92);
-      border: 1px solid var(--border);
-      border-radius: 28px;
-      padding: 20px;
-      margin-bottom: 22px;
-      box-shadow: var(--shadow);
-    }
-
-    .card h3 {
-      margin-bottom: 18px;
-      font-size: 18px;
-    }
-
-    .trend {
-      padding: 14px 0;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .trend:last-child {
-      border-bottom: none;
-      padding-bottom: 0;
-    }
-
-    .trend small {
-      color: var(--muted);
-      display: block;
-      margin-bottom: 4px;
-    }
-
-    .trend strong {
-      font-size: 15px;
-    }
-
-    /* MOBILE */
-
-    @media (max-width: 1200px) {
-      .right-panel {
-        display: none;
-      }
-    }
-
-    @media (max-width: 768px) {
-      .sidebar {
-        width: 100%;
-        height: 84px;
-        bottom: 0;
-        top: auto;
-        flex-direction: row;
-        justify-content: space-around;
-        padding: 0 10px;
-        border-right: none;
-        border-top: 1px solid var(--border);
-      }
-
-      .logo {
-        display: none;
-      }
-
-      .nav {
-        flex-direction: row;
-        justify-content: space-around;
-      }
-
-      .main {
-        margin-left: 0;
-        padding: 14px;
-        padding-bottom: 110px;
-      }
-
-      .topbar {
-        top: 10px;
-      }
-
-      .post {
-        border-radius: 24px;
-      }
-
-      .post-image {
-        aspect-ratio: 4 / 5;
-      }
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Vynix</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<script defer src="https://unpkg.com/feather-icons"></script>
+
+<style>
+
+:root{
+  --bg:#0b1120;
+  --surface:#111827;
+  --surface-light:#1f2937;
+  --hover:#2b3648;
+  --primary:#6366f1;
+  --text:#f8fafc;
+  --muted:#94a3b8;
+  --border:rgba(255,255,255,.06);
+  --shadow:0 10px 30px rgba(0,0,0,.18);
+}
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  -webkit-tap-highlight-color:transparent;
+}
+
+body{
+  font-family:'Inter',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  overflow-x:hidden;
+}
+
+img{
+  display:block;
+  max-width:100%;
+}
+
+button{
+  font-family:inherit;
+}
+
+.app{
+  display:flex;
+  min-height:100vh;
+}
+
+/* SIDEBAR */
+
+.sidebar{
+  width:90px;
+  position:fixed;
+  left:0;
+  top:0;
+  bottom:0;
+  background:rgba(17,24,39,.92);
+  backdrop-filter:blur(12px);
+  border-right:1px solid var(--border);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:20px 0;
+  z-index:999;
+}
+
+.logo{
+  width:58px;
+  height:58px;
+  border-radius:20px;
+  background:linear-gradient(135deg,#6366f1,#8b5cf6);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin-bottom:30px;
+  box-shadow:var(--shadow);
+}
+
+.logo img{
+  width:40px;
+}
+
+.nav{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+
+.nav-btn{
+  width:56px;
+  height:56px;
+  border:none;
+  border-radius:18px;
+  background:transparent;
+  color:var(--muted);
+  cursor:pointer;
+  transition:.2s;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.nav-btn:hover{
+  background:var(--surface-light);
+  color:white;
+}
+
+.nav-btn.active{
+  background:linear-gradient(135deg,#6366f1,#8b5cf6);
+  color:white;
+}
+
+/* MAIN */
+
+.main{
+  flex:1;
+  margin-left:90px;
+  display:flex;
+  justify-content:center;
+  padding:24px;
+}
+
+.feed-wrap{
+  width:100%;
+  max-width:650px;
+}
+
+/* HEADER */
+
+.topbar{
+  position:sticky;
+  top:18px;
+  z-index:100;
+  height:72px;
+  border-radius:24px;
+  background:rgba(17,24,39,.85);
+  border:1px solid var(--border);
+  backdrop-filter:blur(14px);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 20px;
+  margin-bottom:22px;
+  box-shadow:var(--shadow);
+}
+
+.topbar h1{
+  font-size:24px;
+  font-weight:800;
+}
+
+.top-actions{
+  display:flex;
+  gap:10px;
+}
+
+.icon-btn{
+  width:46px;
+  height:46px;
+  border-radius:16px;
+  border:none;
+  background:var(--surface-light);
+  color:white;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+}
+
+/* TABS */
+
+.tabs{
+  display:flex;
+  gap:10px;
+  margin-bottom:22px;
+}
+
+.tab{
+  flex:1;
+  height:48px;
+  border:none;
+  border-radius:999px;
+  background:var(--surface);
+  color:var(--muted);
+  cursor:pointer;
+  font-weight:700;
+  transition:.2s;
+}
+
+.tab.active{
+  background:linear-gradient(135deg,#6366f1,#8b5cf6);
+  color:white;
+}
+
+/* COMPOSER */
+
+.composer{
+  background:rgba(17,24,39,.92);
+  border:1px solid var(--border);
+  border-radius:28px;
+  padding:18px;
+  margin-bottom:22px;
+  box-shadow:var(--shadow);
+}
+
+.composer-top{
+  display:flex;
+  gap:14px;
+}
+
+.avatar{
+  width:52px;
+  height:52px;
+  border-radius:50%;
+  object-fit:cover;
+}
+
+textarea{
+  flex:1;
+  background:transparent;
+  border:none;
+  outline:none;
+  resize:none;
+  min-height:70px;
+  color:white;
+  font-size:15px;
+}
+
+textarea::placeholder{
+  color:var(--muted);
+}
+
+.composer-bottom{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-top:16px;
+  padding-top:16px;
+  border-top:1px solid var(--border);
+}
+
+.composer-tools{
+  display:flex;
+  gap:10px;
+}
+
+.tool-btn{
+  width:42px;
+  height:42px;
+  border:none;
+  border-radius:14px;
+  background:var(--surface-light);
+  color:white;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+}
+
+.post-btn{
+  border:none;
+  height:46px;
+  padding:0 24px;
+  border-radius:999px;
+  background:linear-gradient(135deg,#6366f1,#8b5cf6);
+  color:white;
+  font-weight:700;
+  cursor:pointer;
+}
+
+/* FEED */
+
+.feed{
+  display:flex;
+  flex-direction:column;
+  gap:20px;
+}
+
+.post{
+  background:rgba(17,24,39,.92);
+  border:1px solid var(--border);
+  border-radius:28px;
+  overflow:hidden;
+  box-shadow:var(--shadow);
+}
+
+.post-header{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  padding:18px;
+}
+
+.post-meta{
+  flex:1;
+}
+
+.name{
+  font-size:15px;
+  font-weight:700;
+}
+
+.handle{
+  color:var(--muted);
+  font-size:13px;
+}
+
+.follow-btn{
+  height:38px;
+  padding:0 18px;
+  border:none;
+  border-radius:999px;
+  background:var(--surface-light);
+  color:white;
+  cursor:pointer;
+  font-weight:700;
+}
+
+.post-content{
+  padding:0 18px 18px;
+}
+
+.post-text{
+  line-height:1.7;
+  margin-bottom:16px;
+}
+
+.post-image{
+  width:100%;
+  border-radius:22px;
+  aspect-ratio:4/5;
+  object-fit:cover;
+}
+
+.post-actions{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:16px 18px;
+  border-top:1px solid var(--border);
+}
+
+.left-actions{
+  display:flex;
+  gap:10px;
+}
+
+.action-btn{
+  height:42px;
+  padding:0 14px;
+  border:none;
+  border-radius:14px;
+  background:var(--surface-light);
+  color:var(--muted);
+  display:flex;
+  align-items:center;
+  gap:8px;
+  cursor:pointer;
+}
+
+.action-btn.active{
+  color:#ff4d6d;
+}
+
+/* RIGHT */
+
+.right-panel{
+  width:340px;
+  padding:24px 24px 24px 0;
+}
+
+.search-box{
+  height:60px;
+  border-radius:20px;
+  background:rgba(17,24,39,.92);
+  border:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:0 18px;
+  margin-bottom:22px;
+}
+
+.search-box input{
+  flex:1;
+  border:none;
+  background:transparent;
+  color:white;
+  outline:none;
+}
+
+.card{
+  background:rgba(17,24,39,.92);
+  border:1px solid var(--border);
+  border-radius:28px;
+  padding:20px;
+  margin-bottom:22px;
+}
+
+.card h3{
+  margin-bottom:18px;
+}
+
+.trend{
+  padding:14px 0;
+  border-bottom:1px solid var(--border);
+}
+
+.trend:last-child{
+  border-bottom:none;
+}
+
+.trend small{
+  color:var(--muted);
+  display:block;
+  margin-bottom:4px;
+}
+
+@media(max-width:1200px){
+  .right-panel{
+    display:none;
+  }
+}
+
+@media(max-width:768px){
+
+  .sidebar{
+    width:100%;
+    height:84px;
+    bottom:0;
+    top:auto;
+    flex-direction:row;
+    justify-content:center;
+    border-right:none;
+    border-top:1px solid var(--border);
+  }
+
+  .logo{
+    display:none;
+  }
+
+  .nav{
+    flex-direction:row;
+  }
+
+  .main{
+    margin-left:0;
+    padding-bottom:110px;
+  }
+
+}
+
+</style>
 </head>
 <body>
 
 <div class="app">
 
-  <!-- SIDEBAR -->
+<!-- SIDEBAR -->
 
-  <aside class="sidebar">
+<aside class="sidebar">
 
-    <div class="logo">
-      <img src="https://i.postimg.cc/T3Nv0Szn/Gemini-Generated-Image-g7omg8g7omg8g7om-removebg-preview.png">
-    </div>
+<div class="logo">
+<img src="https://i.postimg.cc/T3Nv0Szn/Gemini-Generated-Image-g7omg8g7omg8g7om-removebg-preview.png">
+</div>
 
-    <div class="nav">
+<div class="nav">
 
-      <button class="nav-btn active">
-        <i data-feather="home"></i>
-      </button>
+<button class="nav-btn active">
+<i data-feather="home"></i>
+</button>
 
-      <button class="nav-btn">
-        <i data-feather="search"></i>
-      </button>
+<button class="nav-btn">
+<i data-feather="search"></i>
+</button>
 
-      <button class="nav-btn">
-        <i data-feather="video"></i>
-      </button>
+<button class="nav-btn">
+<i data-feather="video"></i>
+</button>
 
-      <button class="nav-btn">
-        <i data-feather="bell"></i>
-      </button>
+<button class="nav-btn">
+<i data-feather="bell"></i>
+</button>
 
-      <button class="nav-btn">
-        <i data-feather="message-circle"></i>
-      </button>
+<button class="nav-btn">
+<i data-feather="message-circle"></i>
+</button>
 
-      <button class="nav-btn">
-        <i data-feather="user"></i>
-      </button>
-
-    </div>
-  </aside>
-
-  <!-- MAIN -->
-
-  <main class="main">
-
-    <div class="feed-wrap">
-
-      <!-- HEADER -->
-
-      <header class="topbar">
-        <h1>Vynix</h1>
-
-        <div class="top-actions">
-
-          <button class="icon-btn">
-            <i data-feather="cpu"></i>
-          </button>
-
-          <button class="icon-btn">
-            <i data-feather="settings"></i>
-          </button>
-
-        </div>
-      </header>
-
-      <!-- TABS -->
-
-      <div class="tabs">
-
-        <button class="tab active">
-          <i data-feather="home"></i>
-          For You
-        </button>
-
-        <button class="tab">
-          <i data-feather="users"></i>
-          Following
-        </button>
-
-        <button class="tab">
-          <i data-feather="trending-up"></i>
-          Trending
-        </button>
-
-      </div>
-
-      <!-- COMPOSER -->
-
-      <div class="composer">
-
-        <div class="composer-top">
-
-          <img
-            class="avatar"
-            src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=600&auto=format&fit=crop"
-          >
-
-          <textarea placeholder="What's happening on Vynix?"></textarea>
-
-        </div>
-
-        <div class="composer-bottom">
-
-          <div class="composer-tools">
-
-            <button class="tool-btn">
-              <i data-feather="image"></i>
-            </button>
-
-            <button class="tool-btn">
-              <i data-feather="video"></i>
-            </button>
-
-            <button class="tool-btn">
-              <i data-feather="smile"></i>
-            </button>
-
-          </div>
-
-          <button class="post-btn">Post</button>
-
-        </div>
-
-      </div>
-
-      <!-- FEED -->
-
-      <div class="feed">
-
-        <!-- POST -->
-
-        <article class="post">
-
-          <div class="post-header">
-
-            <img
-              class="avatar"
-              src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=600&auto=format&fit=crop"
-            >
-
-            <div class="post-meta">
-              <div class="name-row">
-                <span class="name">Alex Carter</span>
-                <i data-feather="check-circle" style="width:15px;height:15px;color:#6366f1"></i>
-              </div>
-
-              <div class="handle">@alexcarter · 2h</div>
-            </div>
-
-            <button class="follow-btn">Follow</button>
-
-            <button class="menu-btn">
-              <i data-feather="more-horizontal"></i>
-            </button>
-
-          </div>
-
-          <div class="post-content">
-
-            <p class="post-text">
-              Completely redesigned the Vynix feed system today. Much smoother animations, faster rendering and cleaner UI.
-            </p>
-
-            <div class="post-image-wrap">
-              <img
-                loading="lazy"
-                decoding="async"
-                class="post-image"
-                src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1200&auto=format&fit=crop"
-              >
-            </div>
-
-          </div>
-
-          <div class="post-actions">
-
-            <div class="left-actions">
-
-              <button class="action-btn like">
-                <i data-feather="heart"></i>
-                4.8K
-              </button>
-
-              <button class="action-btn">
-                <i data-feather="message-circle"></i>
-                412
-              </button>
-
-              <button class="action-btn">
-                <i data-feather="repeat"></i>
-                210
-              </button>
-
-            </div>
-
-            <button class="action-btn">
-              <i data-feather="share"></i>
-            </button>
-
-          </div>
-
-        </article>
-
-        <!-- POST -->
-
-        <article class="post">
-
-          <div class="post-header">
-
-            <img
-              class="avatar"
-              src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=600&auto=format&fit=crop"
-            >
-
-            <div class="post-meta">
-              <div class="name-row">
-                <span class="name">Sophie Lee</span>
-                <i data-feather="check-circle" style="width:15px;height:15px;color:#6366f1"></i>
-              </div>
-
-              <div class="handle">@sophielee · 5h</div>
-            </div>
-
-            <button class="follow-btn">Follow</button>
-
-            <button class="menu-btn">
-              <i data-feather="more-horizontal"></i>
-            </button>
-
-          </div>
-
-          <div class="post-content">
-
-            <p class="post-text">
-              The new dark glassmorphism design on Vynix feels incredible 🔥
-            </p>
-
-            <div class="post-image-wrap">
-              <img
-                loading="lazy"
-                decoding="async"
-                class="post-image"
-                src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1200&auto=format&fit=crop"
-              >
-            </div>
-
-          </div>
-
-          <div class="post-actions">
-
-            <div class="left-actions">
-
-              <button class="action-btn like active">
-                <i data-feather="heart"></i>
-                12K
-              </button>
-
-              <button class="action-btn">
-                <i data-feather="message-circle"></i>
-                892
-              </button>
-
-              <button class="action-btn">
-                <i data-feather="repeat"></i>
-                540
-              </button>
-
-            </div>
-
-            <button class="action-btn">
-              <i data-feather="share"></i>
-            </button>
-
-          </div>
-
-        </article>
-
-      </div>
-
-    </div>
-
-  </main>
-
-  <!-- RIGHT PANEL -->
-
-  <aside class="right-panel">
-
-    <div class="search-box">
-      <i data-feather="search"></i>
-      <input placeholder="Search Vynix">
-    </div>
-
-    <div class="card">
-
-      <h3>Trending</h3>
-
-      <div class="trend">
-        <small>Technology · Trending</small>
-        <strong>#VynixUI</strong>
-      </div>
-
-      <div class="trend">
-        <small>Design · Trending</small>
-        <strong>#Glassmorphism</strong>
-      </div>
-
-      <div class="trend">
-        <small>Programming · Trending</small>
-        <strong>#FrontendDev</strong>
-      </div>
-
-    </div>
-
-    <div class="card">
-
-      <h3>Who to follow</h3>
-
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
-        <img class="avatar" src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=600&auto=format&fit=crop">
-
-        <div style="flex:1;">
-          <div style="font-weight:700;">Daniel Ross</div>
-          <div style="font-size:13px;color:var(--muted);">@danross</div>
-        </div>
-
-        <button class="follow-btn">Follow</button>
-      </div>
-
-      <div style="display:flex;align-items:center;gap:12px;">
-        <img class="avatar" src="https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?q=80&w=600&auto=format&fit=crop">
-
-        <div style="flex:1;">
-          <div style="font-weight:700;">Emma Stone</div>
-          <div style="font-size:13px;color:var(--muted);">@emmastone</div>
-        </div>
-
-        <button class="follow-btn">Follow</button>
-      </div>
-
-    </div>
-
-  </aside>
+<button class="nav-btn">
+<i data-feather="user"></i>
+</button>
 
 </div>
 
-<script>
+</aside>
 
-  feather.replace();
+<!-- MAIN -->
 
-  // LIKE BUTTONS
+<main class="main">
 
-  document.querySelectorAll('.like').forEach(btn => {
+<div class="feed-wrap">
 
-    btn.addEventListener('click', () => {
-      btn.classList.toggle('active');
-    });
+<header class="topbar">
 
-  });
+<h1>Vynix</h1>
 
-  // NAVIGATION ACTIVE STATES
+<div class="top-actions">
 
-  document.querySelectorAll('.nav-btn').forEach(btn => {
+<button class="icon-btn">
+<i data-feather="settings"></i>
+</button>
 
-    btn.addEventListener('click', () => {
+</div>
 
-      document.querySelectorAll('.nav-btn').forEach(b => {
-        b.classList.remove('active');
-      });
+</header>
 
-      btn.classList.add('active');
+<div class="tabs">
 
-    });
+<button class="tab active">For You</button>
+<button class="tab">Following</button>
+<button class="tab">Trending</button>
 
-  });
+</div>
 
-  // TAB ACTIVE STATES
+<!-- COMPOSER -->
 
-  document.querySelectorAll('.tab').forEach(tab => {
+<div class="composer">
 
-    tab.addEventListener('click', () => {
+<div class="composer-top">
 
-      document.querySelectorAll('.tab').forEach(t => {
-        t.classList.remove('active');
-      });
+<img
+class="avatar"
+src="https://i.pravatar.cc/300"
+>
 
-      tab.classList.add('active');
+<textarea placeholder="What's happening on Vynix?"></textarea>
 
-    });
+</div>
 
-  });
+<div class="composer-bottom">
 
+<input type="file" id="imageUpload" accept="image/*" hidden>
 
-  // FIREBASE CONFIG
+<div class="composer-tools">
 
-  const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "fire-b-a8878.firebaseapp.com",
-    databaseURL: "https://fire-b-a8878-default-rtdb.firebaseio.com",
-    projectId: "fire-b-a8878",
-    storageBucket: "fire-b-a8878.appspot.com",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID"
-  };
+<button class="tool-btn" id="uploadImageBtn">
+<i data-feather="image"></i>
+</button>
 
-</script>
+<button class="tool-btn">
+<i data-feather="video"></i>
+</button>
+
+<button class="tool-btn">
+<i data-feather="smile"></i>
+</button>
+
+</div>
+
+<button class="post-btn">Post</button>
+
+</div>
+
+</div>
+
+<!-- FEED -->
+
+<div class="feed"></div>
+
+</div>
+
+</main>
+
+<!-- RIGHT -->
+
+<aside class="right-panel">
+
+<div class="search-box">
+
+<i data-feather="search"></i>
+
+<input placeholder="Search Vynix">
+
+</div>
+
+<div class="card">
+
+<h3>Trending</h3>
+
+<div class="trend">
+<small>Technology · Trending</small>
+<strong>#Vynix</strong>
+</div>
+
+<div class="trend">
+<small>Frontend · Trending</small>
+<strong>#Firebase</strong>
+</div>
+
+<div class="trend">
+<small>Design · Trending</small>
+<strong>#Glassmorphism</strong>
+</div>
+
+</div>
+
+</aside>
+
+</div>
 
 <!-- FIREBASE -->
 
@@ -993,233 +625,360 @@
 
 <script>
 
-  // INITIALIZE FIREBASE
+/* FIREBASE CONFIG */
 
-  firebase.initializeApp(firebaseConfig);
+const firebaseConfig = {
+  apiKey: "AIzaSyBOyZ3As4GTuNvjemvPF_SpsC6m6vqtNhc",
+  authDomain: "fire-b-a8878.firebaseapp.com",
+  databaseURL: "https://fire-b-a8878.firebaseio.com",
+  projectId: "fire-b-a8878",
+  storageBucket: "fire-b-a8878.appspot.com",
+  messagingSenderId: "658673187627",
+  appId: "1:658673187627:web:6e4c29af661785f0afa36e"
+};
 
-  const auth = firebase.auth();
-  const db = firebase.database();
-  const storage = firebase.storage();
+firebase.initializeApp(firebaseConfig);
 
-  // DEMO LOGIN
+const auth = firebase.auth();
+const db = firebase.database();
+const storage = firebase.storage();
 
-  async function signInDemo() {
+/* CLOUDINARY */
 
-    try {
+const CLOUDINARY_CLOUD_NAME = "YOUR_CLOUDINARY_NAME";
+const CLOUDINARY_UPLOAD_PRESET = "YOUR_UPLOAD_PRESET";
 
-      const result = await auth.signInAnonymously();
+/* INIT */
 
-      const uid = result.user.uid;
+feather.replace();
 
-      await db.ref('users/' + uid).update({
-        username: 'Vynix User',
-        handle: '@vynixuser',
-        avatar: 'https://i.pravatar.cc/300',
-        online: true,
-        createdAt: Date.now()
-      });
+/* DOM */
 
-    } catch (err) {
-      console.error(err);
-    }
+const textarea = document.querySelector("textarea");
+const postBtn = document.querySelector(".post-btn");
+const feed = document.querySelector(".feed");
 
-  }
+const imageUpload = document.getElementById("imageUpload");
+const uploadImageBtn = document.getElementById("uploadImageBtn");
 
-  signInDemo();
+let uploadedImage = "";
 
-  // CREATE POSTS
+/* AUTH */
 
-  const textarea = document.querySelector('textarea');
-  const postButton = document.querySelector('.post-btn');
-  const feed = document.querySelector('.feed');
+auth.signInAnonymously()
+.then(async(res)=>{
 
-  postButton.addEventListener('click', async () => {
+  const uid = res.user.uid;
 
-    const text = textarea.value.trim();
-
-    if (!text) return;
-
-    const user = auth.currentUser;
-
-    if (!user) return;
-
-    const postData = {
-      uid: user.uid,
-      username: 'Vynix User',
-      handle: '@vynixuser',
-      avatar: 'https://i.pravatar.cc/300',
-      text,
-      image: '',
-      likes: 0,
-      comments: 0,
-      reposts: 0,
-      createdAt: Date.now()
-    };
-
-    const postRef = db.ref('posts').push();
-
-    await postRef.set(postData);
-
-    textarea.value = '';
-
+  await db.ref("users/" + uid).update({
+    username:"Vynix User",
+    handle:"@vynixuser",
+    avatar:"https://i.pravatar.cc/300",
+    online:true,
+    createdAt:Date.now()
   });
 
-  // REALTIME POSTS
+})
+.catch(console.error);
 
-  db.ref('posts').on('value', snapshot => {
+/* IMAGE UPLOAD */
 
-    const posts = [];
+uploadImageBtn.onclick = ()=>{
+  imageUpload.click();
+};
 
-    snapshot.forEach(child => {
+imageUpload.addEventListener("change", async(e)=>{
 
-      posts.push({
-        id: child.key,
-        ...child.val()
-      });
+  const file = e.target.files[0];
 
-    });
+  if(!file) return;
 
-    posts.reverse();
+  const fd = new FormData();
 
-    renderPosts(posts);
+  fd.append("file", file);
+  fd.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
 
-  });
+  uploadImageBtn.innerHTML = "...";
 
-  // RENDER POSTS
+  try{
 
-  function renderPosts(posts) {
+    const res = await fetch(
+      `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
+      {
+        method:"POST",
+        body:fd
+      }
+    );
 
-    feed.innerHTML = '';
+    const data = await res.json();
 
-    posts.forEach(post => {
+    uploadedImage = data.secure_url;
 
-      const article = document.createElement('article');
-
-      article.className = 'post';
-
-      article.innerHTML = `
-
-        <div class="post-header">
-
-          <img class="avatar" src="${post.avatar}">
-
-          <div class="post-meta">
-            <div class="name-row">
-              <span class="name">${post.username}</span>
-            </div>
-
-            <div class="handle">${post.handle}</div>
-          </div>
-
-          <button class="menu-btn">
-            <i data-feather="more-horizontal"></i>
-          </button>
-
-        </div>
-
-        <div class="post-content">
-
-          <p class="post-text">${post.text}</p>
-
-          ${post.image ? `
-            <div class="post-image-wrap">
-              <img
-                loading="lazy"
-                decoding="async"
-                class="post-image"
-                src="${post.image}"
-              >
-            </div>
-          ` : ''}
-
-        </div>
-
-        <div class="post-actions">
-
-          <div class="left-actions">
-
-            <button class="action-btn like-btn" data-id="${post.id}">
-              <i data-feather="heart"></i>
-              ${post.likes || 0}
-            </button>
-
-            <button class="action-btn">
-              <i data-feather="message-circle"></i>
-              ${post.comments || 0}
-            </button>
-
-            <button class="action-btn">
-              <i data-feather="repeat"></i>
-              ${post.reposts || 0}
-            </button>
-
-          </div>
-
-          <button class="action-btn">
-            <i data-feather="share"></i>
-          </button>
-
-        </div>
-
-      `;
-
-      feed.appendChild(article);
-
-    });
+    uploadImageBtn.innerHTML =
+    `<i data-feather="check"></i>`;
 
     feather.replace();
 
-    attachLikeEvents();
+  }catch(err){
+
+    console.error(err);
+
+    alert("Upload failed");
 
   }
 
-  // LIKE SYSTEM
+});
 
-  function attachLikeEvents() {
+/* CREATE POST */
 
-    document.querySelectorAll('.like-btn').forEach(btn => {
+postBtn.addEventListener("click", async()=>{
 
-      btn.addEventListener('click', async () => {
+  const text = textarea.value.trim();
 
-        const postId = btn.dataset.id;
+  if(!text && !uploadedImage) return;
 
-        const likesRef = db.ref(`posts/${postId}/likes`);
+  const user = auth.currentUser;
 
-        const snap = await likesRef.get();
+  if(!user) return;
 
-        const currentLikes = snap.val() || 0;
+  const postData = {
+    uid:user.uid,
+    username:"Vynix User",
+    handle:"@vynixuser",
+    avatar:"https://i.pravatar.cc/300",
+    text,
+    image:uploadedImage,
+    likes:0,
+    comments:0,
+    reposts:0,
+    createdAt:Date.now()
+  };
 
-        likesRef.set(currentLikes + 1);
+  await db.ref("posts").push(postData);
 
-      });
+  textarea.value = "";
+  uploadedImage = "";
 
-    });
+  uploadImageBtn.innerHTML =
+  `<i data-feather="image"></i>`;
 
-  }
+  feather.replace();
 
-  // ONLINE STATUS
+});
 
-  auth.onAuthStateChanged(user => {
+/* REALTIME POSTS */
 
-    if (!user) return;
+db.ref("posts").on("value", snapshot=>{
 
-    const userStatusRef = db.ref('status/' + user.uid);
+  const posts = [];
 
-    userStatusRef.set({
-      online: true,
-      lastSeen: Date.now()
-    });
+  snapshot.forEach(child=>{
 
-    window.addEventListener('beforeunload', () => {
-
-      userStatusRef.set({
-        online: false,
-        lastSeen: Date.now()
-      });
-
+    posts.push({
+      id:child.key,
+      ...child.val()
     });
 
   });
+
+  posts.reverse();
+
+  renderPosts(posts);
+
+});
+
+/* RENDER POSTS */
+
+function renderPosts(posts){
+
+  feed.innerHTML = "";
+
+  posts.forEach(post=>{
+
+    const div = document.createElement("article");
+
+    div.className = "post";
+
+    div.innerHTML = `
+
+      <div class="post-header">
+
+        <img
+        class="avatar"
+        src="${post.avatar}">
+
+        <div class="post-meta">
+
+          <div class="name">
+            ${post.username}
+          </div>
+
+          <div class="handle">
+            ${post.handle}
+          </div>
+
+        </div>
+
+        <button class="follow-btn">
+          Follow
+        </button>
+
+      </div>
+
+      <div class="post-content">
+
+        <div class="post-text">
+          ${post.text || ""}
+        </div>
+
+        ${
+          post.image
+          ?
+          `
+          <img
+          loading="lazy"
+          decoding="async"
+          class="post-image"
+          src="${post.image}">
+          `
+          :
+          ""
+        }
+
+      </div>
+
+      <div class="post-actions">
+
+        <div class="left-actions">
+
+          <button
+          class="action-btn like-btn"
+          data-id="${post.id}">
+
+            <i data-feather="heart"></i>
+
+            ${post.likes || 0}
+
+          </button>
+
+          <button class="action-btn">
+
+            <i data-feather="message-circle"></i>
+
+            ${post.comments || 0}
+
+          </button>
+
+          <button class="action-btn">
+
+            <i data-feather="repeat"></i>
+
+            ${post.reposts || 0}
+
+          </button>
+
+        </div>
+
+        <button class="action-btn share-btn">
+
+          <i data-feather="share"></i>
+
+        </button>
+
+      </div>
+
+    `;
+
+    feed.appendChild(div);
+
+  });
+
+  feather.replace();
+
+  attachLikeEvents();
+
+}
+
+/* LIKE SYSTEM */
+
+function attachLikeEvents(){
+
+  document.querySelectorAll(".like-btn")
+  .forEach(btn=>{
+
+    btn.onclick = async()=>{
+
+      const id = btn.dataset.id;
+
+      const ref = db.ref("posts/" + id + "/likes");
+
+      const snap = await ref.get();
+
+      const current = snap.val() || 0;
+
+      await ref.set(current + 1);
+
+    };
+
+  });
+
+}
+
+/* ONLINE STATUS */
+
+auth.onAuthStateChanged(user=>{
+
+  if(!user) return;
+
+  const ref = db.ref("status/" + user.uid);
+
+  ref.set({
+    online:true,
+    lastSeen:Date.now()
+  });
+
+  window.addEventListener("beforeunload", ()=>{
+
+    ref.set({
+      online:false,
+      lastSeen:Date.now()
+    });
+
+  });
+
+});
+
+/* NAV ACTIVE */
+
+document.querySelectorAll(".nav-btn")
+.forEach(btn=>{
+
+  btn.onclick = ()=>{
+
+    document.querySelectorAll(".nav-btn")
+    .forEach(b=>b.classList.remove("active"));
+
+    btn.classList.add("active");
+
+  };
+
+});
+
+/* TAB ACTIVE */
+
+document.querySelectorAll(".tab")
+.forEach(tab=>{
+
+  tab.onclick = ()=>{
+
+    document.querySelectorAll(".tab")
+    .forEach(t=>t.classList.remove("active"));
+
+    tab.classList.add("active");
+
+  };
+
+});
 
 </script>
 
