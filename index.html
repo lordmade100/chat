@@ -1918,9 +1918,11 @@ window.togglePostMenu=(postId,e)=>{e.stopPropagation();document.getElementById(`
 /* ══ MESSAGES TAB ══ */
 let activeChatUid=null,activeChatListener=null,activeChatConvId=null;
 let lastSeenListeners={};
-let messagesTabListener=null; // realtime conversations listener
-let messagesTabUsersCache={}; // uid -> user data cache
+let messagesTabListener=null;
+let messagesTabUsersCache={};
 let messagesTabPendingOpenUid=null;
+// In-memory mirror of the latest conversation data so we can do surgical DOM updates
+let messagesTabConvData={}; // convId -> {lastMessage, lastTimestamp, unread}
 
 function hideNav(){document.getElementById('bottom-nav').classList.add('nav-hidden');}
 function showNav(){document.getElementById('bottom-nav').classList.remove('nav-hidden');}
@@ -1932,6 +1934,61 @@ function detachMessagesTabListener(){
     }
 }
 
+/* Build one conversation card DOM string */
+function buildConvCardHTML(c){
+    const isSentByMe=c.lastSenderId===currentUser.uid;
+    const prefix=isSentByMe?'<span style="color:var(--text-muted);font-size:12px;margin-right:3px;">You:</span>':'';
+    const hasUnread=c.unread>0&&!isSentByMe; // never show unread badge for messages you sent
+    return `
+        <div class="search-result-item conv-card" id="conv-item-${c.id}"
+             onclick="openInlineChat('${c.otherId}','${encodeURIComponent(JSON.stringify(c.other))}')"
+             style="gap:12px;padding:13px 16px;cursor:pointer;align-items:center;">
+            <div style="position:relative;flex-shrink:0;">
+                <img src="${c.other.photoURL||DEFAULT_AVATAR}" onerror="this.src='${DEFAULT_AVATAR}'"
+                     style="width:50px;height:50px;border-radius:50%;object-fit:cover;border:1px solid var(--border);display:block;">
+                ${hasUnread?`<span style="position:absolute;bottom:0;right:0;background:var(--primary);border:2px solid var(--background);width:16px;height:16px;border-radius:50%;"></span>`:''}
+            </div>
+            <div style="flex:1;min-width:0;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
+                    <span style="font-weight:${hasUnread?'700':'600'};font-size:14px;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:60%;">${escapeHtml(c.other.username||'User')}</span>
+                    <span style="font-size:11px;color:${hasUnread?'var(--primary)':'var(--text-muted)'};font-weight:${hasUnread?'600':'400'};flex-shrink:0;margin-left:8px;">${formatChatTime(c.lastTimestamp)}</span>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                    <div style="font-size:13px;color:${hasUnread?'var(--text-primary)':'var(--text-secondary)'};font-weight:${hasUnread?'600':'400'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">${prefix}${escapeHtml(c.lastMessage||'Tap to chat')}</div>
+                    ${hasUnread?`<span style="background:var(--primary);color:white;border-radius:9999px;min-width:20px;height:20px;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0 5px;">${c.unread}</span>`:''}
+                </div>
+            </div>
+        </div>`;
+}
+
+/* Surgically update a single conv card in the DOM (or insert it) */
+function patchConvCard(c,convListEl,convList){
+    const existing=document.getElementById(`conv-item-${c.id}`);
+    const newHTML=buildConvCardHTML(c);
+    if(existing){
+        // Replace in-place with updated content
+        existing.outerHTML=newHTML;
+    }else{
+        // New conversation — insert sorted by timestamp
+        const tempDiv=document.createElement('div');
+        tempDiv.innerHTML=newHTML.trim();
+        const newEl=tempDiv.firstChild;
+        // Find position
+        const cards=[...convListEl.querySelectorAll('.conv-card')];
+        let inserted=false;
+        for(const card of cards){
+            const cardId=card.id.replace('conv-item-','');
+            const cardData=convList.find(x=>x.id===cardId);
+            if(cardData&&cardData.lastTimestamp<c.lastTimestamp){
+                convListEl.insertBefore(newEl,card);
+                inserted=true;break;
+            }
+        }
+        if(!inserted)convListEl.appendChild(newEl);
+    }
+}
+
+/* Full initial render of the list */
 function renderConvList(convList){
     const convListEl=document.getElementById('messages-conv-list');
     if(!convListEl)return;
@@ -1939,38 +1996,28 @@ function renderConvList(convList){
         convListEl.innerHTML=`<div style="padding:60px 24px;text-align:center;"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--text-muted);margin:0 auto 12px;display:block;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><div style="font-size:16px;font-weight:600;color:var(--text-primary);margin-bottom:6px;">No messages yet</div><div style="font-size:14px;color:var(--text-secondary);">Start a conversation from someone's profile.</div></div>`;
         return;
     }
-    convListEl.innerHTML=convList.map(c=>`<div class="search-result-item" id="conv-item-${c.id}" onclick="openInlineChat('${c.otherId}','${encodeURIComponent(JSON.stringify(c.other))}')" style="gap:12px;padding:13px 16px;cursor:pointer;"><img src="${c.other.photoURL||DEFAULT_AVATAR}" onerror="this.src='${DEFAULT_AVATAR}'" style="width:48px;height:48px;border-radius:50%;object-fit:cover;flex-shrink:0;border:1px solid var(--border);"><div style="flex:1;min-width:0;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;"><span style="font-weight:700;font-size:14px;color:var(--text-primary);">${escapeHtml(c.other.username||'User')}</span><span style="font-size:11px;color:var(--text-muted);">${formatTime(c.lastTimestamp)}</span></div><div style="font-size:13px;color:${c.unread>0?'var(--text-primary)':'var(--text-secondary)'};font-weight:${c.unread>0?'600':'400'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(c.lastMessage||'Tap to chat')}</div></div>${c.unread>0?`<span style="background:var(--primary);color:white;border-radius:50%;min-width:20px;height:20px;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0 4px;">${c.unread}</span>`:''}</div>`).join('');
+    convListEl.innerHTML=convList.map(c=>buildConvCardHTML(c)).join('');
 }
 
 window.loadMessagesTab=async(openUid=null)=>{
     showNav();
     const body=document.getElementById('messages-tab-body');
-
-    // Detach any previous conversations listener
     detachMessagesTabListener();
 
-    // Show initial spinner only if list isn't already rendered
     if(!document.getElementById('messages-conv-list')){
         body.innerHTML=`<div style="padding:40px 0;display:flex;justify-content:center;"><div style="width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--text-secondary);border-radius:50%;animation:spin 0.8s linear infinite;"></div></div>`;
     }
-
     messagesTabPendingOpenUid=openUid;
 
-    // Pre-fetch users cache once
     try{
         const usersSnap=await get(ref(db,'users'));
         messagesTabUsersCache={};
         if(usersSnap.exists())usersSnap.forEach(c=>{messagesTabUsersCache[c.key]=c.val();});
     }catch(e){}
 
-    // Set up real-time listener on conversations
     messagesTabListener=onValue(ref(db,'conversations'),async(convSnap)=>{
-        // If inline chat is open, only update unread badges silently
-        const panelOpen=activeChatUid!==null;
-
         let convList=[];
         if(convSnap.exists()){
-            // Fetch any missing user profiles
             const missingUids=new Set();
             convSnap.forEach(child=>{
                 const conv=child.val();
@@ -1982,7 +2029,6 @@ window.loadMessagesTab=async(openUid=null)=>{
             await Promise.all([...missingUids].map(async uid=>{
                 try{const s=await get(ref(db,`users/${uid}`));if(s.exists())messagesTabUsersCache[uid]=s.val();}catch{}
             }));
-
             convSnap.forEach(child=>{
                 const conv=child.val();
                 const members=Object.keys(conv.members||{});
@@ -1990,41 +2036,46 @@ window.loadMessagesTab=async(openUid=null)=>{
                 const otherId=members.find(m=>m!==currentUser.uid);
                 if(!otherId)return;
                 const other=messagesTabUsersCache[otherId]||{username:'User'};
-                convList.push({id:child.key,otherId,other,lastMessage:conv.lastMessage||'',lastTimestamp:conv.lastTimestamp||0,unread:conv.unread?.[currentUser.uid]||0});
+                // Unread = 0 if current user is in active chat with this conv
+                const isActiveConv=activeChatConvId===child.key;
+                const unread=isActiveConv?0:(conv.unread?.[currentUser.uid]||0);
+                convList.push({id:child.key,otherId,other,lastMessage:conv.lastMessage||'',lastSenderId:conv.lastSenderId||'',lastTimestamp:conv.lastTimestamp||0,unread});
             });
         }
         convList.sort((a,b)=>b.lastTimestamp-a.lastTimestamp);
 
-        // Update total unread badge on nav
+        // Update nav badge (count convs with unread from others)
         const totalUnread=convList.reduce((sum,c)=>sum+(c.unread>0?1:0),0);
-        const badgeEl=document.getElementById('badge-messages');
-        const sidebarBadgeEl=document.getElementById('sidebar-badge-messages');
-        if(badgeEl){badgeEl.classList.toggle('show',totalUnread>0);}
-        if(sidebarBadgeEl){sidebarBadgeEl.classList.toggle('show',totalUnread>0);}
+        document.getElementById('badge-messages')?.classList.toggle('show',totalUnread>0);
+        document.getElementById('sidebar-badge-messages')?.classList.toggle('show',totalUnread>0);
 
-        if(panelOpen){
-            // Only silently refresh timestamps/unread on list items without full re-render
-            convList.forEach(c=>{
-                const item=document.getElementById(`conv-item-${c.id}`);
-                if(!item)return;
-                // update unread badge
-                let badge=item.querySelector('.conv-unread-badge');
-                if(c.unread>0){
-                    if(!badge){badge=document.createElement('span');badge.className='conv-unread-badge';badge.style.cssText='background:var(--primary);color:white;border-radius:50%;min-width:20px;height:20px;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0 4px;';item.appendChild(badge);}
-                    badge.textContent=c.unread;
-                }else if(badge){badge.remove();}
-            });
-            return;
-        }
-
-        // Ensure scaffold exists
+        // Ensure scaffold
         if(!document.getElementById('messages-conv-list')){
             body.innerHTML=`<div id="messages-conv-list"></div><div id="inline-chat-panel" style="display:none;"></div>`;
         }
 
-        renderConvList(convList);
+        const convListEl=document.getElementById('messages-conv-list');
+        if(!convListEl)return;
 
-        // Open specific chat if requested (only first time)
+        // Check if this is the first render or a live update
+        const isFirstRender=!convListEl.querySelector('.conv-card');
+        if(isFirstRender){
+            renderConvList(convList);
+        }else{
+            // Surgical patch: update changed cards only, add new ones, re-sort
+            convList.forEach(c=>patchConvCard(c,convListEl,convList));
+            // Remove cards for conversations user is no longer in
+            convListEl.querySelectorAll('.conv-card').forEach(el=>{
+                const id=el.id.replace('conv-item-','');
+                if(!convList.find(c=>c.id===id))el.remove();
+            });
+            // Re-sort cards to match new order (most recent first)
+            convList.forEach((c,i)=>{
+                const el=document.getElementById(`conv-item-${c.id}`);
+                if(el)convListEl.appendChild(el); // appendChild moves existing nodes, re-ordering
+            });
+        }
+
         if(messagesTabPendingOpenUid){
             const uid=messagesTabPendingOpenUid;
             messagesTabPendingOpenUid=null;
@@ -2159,6 +2210,10 @@ window.openInlineChat=async(uid,userEncoded)=>{
 };
 
 window.closeInlineChat=(fromPopstate=false)=>{
+    // Mark read before closing so any messages received while chat was open are cleared
+    if(activeChatConvId){
+        update(ref(db,`conversations/${activeChatConvId}/unread`),{[currentUser.uid]:0}).catch(()=>{});
+    }
     // Cleanup listeners
     if(activeChatListener&&activeChatConvId){
         off(ref(db,`directMessages/${activeChatConvId}/messages`));
@@ -2184,7 +2239,16 @@ window.sendInlineChat=async()=>{
     input.value='';
     try{
         await push(ref(db,`directMessages/${activeChatConvId}/messages`),{senderId:currentUser.uid,text,timestamp:serverTimestamp()});
-        await update(ref(db,`conversations/${activeChatConvId}`),{members:{[currentUser.uid]:true,[activeChatUid]:true},lastMessage:text,lastTimestamp:Date.now()});
+        // Get current unread count for the recipient so we can increment it
+        const convSnap=await get(ref(db,`conversations/${activeChatConvId}/unread/${activeChatUid}`));
+        const recipientUnread=(convSnap.val()||0)+1;
+        await update(ref(db,`conversations/${activeChatConvId}`),{
+            members:{[currentUser.uid]:true,[activeChatUid]:true},
+            lastMessage:text,
+            lastSenderId:currentUser.uid,
+            lastTimestamp:Date.now(),
+            [`unread/${activeChatUid}`]:recipientUnread,
+        });
         update(ref(db,`users/${currentUser.uid}`),{online:true,lastSeen:serverTimestamp()}).catch(()=>{});
     }catch(e){showToast('Failed to send');}
 };
