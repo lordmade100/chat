@@ -11,7 +11,7 @@
     <script src="https://unpkg.com/feather-icons"></script>
     <style>
         :root,[data-theme="light"]{
-            --primary:#7C3AED; /* Premium Indigo */
+            --primary:#7C3AED;
             --primary-gradient: linear-gradient(135deg, #7C3AED 0%, #4F46E5 100%);
             --background:#F8FAFC;
             --surface:#FFFFFF;
@@ -22,6 +22,7 @@
             --text-muted:#94A3B8;
             --shadow-sm: 0 2px 8px rgba(148, 163, 184, 0.08);
             --shadow-md: 0 12px 32px rgba(124, 58, 237, 0.06);
+            --danger: #EF4444;
         }
         [data-theme="dark"]{
             --primary:#A78BFA;
@@ -35,9 +36,11 @@
             --text-muted:#71717A;
             --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
             --shadow-md: 0 12px 32px rgba(0, 0, 0, 0.4);
+            --danger: #F87171;
         }
 
-        *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+        *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;}
+        input, textarea { user-select: text; -webkit-user-select: text; }
         body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--background);color:var(--text-primary);-webkit-font-smoothing:antialiased;overflow-x:hidden;padding-bottom:calc(76px + env(safe-area-inset-bottom));transition:background 0.3s,color 0.3s;}
 
         .app-container{max-width:100%;margin:0 auto;padding:16px;}
@@ -47,30 +50,28 @@
         .view-container.active{display:block;}
 
         @keyframes slideUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
-        @keyframes spin{to{transform:rotate(360deg);}}
+        @keyframes shimmerAnimate { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
 
-        .header{margin-bottom:20px;padding:8px 4px;display:flex;align-items:center;justify-content:between;}
+        .header{margin-bottom:20px;padding:8px 4px;display:flex;align-items:center;justify-content:space-between;}
         .header h2{font-size:26px;font-weight:800;letter-spacing:-0.5px;}
 
-        /* Bottom Nav - Floating Pill Layout */
+        /* Bottom Nav */
         .bottom-nav-container{position:fixed;bottom:20px;left:0;right:0;display:flex;justify-content:center;z-index:100;padding:0 24px;bottom:calc(20px + env(safe-area-inset-bottom));}
-        .bottom-nav{background:rgba(var(--surface)==='#FFFFFF'?255:24, var(--surface)==='#FFFFFF'?255:24, var(--surface)==='#FFFFFF'?255:24, 0.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--border);padding:10px 24px;display:flex;justify-content:space-between;align-items:center;border-radius:32px;width:100%;max-width:400px;box-shadow:var(--shadow-md);}
+        .bottom-nav{background:rgba(var(--surface), 0.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--border);padding:10px 24px;display:flex;justify-content:space-between;align-items:center;border-radius:32px;width:100%;max-width:400px;box-shadow:var(--shadow-md);}
         .nav-item{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;width:44px;height:44px;background:none;border:none;cursor:pointer;color:var(--text-secondary);transition:all 0.2s ease;border-radius:50%;}
         .nav-item.active{color:var(--primary);background:var(--surface2);transform:translateY(-2px);}
-        .nav-item:active{transform:scale(0.9);}
         
-        /* Nav Profile Avatar Icon Styles */
         .nav-avatar-wrapper {width:26px;height:26px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;border:2px solid transparent;transition:all 0.2s ease;}
         .nav-item.active .nav-avatar-wrapper {border-color:var(--primary);}
         .nav-avatar-img {width:100%;height:100%;object-fit:cover;}
 
-        .nav-badge{position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:50%;background:#EF4444;display:none;}
-        .nav-badge.show{display:block;}
+        .nav-badge{position:absolute;top:2px;right:2px;background:#EF4444;color:white;font-size:10px;font-weight:800;border-radius:10px;min-width:18px;height:18px;display:none;align-items:center;justify-content:center;padding:0 4px;border:2px solid var(--background);box-shadow: 0 2px 4px rgba(0,0,0,0.1);}
+        .nav-badge.show{display:flex;}
 
         /* Chat Card List */
         .chats-holder{display:flex;flex-direction:column;gap:10px;}
         .chat-list-item{display:flex;align-items:center;gap:14px;padding:14px;background:var(--surface);border-radius:20px;cursor:pointer;transition:all 0.2s ease;box-shadow:var(--shadow-sm);border:1px solid transparent;}
-        .chat-list-item:hover, .chat-list-item:active{transform:translateY(-1px);background:var(--surface);border-color:var(--border);box-shadow:var(--shadow-md);}
+        .chat-list-item:active{transform:scale(0.98);background:var(--surface2);}
         .avatar{width:52px;height:52px;border-radius:18px;object-fit:cover;flex-shrink:0;}
         .chat-info{flex:1;min-width:0;}
         .chat-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
@@ -80,20 +81,26 @@
         .chat-preview.unread{font-weight:700;color:var(--text-primary);}
         .unread-badge{background:var(--primary);color:white;border-radius:10px;min-width:20px;height:20px;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 6px;}
 
-        /* Premium Floating Search Input */
+        /* Shimmer Loading Component */
+        .shimmer-card { display: flex; align-items: center; gap: 14px; padding: 14px; background: var(--surface); border-radius: 20px; border: 1px solid var(--border); }
+        .shimmer-element { background: linear-gradient(90deg, var(--surface2) 25%, var(--border) 50%, var(--surface2) 75%); background-size: 200% 100%; animation: shimmerAnimate 1.5s infinite linear; }
+        .shimmer-avatar { width: 52px; height: 52px; border-radius: 18px; }
+        .shimmer-line { height: 14px; border-radius: 4px; margin-bottom: 8px; }
+        .shimmer-line.title { width: 40%; }
+        .shimmer-line.subtitle { width: 75%; margin-bottom: 0; }
+
+        /* Floating Search Input */
         .search-bar{display:flex;align-items:center;background:var(--surface);border-radius:20px;padding:12px 18px;gap:12px;margin-bottom:20px;box-shadow:var(--shadow-sm);border:1px solid var(--border);}
         .search-bar input{flex:1;border:none;background:transparent;outline:none;font-size:15px;color:var(--text-primary);font-family:inherit;}
 
-        /* Fullscreen Sliding Chat Panel */
+        /* Fullscreen Chat Window */
         .chat-window{position:fixed;inset:0;background:var(--background);z-index:200;display:flex;flex-direction:column;transform:translateX(100%);transition:transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);visibility:hidden;}
         .chat-window.active{transform:translateX(0);visibility:visible;}
         @media(min-width:768px){.chat-window{left:calc(50% - 240px);right:calc(50% - 240px);box-shadow:0 0 40px rgba(0,0,0,0.1);}}
         
         .chat-topbar{display:flex;align-items:center;gap:14px;padding:calc(16px + env(safe-area-inset-top)) 20px 16px;background:var(--surface);box-shadow:var(--shadow-sm);flex-shrink:0;border-bottom:1px solid var(--border);}
-        .back-btn{background:var(--surface2);border:none;color:var(--text-primary);width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform 0.1s;}
-        .back-btn:active{transform:scale(0.9);}
+        .back-btn{background:var(--surface2);border:none;color:var(--text-primary);width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;}
         
-        /* Asymmetric Dribbble-style message bubbles */
         .messages-area{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:10px;}
         .message-wrapper{display:flex;flex-direction:column;max-width:75%;margin-bottom:2px;}
         .message-wrapper.me{align-self:flex-end;align-items:flex-end;}
@@ -104,13 +111,24 @@
         .message-wrapper.other .message-bubble{background:var(--surface);color:var(--text-primary);border-radius:22px 22px 22px 4px;border:1px solid var(--border);}
         .message-time{font-size:10px;color:var(--text-muted);margin-top:4px;padding:0 6px;}
 
-        /* Floating Input Deck */
+        /* Input Deck */
         .input-bar{padding:16px 20px calc(16px + env(safe-area-inset-bottom));background:transparent;display:flex;gap:12px;align-items:flex-end;flex-shrink:0;}
         .chat-input-wrapper{flex:1;background:var(--surface);border-radius:24px;padding:12px 20px;display:flex;align-items:center;min-height:48px;box-shadow:var(--shadow-sm);border:1px solid var(--border);}
         .chat-input-wrapper textarea{flex:1;border:none;background:transparent;outline:none;font-size:15px;color:var(--text-primary);font-family:inherit;resize:none;max-height:120px;line-height:1.4;}
         .send-btn{background:var(--primary-gradient);border:none;border-radius:50%;width:48px;height:48px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;color:white;box-shadow:0 4px 12px rgba(124, 58, 237, 0.3);transition:all 0.2s;}
-        .send-btn:active{transform:scale(0.9) translateY(1px);}
         .send-btn:disabled{opacity:0.4;box-shadow:none;pointer-events:none;}
+
+        /* Bottom Sheet Action Overlay */
+        .bottom-sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 300; display: flex; align-items: flex-end; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+        .bottom-sheet-overlay.active { opacity: 1; pointer-events: auto; }
+        .bottom-sheet { width: 100%; background: var(--surface); border-radius: 28px 28px 0 0; padding: 20px 24px calc(24px + env(safe-area-inset-bottom)); transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 -8px 32px rgba(0,0,0,0.1); }
+        @media(min-width:768px){.bottom-sheet { max-width:480px; margin: 0 auto; border-radius: 28px; bottom: 20px; transform: translateY(120%); } .bottom-sheet-overlay { justify-content: center; align-items: center; padding: 20px; } .bottom-sheet-overlay.active .bottom-sheet { transform: translateY(0); } }
+        .bottom-sheet-overlay.active .bottom-sheet { transform: translateY(0); }
+        .sheet-handle { width: 36px; height: 5px; background: var(--border); border-radius: 999px; margin: 0 auto 20px; }
+        .sheet-title { font-size: 15px; font-weight: 700; color: var(--text-muted); text-align: center; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .sheet-btn { width: 100%; padding: 16px; border-radius: 16px; font-size: 16px; font-weight: 700; border: none; background: var(--surface2); color: var(--text-primary); display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 10px; cursor: pointer; transition: all 0.2s; }
+        .sheet-btn:active { transform: scale(0.98); }
+        .sheet-btn.danger { background: rgba(239, 68, 68, 0.08); color: var(--danger); }
 
         /* Profile Sheet */
         .profile-card{background:var(--surface);border-radius:24px;padding:32px 20px;text-align:center;box-shadow:var(--shadow-sm);border:1px solid var(--border);margin-top:8px;}
@@ -118,28 +136,22 @@
         .profile-name{font-size:24px;font-weight:800;letter-spacing:-0.5px;margin-bottom:4px;}
         .profile-handle{font-size:14px;color:var(--text-secondary);margin-bottom:28px;}
         .profile-btn{width:100%;max-width:220px;padding:14px;border-radius:16px;font-weight:700;font-size:15px;cursor:pointer;border:none;background:var(--surface2);color:var(--text-primary);transition:all 0.2s;}
-        .profile-btn:active{transform:scale(0.97);opacity:0.8;}
         .profile-btn.logout{background:rgba(239,68,68,0.08);color:#EF4444;margin-top:12px;}
 
         .empty-state{padding:80px 24px;text-align:center;color:var(--text-secondary);font-size:15px;line-height:1.5;}
-        .spinner{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin 0.8s linear infinite;margin:40px auto;}
     </style>
 </head>
 <body>
 
 <div class="app-container">
 
-    <!-- CHATS VIEW -->
     <div id="view-chats" class="view-container active">
         <header class="header">
             <h2>Messages</h2>
         </header>
-        <div id="chats-list" class="chats-holder">
-            <div class="spinner"></div>
-        </div>
+        <div id="chats-list" class="chats-holder"></div>
     </div>
 
-    <!-- SEARCH VIEW -->
     <div id="view-search" class="view-container">
         <header class="header">
             <h2>New Chat</h2>
@@ -151,19 +163,15 @@
         <div id="search-results" class="chats-holder"></div>
     </div>
 
-    <!-- PROFILE VIEW -->
     <div id="view-profile" class="view-container">
         <header class="header">
             <h2>Settings</h2>
         </header>
-        <div id="profile-content">
-            <div class="spinner"></div>
-        </div>
+        <div id="profile-content"></div>
     </div>
 
 </div>
 
-<!-- FLOATING BOTTOM NAVIGATION -->
 <div class="bottom-nav-container">
     <nav class="bottom-nav" id="bottom-nav">
         <button class="nav-item active" data-nav="chats" onclick="switchTab('chats')">
@@ -181,7 +189,20 @@
     </nav>
 </div>
 
-<!-- FULLSCREEN SLIDING CHAT DECK -->
+<div class="bottom-sheet-overlay" id="action-sheet-overlay" onclick="closeActionSheet()">
+    <div class="bottom-sheet" onclick="event.stopPropagation()">
+        <div class="sheet-handle"></div>
+        <div class="sheet-title" id="sheet-target-name">Chat Actions</div>
+        <button class="sheet-btn danger" onclick="executeClearChat()">
+            <i data-feather="trash-2" style="width:18px;height:18px;"></i> Clear Chat History
+        </button>
+        <button class="sheet-btn danger" onclick="executeBlockUser()">
+            <i data-feather="slash" style="width:18px;height:18px;"></i> Block Friend
+        </button>
+        <button class="sheet-btn" style="margin-top:8px; background:transparent;" onclick="closeActionSheet()">Cancel</button>
+    </div>
+</div>
+
 <div class="chat-window" id="chat-window">
     <div class="chat-topbar">
         <button class="back-btn" onclick="closeChat()">
@@ -208,7 +229,7 @@
 
 <script type="module">
 import {
-    getDatabase, ref, onValue, onChildAdded, push, set, get, update, serverTimestamp, off
+    getDatabase, ref, onValue, onChildAdded, push, set, get, update, remove, serverTimestamp, off
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -235,9 +256,26 @@ let activeChatUid = null;
 let activeChatConvId = null;
 let activeChatListener = null;
 
+let longPressTimer = null;
+let selectedConvId = null;
+let selectedTargetUid = null;
+
+// Inject Shimmer Layout
+const getShimmerHTML = () => Array(4).fill(0).map(() => `
+    <div class="shimmer-card">
+        <div class="shimmer-element shimmer-avatar"></div>
+        <div class="shimmer-info" style="flex:1;">
+            <div class="shimmer-element shimmer-line title"></div>
+            <div class="shimmer-element shimmer-line subtitle"></div>
+        </div>
+    </div>
+`).join('');
+
+document.getElementById('chats-list').innerHTML = getShimmerHTML();
+document.getElementById('profile-content').innerHTML = getShimmerHTML().substring(0, getShimmerHTML().length/4);
+
 feather.replace();
 
-// --- Initialization & Auth ---
 onAuthStateChanged(auth, async (user) => {
     if (!user) {
         window.location.href = 'signup.html';
@@ -258,30 +296,25 @@ async function loadUserData() {
         await set(ref(db, `users/${currentUser.uid}`), currentUserData);
     }
     
-    // Inject the real-time avatar directly into the navigation bar slot requested
     const navAvatarImg = document.getElementById('nav-profile-avatar');
     if (navAvatarImg) {
         navAvatarImg.src = currentUserData.photoURL || DEFAULT_AVATAR;
         navAvatarImg.onerror = () => { navAvatarImg.src = DEFAULT_AVATAR; };
     }
-    
     renderProfile();
 }
 
-// --- Tab Switching ---
 window.switchTab = (tabId) => {
     document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     document.getElementById(`view-${tabId}`).classList.add('active');
     document.querySelector(`.nav-item[data-nav="${tabId}"]`).classList.add('active');
-    
     if (tabId === 'search') document.getElementById('user-search-input').focus();
 };
 
-// --- Conversations Thread List ---
+// --- Conversations List ---
 async function loadChatsTab() {
     const listEl = document.getElementById('chats-list');
-    
     const usersSnap = await get(ref(db, 'users'));
     if (usersSnap.exists()) {
         usersSnap.forEach(c => { allUsersCache[c.key] = c.val(); });
@@ -308,7 +341,7 @@ async function loadChatsTab() {
                     id: child.key,
                     otherId,
                     other,
-                    lastMessage: conv.lastMessage || 'Sent an attachment',
+                    lastMessage: conv.lastMessage || 'Conversation started',
                     lastTimestamp: conv.lastTimestamp || 0,
                     unread
                 });
@@ -316,19 +349,28 @@ async function loadChatsTab() {
         }
         
         const badge = document.getElementById('badge-messages');
-        if(totalUnread > 0) badge.classList.add('show');
-        else badge.classList.remove('show');
+        if(totalUnread > 0) {
+            badge.textContent = totalUnread;
+            badge.classList.add('show');
+        } else {
+            badge.classList.remove('show');
+        }
 
         convList.sort((a, b) => b.lastTimestamp - a.lastTimestamp);
         
         if (!convList.length) {
-            listEl.innerHTML = `<div class="empty-state"><i data-feather="message-circle" style="width:36px;height:36px;margin-bottom:12px;color:var(--text-muted);"></i><br>Your inbox is empty.<br>Tap the search tab to start a wave.</div>`;
+            listEl.innerHTML = `<div class="empty-state"><i data-feather="message-circle" style="width:36px;height:36px;margin-bottom:12px;color:var(--text-muted);"></i><br>Your inbox is empty.<br>Tap search to connect.</div>`;
             feather.replace();
             return;
         }
 
         listEl.innerHTML = convList.map(c => `
-            <div class="chat-list-item" onclick="openChat('${c.otherId}')">
+            <div class="chat-list-item" 
+                 onmousedown="startLongPress(event, '${c.id}', '${c.otherId}', '${escapeHtml(c.other.username)}')" 
+                 onmouseup="endLongPress(event, '${c.otherId}')" 
+                 onmouseleave="endLongPress(event)"
+                 ontouchstart="startLongPress(event, '${c.id}', '${c.otherId}', '${escapeHtml(c.other.username)}')" 
+                 ontouchend="endLongPress(event, '${c.otherId}')">
                 <img src="${c.other.photoURL || DEFAULT_AVATAR}" onerror="this.src='${DEFAULT_AVATAR}'" class="avatar">
                 <div class="chat-info">
                     <div class="chat-header">
@@ -345,6 +387,52 @@ async function loadChatsTab() {
     });
 }
 
+// --- Long Press Logic ---
+window.startLongPress = (e, convId, targetUid, targetName) => {
+    longPressTimer = setTimeout(() => {
+        longPressTimer = null;
+        selectedConvId = convId;
+        selectedTargetUid = targetUid;
+        document.getElementById('sheet-target-name').textContent = targetName;
+        document.getElementById('action-sheet-overlay').classList.add('active');
+        if(navigator.vibrate) navigator.vibrate(50);
+    }, 600); 
+};
+
+window.endLongPress = (e, targetUid) => {
+    if (longPressTimer) {
+        clearTimeout(longPressTimer);
+        longPressTimer = null;
+        if (targetUid) window.openChat(targetUid);
+    }
+};
+
+window.closeActionSheet = () => {
+    document.getElementById('action-sheet-overlay').classList.remove('active');
+};
+
+window.executeClearChat = async () => {
+    if (!selectedConvId) return;
+    if (confirm("Are you sure you want to delete all messages for this chat?")) {
+        await remove(ref(db, `directMessages/${selectedConvId}`));
+        await update(ref(db, `conversations/${selectedConvId}`), {
+            lastMessage: "Conversation cleared",
+            lastTimestamp: Date.now(),
+            ["unread/" + currentUser.uid]: 0
+        });
+        window.closeActionSheet();
+    }
+};
+
+window.executeBlockUser = async () => {
+    if (!selectedTargetUid || !selectedConvId) return;
+    if (confirm("Block this user? You will no longer see this conversation slot.")) {
+        // Deletes the active mapping from your personal conversations object feed tracking
+        await remove(ref(db, `conversations/${selectedConvId}`));
+        window.closeActionSheet();
+    }
+};
+
 // --- Directory Search ---
 window.handleSearch = (query) => {
     const q = query.toLowerCase().trim();
@@ -354,28 +442,32 @@ window.handleSearch = (query) => {
         resultsContainer.innerHTML = '<div class="empty-state">Type a unique handle to find connections.</div>';
         return;
     }
+
+    resultsContainer.innerHTML = getShimmerHTML().substring(0, getShimmerHTML().length/2);
     
-    const results = Object.keys(allUsersCache)
-        .filter(uid => uid !== currentUser.uid && (allUsersCache[uid].username || '').toLowerCase().includes(q))
-        .map(uid => ({ uid, ...allUsersCache[uid] }))
-        .slice(0, 15);
+    setTimeout(() => {
+        const results = Object.keys(allUsersCache)
+            .filter(uid => uid !== currentUser.uid && (allUsersCache[uid].username || '').toLowerCase().includes(q))
+            .map(uid => ({ uid, ...allUsersCache[uid] }))
+            .slice(0, 15);
 
-    if (!results.length) {
-        resultsContainer.innerHTML = '<div class="empty-state">No matching users found.</div>';
-        return;
-    }
+        if (!results.length) {
+            resultsContainer.innerHTML = '<div class="empty-state">No matching users found.</div>';
+            return;
+        }
 
-    resultsContainer.innerHTML = results.map(u => `
-        <div class="chat-list-item" onclick="openChat('${u.uid}')">
-            <img src="${u.photoURL || DEFAULT_AVATAR}" onerror="this.src='${DEFAULT_AVATAR}'" class="avatar" style="border-radius:14px;">
-            <div class="chat-info">
-                <div class="chat-name">${escapeHtml(u.username || 'User')}</div>
+        resultsContainer.innerHTML = results.map(u => `
+            <div class="chat-list-item" onclick="openChat('${u.uid}')">
+                <img src="${u.photoURL || DEFAULT_AVATAR}" onerror="this.src='${DEFAULT_AVATAR}'" class="avatar" style="border-radius:14px;">
+                <div class="chat-info">
+                    <div class="chat-name">${escapeHtml(u.username || 'User')}</div>
+                </div>
             </div>
-        </div>
-    `).join('');
+        `).join('');
+    }, 400);
 };
 
-// --- Overlay Workspace Window ---
+// --- Chat Window Workspace ---
 window.openChat = async (targetUid) => {
     const otherUser = allUsersCache[targetUid] || { username: 'User' };
     activeChatUid = targetUid;
@@ -393,7 +485,6 @@ window.openChat = async (targetUid) => {
     
     const chatRef = ref(db, `directMessages/${activeChatConvId}/messages`);
     const msgsEl = document.getElementById('messages-area');
-    
     let lastDateLabel = '';
 
     activeChatListener = onChildAdded(chatRef, (snap) => {
@@ -489,7 +580,6 @@ function renderProfile() {
             <img src="${currentUserData.photoURL || DEFAULT_AVATAR}" onerror="this.src='${DEFAULT_AVATAR}'" class="profile-avatar-large">
             <div class="profile-name">${escapeHtml(currentUserData.username)}</div>
             <div class="profile-handle">${escapeHtml(currentUserData.email)}</div>
-            
             <button class="profile-btn logout" onclick="handleLogout()">Disconnect Session</button>
         </div>
     `;
@@ -502,12 +592,10 @@ window.handleLogout = () => {
     });
 };
 
-// --- Connection Presence Architecture ---
 function setupPresence(){
     if(!currentUser) return;
     const presRef = ref(db, `users/${currentUser.uid}`);
     update(presRef, { online: true, lastSeen: serverTimestamp() }).catch(()=>{});
-    
     window.addEventListener('beforeunload', () => {
         update(presRef, { online: false, lastSeen: Date.now() }).catch(()=>{});
     });
