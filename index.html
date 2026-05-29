@@ -92,7 +92,7 @@
         .status-card img, .status-card video {width:100%;height:100%;object-fit:cover;pointer-events:none;}
         .status-overlay {position:absolute;inset:0;background:linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 40%);display:flex;flex-direction:column;justify-content:flex-end;padding:12px;}
         .status-author {color:white;font-weight:700;font-size:14px;display:flex;align-items:center;gap:8px;}
-        .status-author img {width:24px;height:24px;border-radius:8px;border:1px solid rgba(255,255,255,0.4);}
+        .status-author img {width:24px;height:24px;border-radius:8px;border:1px solid rgba(255,255,255,0.4);margin-bottom:0 !important;box-shadow:none !important;}
         .upload-status-btn {background:var(--surface);border:1px dashed var(--primary);border-radius:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--primary);font-weight:700;font-size:14px;cursor:pointer;gap:8px;}
         .upload-status-btn:active {background:var(--surface2);}
 
@@ -138,26 +138,13 @@
         .sheet-btn.danger { background: rgba(239, 68, 68, 0.08); color: var(--danger); }
         .sheet-scroll-area { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin: 0 -12px; padding: 0 12px;}
 
-        /* Profile Sheet Additions */
+        /* Profile Sheet */
         .profile-card{background:var(--surface);border-radius:24px;padding:32px 20px;text-align:center;box-shadow:var(--shadow-sm);border:1px solid var(--border);margin-top:8px;}
-        .edit-avatar-wrapper { position: relative; display: inline-block; cursor: pointer; }
-        .profile-avatar-large{width:110px;height:110px;border-radius:32px;object-fit:cover;margin-bottom:18px;box-shadow:var(--shadow-md);border:3px solid var(--surface);}
-        .edit-avatar-badge { position: absolute; bottom: 12px; right: -8px; background: var(--primary-gradient); color: white; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 3px solid var(--surface); box-shadow: var(--shadow-sm); }
-        .profile-name{font-size:24px;font-weight:800;letter-spacing:-0.5px;margin-bottom:4px;display:flex;align-items:center;justify-content:center;}
-        .edit-name-btn { background: none; border: none; color: var(--text-secondary); cursor: pointer; margin-left: 8px; padding: 4px; border-radius: 50%; }
-        .edit-name-btn:active { background: var(--surface2); }
+        .profile-avatar-large{width:110px;height:110px;border-radius:32px;object-fit:cover;box-shadow:var(--shadow-md);border:3px solid var(--surface);}
+        .profile-name{font-size:24px;font-weight:800;letter-spacing:-0.5px;margin-bottom:4px;}
         .profile-handle{font-size:14px;color:var(--text-secondary);margin-bottom:28px;}
         .profile-btn{width:100%;max-width:220px;padding:14px;border-radius:16px;font-weight:700;font-size:15px;cursor:pointer;border:none;background:var(--surface2);color:var(--text-primary);transition:all 0.2s;}
         .profile-btn.logout{background:rgba(239,68,68,0.08);color:#EF4444;margin-top:12px;}
-
-        /* Settings List */
-        .settings-list { margin-top: 24px; text-align: left; }
-        .setting-item { display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--surface); border-radius: 16px; margin-bottom: 8px; box-shadow: var(--shadow-sm); border: 1px solid var(--border); }
-        .setting-label { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 12px; }
-        .toggle-switch { position: relative; width: 44px; height: 24px; background: var(--text-muted); border-radius: 12px; cursor: pointer; transition: 0.3s; }
-        .toggle-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; background: white; border-radius: 50%; transition: 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-        .toggle-switch.active { background: var(--primary); }
-        .toggle-switch.active::after { transform: translateX(20px); }
 
         .empty-state{padding:80px 24px;text-align:center;color:var(--text-secondary);font-size:15px;line-height:1.5;}
         
@@ -167,6 +154,7 @@
         .global-loader {position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:none;align-items:center;justify-content:center;}
         .global-loader.active {display:flex;}
         .spinner{width:36px;height:36px;border:4px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.8s linear infinite;}
+        @keyframes spin{to{transform:rotate(360deg);}}
     </style>
 </head>
 <body>
@@ -201,7 +189,7 @@
                 <span>Add Status</span>
             </div>
             <input type="file" id="status-upload" accept="image/*,video/*" style="display:none;" onchange="handleStatusUpload(event)">
-            </div>
+        </div>
     </div>
 
     <div id="view-profile" class="view-container">
@@ -282,6 +270,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
 const firebaseConfig={
     apiKey:"AIzaSyBOyZ3As4GTuNvjemvPF_SpsC6m6vqtNhc",
@@ -293,12 +282,11 @@ const firebaseConfig={
     appId:"1:658673187627:web:6e4c29af661785f0afa36e"
 };
 
-const CLOUDINARY_CLOUD_NAME='dqkujefxj';
-const CLOUDINARY_UPLOAD_PRESET='banter_box';
-
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
+const storage = getStorage(app);
+
 const DEFAULT_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23A1A1AA' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' style='background-color:%23E4E4E7'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3C/svg%3E";
 
 let currentUser = null;
@@ -311,10 +299,6 @@ let activeChatListener = null;
 let longPressTimer = null;
 let selectedConvId = null;
 let selectedTargetUid = null;
-
-// Initialize Theme
-const savedTheme = localStorage.getItem('vynix-theme') || 'light';
-document.documentElement.setAttribute('data-theme', savedTheme);
 
 window.showToast=msg=>{const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);};
 
@@ -377,6 +361,13 @@ window.switchTab = (tabId) => {
     document.querySelector(`.nav-item[data-nav="${tabId}"]`).classList.add('active');
 };
 
+// --- Firebase Storage Upload Helper ---
+async function uploadToFirebaseStorage(file, targetPath) {
+    const fileRef = storageRef(storage, targetPath);
+    await uploadBytes(fileRef, file);
+    return await getDownloadURL(fileRef);
+}
+
 // --- Conversations List ---
 async function loadChatsTab() {
     const listEl = document.getElementById('chats-list');
@@ -429,7 +420,6 @@ async function loadChatsTab() {
             return;
         }
 
-        /* LONG PRESS: Strictly only attached here to friends/active chat cards */
         listEl.innerHTML = convList.map(c => `
             <div class="chat-list-item" 
                  onmousedown="startLongPress(event, '${c.id}', '${c.otherId}', '${escapeHtml(c.other.username)}')" 
@@ -473,7 +463,6 @@ window.openNewChatSheet = async () => {
         return;
     }
 
-    // Global list ONLY has onclick. No long-press logic applied here.
     listEl.innerHTML = users.map(u => `
         <div class="chat-list-item" onclick="closeNewChatSheet(); openChat('${u.uid}')" style="box-shadow:none; border-bottom:1px solid var(--border); border-radius:0;">
             <img src="${u.photoURL || DEFAULT_AVATAR}" onerror="this.src='${DEFAULT_AVATAR}'" class="avatar" style="border-radius:14px; width:44px; height:44px;">
@@ -488,48 +477,31 @@ window.closeNewChatSheet = () => {
     document.getElementById('new-chat-sheet-overlay').classList.remove('active');
 };
 
-// --- Cloudinary Integration ---
-async function uploadToCloudinary(file) {
-    const fd = new FormData();
-    fd.append('file', file);
-    fd.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-    fd.append('folder', 'statuses');
-    const r = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/upload`, { method: 'POST', body: fd });
-    if(!r.ok) throw new Error('Upload failed');
-    return await r.json();
-}
-
+// --- Firebase Status Upload Engine ---
 window.handleStatusUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    
     document.getElementById('upload-loader').classList.add('active');
+    
     try {
-        const r = await uploadToCloudinary(file);
         const type = file.type.startsWith('video/') ? 'video' : 'image';
-        await push(ref(db, 'statuses'), { uid: currentUser.uid, mediaUrl: r.secure_url, mediaType: type, timestamp: serverTimestamp() });
+        const fileExtension = file.name.split('.').pop() || (type === 'video' ? 'mp4' : 'jpg');
+        const targetPath = `statuses/${currentUser.uid}_${Date.now()}.${fileExtension}`;
+        
+        const downloadUrl = await uploadToFirebaseStorage(file, targetPath);
+        
+        await push(ref(db, 'statuses'), {
+            uid: currentUser.uid,
+            mediaUrl: downloadUrl,
+            mediaType: type,
+            timestamp: serverTimestamp()
+        });
+        
         showToast('Status shared!');
     } catch (err) {
+        console.error(err);
         showToast('Failed to upload status.');
-    } finally {
-        document.getElementById('upload-loader').classList.remove('active');
-        e.target.value = '';
-    }
-};
-
-window.handleProfilePicUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    document.getElementById('upload-loader').classList.add('active');
-    try {
-        const r = await uploadToCloudinary(file);
-        await update(ref(db, `users/${currentUser.uid}`), { photoURL: r.secure_url });
-        currentUserData.photoURL = r.secure_url;
-        const navAvatarImg = document.getElementById('nav-profile-avatar');
-        if (navAvatarImg) navAvatarImg.src = r.secure_url;
-        renderProfile();
-        showToast("Profile picture updated!");
-    } catch (err) {
-        showToast("Failed to update profile picture.");
     } finally {
         document.getElementById('upload-loader').classList.remove('active');
         e.target.value = '';
@@ -545,15 +517,22 @@ function loadStatuses() {
                 <span>Add Status</span>
             </div>
         `;
+        
         let statuses = [];
-        if(snap.exists()){ snap.forEach(c => statuses.push({ id: c.key, ...c.val() })); }
+        if(snap.exists()){
+            snap.forEach(c => statuses.push({ id: c.key, ...c.val() }));
+        }
+        
         const now = Date.now();
         statuses = statuses.filter(s => (now - s.timestamp) < 86400000);
         statuses.sort((a,b) => b.timestamp - a.timestamp);
 
         const html = statuses.map(s => {
             const author = allUsersCache[s.uid] || { username: 'User', photoURL: DEFAULT_AVATAR };
-            const media = s.mediaType === 'video' ? `<video src="${s.mediaUrl}" autoplay muted loop playsinline></video>` : `<img src="${s.mediaUrl}" alt="Status">`;
+            const media = s.mediaType === 'video' 
+                ? `<video src="${s.mediaUrl}" autoplay muted loop playsinline></video>`
+                : `<img src="${s.mediaUrl}" alt="Status">`;
+                
             return `
                 <div class="status-card">
                     ${media}
@@ -566,10 +545,44 @@ function loadStatuses() {
                 </div>
             `;
         }).join('');
+        
         grid.innerHTML = uploadBtnHTML + html;
         feather.replace();
     });
 }
+
+// --- Firebase Profile Picture Upload Engine ---
+window.handleProfileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    document.getElementById('upload-loader').classList.add('active');
+    
+    try {
+        const fileExtension = file.name.split('.').pop() || 'jpg';
+        const targetPath = `profiles/${currentUser.uid}_profile.${fileExtension}`;
+        
+        const downloadUrl = await uploadToFirebaseStorage(file, targetPath);
+        
+        await update(ref(db, `users/${currentUser.uid}`), {
+            photoURL: downloadUrl
+        });
+        
+        currentUserData.photoURL = downloadUrl;
+        allUsersCache[currentUser.uid] = currentUserData;
+        
+        const navAvatarImg = document.getElementById('nav-profile-avatar');
+        if (navAvatarImg) navAvatarImg.src = downloadUrl;
+        
+        renderProfile();
+        showToast('Profile picture updated!');
+    } catch (err) {
+        console.error(err);
+        showToast('Failed to update profile picture.');
+    } finally {
+        document.getElementById('upload-loader').classList.remove('active');
+    }
+};
 
 // --- Long Press Logic ---
 window.startLongPress = (e, convId, targetUid, targetName) => {
@@ -601,7 +614,11 @@ window.executeClearChat = async () => {
     if (!selectedConvId) return;
     if (confirm("Are you sure you want to delete all messages for this chat?")) {
         await remove(ref(db, `directMessages/${selectedConvId}`));
-        await update(ref(db, `conversations/${selectedConvId}`), { lastMessage: "Conversation cleared", lastTimestamp: Date.now(), ["unread/" + currentUser.uid]: 0 });
+        await update(ref(db, `conversations/${selectedConvId}`), {
+            lastMessage: "Conversation cleared",
+            lastTimestamp: Date.now(),
+            ["unread/" + currentUser.uid]: 0
+        });
         window.closeActionSheet();
     }
 };
@@ -616,9 +633,15 @@ window.executeBlockUser = async () => {
 
 // --- History API Back Handling ---
 window.addEventListener('popstate', (e) => {
-    if (document.getElementById('action-sheet-overlay').classList.contains('active')) closeActionSheet();
-    if (document.getElementById('new-chat-sheet-overlay').classList.contains('active')) closeNewChatSheet();
-    if (document.getElementById('chat-window').classList.contains('active')) closeChat(true); 
+    if (document.getElementById('action-sheet-overlay').classList.contains('active')) {
+        closeActionSheet();
+    }
+    if (document.getElementById('new-chat-sheet-overlay').classList.contains('active')) {
+        closeNewChatSheet();
+    }
+    if (document.getElementById('chat-window').classList.contains('active')) {
+        closeChat(true); 
+    }
 });
 
 // --- Chat Window Workspace ---
@@ -673,6 +696,7 @@ window.openChat = async (targetUid) => {
     });
 
     update(ref(db, `conversations/${activeChatConvId}/unread`), { [currentUser.uid]: 0 }).catch(()=>{});
+
     onValue(ref(db, `users/${targetUid}/online`), s => {
         document.getElementById('chat-header-status').textContent = s.val() === true ? 'Active Now' : 'Offline';
     });
@@ -686,7 +710,10 @@ window.closeChat = (fromPopState = false) => {
     }
     activeChatUid = null;
     activeChatConvId = null;
-    if(!fromPopState) history.back();
+    
+    if(!fromPopState) {
+        history.back();
+    }
 };
 
 window.sendChatMessage = async () => {
@@ -699,7 +726,12 @@ window.sendChatMessage = async () => {
     document.getElementById('send-btn').disabled = true;
     
     try {
-        await push(ref(db, `directMessages/${activeChatConvId}/messages`), { senderId: currentUser.uid, text, timestamp: serverTimestamp() });
+        await push(ref(db, `directMessages/${activeChatConvId}/messages`), {
+            senderId: currentUser.uid,
+            text,
+            timestamp: serverTimestamp()
+        });
+        
         const convSnap = await get(ref(db, `conversations/${activeChatConvId}/unread/${activeChatUid}`));
         const currentUnread = convSnap.exists() ? convSnap.val() : 0;
 
@@ -709,6 +741,7 @@ window.sendChatMessage = async () => {
             lastTimestamp: Date.now(),
             [`unread/${activeChatUid}`]: currentUnread + 1
         });
+        
     } catch(e) {
         showToast('Message could not be sent.');
     }
@@ -720,85 +753,52 @@ window.resizeTextarea = (el) => {
     document.getElementById('send-btn').disabled = el.value.trim().length === 0;
 };
 
-// --- Updated Profile Block & Settings ---
+// --- Profile Block ---
 function renderProfile() {
     const container = document.getElementById('profile-content');
     if(!currentUserData) return;
     
     const safePhotoUrl = currentUserData.photoURL || DEFAULT_AVATAR;
-    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
     
     container.innerHTML = `
         <div class="profile-card">
-            <div class="edit-avatar-wrapper" onclick="document.getElementById('profile-upload').click()">
-                <img src="${safePhotoUrl}" onerror="this.src='${DEFAULT_AVATAR}'" class="profile-avatar-large">
-                <div class="edit-avatar-badge"><i data-feather="camera" style="width:16px;height:16px;"></i></div>
+            <div style="position:relative; display:inline-block; margin-bottom:18px;">
+                <img src="${safePhotoUrl}" onerror="this.src='${DEFAULT_AVATAR}'" class="profile-avatar-large" style="cursor:pointer;" onclick="document.getElementById('profile-upload').click()">
+                <div style="position:absolute; bottom:0; right:0; background:var(--primary); color:white; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer; border:3px solid var(--surface);" onclick="document.getElementById('profile-upload').click()">
+                    <i data-feather="camera" style="width:14px;height:14px;"></i>
+                </div>
             </div>
-            <input type="file" id="profile-upload" accept="image/*" style="display:none;" onchange="handleProfilePicUpload(event)">
-            
-            <div class="profile-name">
-                ${escapeHtml(currentUserData.username)}
-                <button class="edit-name-btn" onclick="editUsername()"><i data-feather="edit-2" style="width:18px;height:18px;"></i></button>
-            </div>
+            <input type="file" id="profile-upload" accept="image/*" style="display:none;" onchange="handleProfileUpload(event)">
+            <div class="profile-name">${escapeHtml(currentUserData.username)}</div>
             <div class="profile-handle">${escapeHtml(currentUserData.email)}</div>
             <button class="profile-btn logout" onclick="handleLogout()">Disconnect Session</button>
-        </div>
-
-        <div class="settings-list">
-            <div class="setting-item">
-                <div class="setting-label"><i data-feather="moon" style="width:20px;height:20px;"></i> Dark Mode</div>
-                <div class="toggle-switch ${isDark ? 'active' : ''}" onclick="toggleTheme(this)"></div>
-            </div>
-            <div class="setting-item">
-                <div class="setting-label"><i data-feather="bell" style="width:20px;height:20px;"></i> Notifications</div>
-                <div class="toggle-switch active" onclick="this.classList.toggle('active'); showToast('Notification settings updated');"></div>
-            </div>
-            <div class="setting-item" style="cursor:pointer;" onclick="showToast('Privacy Settings Coming Soon')">
-                <div class="setting-label"><i data-feather="lock" style="width:20px;height:20px;"></i> Privacy & Security</div>
-                <i data-feather="chevron-right" style="width:20px;height:20px;color:var(--text-muted);"></i>
-            </div>
         </div>
     `;
     feather.replace();
 }
 
-window.editUsername = async () => {
-    const newName = prompt("Enter new username:", currentUserData.username);
-    if (newName && newName.trim() !== "" && newName.trim() !== currentUserData.username) {
-        try {
-            await update(ref(db, `users/${currentUser.uid}`), { username: newName.trim() });
-            currentUserData.username = newName.trim();
-            renderProfile();
-            showToast("Username updated!");
-        } catch(e) {
-            showToast("Failed to update username.");
-        }
-    }
-};
-
-window.toggleTheme = (el) => {
-    el.classList.toggle('active');
-    const isDark = el.classList.contains('active');
-    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-    localStorage.setItem('vynix-theme', isDark ? 'dark' : 'light');
-};
-
 window.handleLogout = () => {
     update(ref(db, `users/${currentUser.uid}`), { online: false, lastSeen: serverTimestamp() })
-    .finally(() => { signOut(auth).then(() => { window.location.reload(); }); });
+    .finally(() => {
+        signOut(auth).then(() => { window.location.reload(); });
+    });
 };
 
 function setupPresence(){
     if(!currentUser) return;
     const presRef = ref(db, `users/${currentUser.uid}`);
     update(presRef, { online: true, lastSeen: serverTimestamp() }).catch(()=>{});
-    window.addEventListener('beforeunload', () => { update(presRef, { online: false, lastSeen: Date.now() }).catch(()=>{}); });
+    window.addEventListener('beforeunload', () => {
+        update(presRef, { online: false, lastSeen: Date.now() }).catch(()=>{});
+    });
 }
 
 function formatChatTime(ts) {
     if(!ts) return '';
     const d = new Date(ts), now = new Date();
-    if(d.toDateString() === now.toDateString()) return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    if(d.toDateString() === now.toDateString()) {
+        return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    }
     const yesterday = new Date(now); yesterday.setDate(now.getDate() - 1);
     if(d.toDateString() === yesterday.toDateString()) return 'Yesterday';
     return `${d.getDate()}/${d.getMonth()+1}`;
