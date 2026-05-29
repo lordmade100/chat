@@ -34,8 +34,7 @@
         @keyframes likeHeart{0%{transform:scale(1);}30%{transform:scale(1.4);}60%{transform:scale(0.85);}100%{transform:scale(1);}}
         @keyframes badgePop{0%{transform:scale(0.5);}70%{transform:scale(1.2);}100%{transform:scale(1);}}
         @keyframes navSlideUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
-        @keyframes livePulse{0%,100%{box-shadow:0 0 0 0 rgba(255,48,64,0.5);}50%{box-shadow:0 0 0 8px rgba(255,48,64,0);}}
-        @keyframes liveCardPulse{0%,100%{border-color:rgba(255,48,64,0.5);}50%{border-color:rgba(255,48,64,1);}}
+
         @keyframes heartPop{0%{transform:translate(-50%,-50%) scale(0);}40%{transform:translate(-50%,-50%) scale(1.2);}70%{transform:translate(-50%,-50%) scale(0.9);}100%{transform:translate(-50%,-50%) scale(0);opacity:0;}}
 
         .double-tap-heart{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);color:rgba(255,255,255,0.9);z-index:20;pointer-events:none;filter:drop-shadow(0 4px 12px rgba(0,0,0,0.4));}
@@ -65,26 +64,7 @@
         .post-card.press-active{opacity:0.8;}
         .repost-banner{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:8px;}
 
-        /* ── LIVE CARD ── */
-        .live-card{background:var(--background);border-bottom:1px solid var(--border);padding:14px 16px;position:relative;animation:fadeIn 0.3s ease-out;border-left:3px solid #FF3040;}
-        .live-badge{display:inline-flex;align-items:center;gap:4px;background:#FF3040;color:white;font-size:10px;font-weight:800;padding:3px 8px;border-radius:9999px;letter-spacing:0.08em;animation:livePulse 1.8s ease-in-out infinite;}
-        .live-dot{width:5px;height:5px;background:white;border-radius:50%;animation:liveDotBlink 1s ease-in-out infinite;}
-        @keyframes liveDotBlink{0%,100%{opacity:1;}50%{opacity:0.3;}}
-        .live-preview-thumb{width:100%;aspect-ratio:16/9;background:#111;border-radius:12px;overflow:hidden;position:relative;cursor:pointer;margin:10px 0;box-shadow:0 4px 16px rgba(255,48,64,0.2);}
-        .live-preview-thumb video{width:100%;height:100%;object-fit:cover;}
-        .live-preview-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(to bottom,rgba(0,0,0,0.1),rgba(0,0,0,0.45));}
-        .live-play-btn{width:52px;height:52px;background:rgba(255,255,255,0.18);backdrop-filter:blur(8px);border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid rgba(255,255,255,0.4);transition:transform 0.2s;}
-        .live-preview-thumb:active .live-play-btn{transform:scale(0.92);}
-        .live-viewer-count{position:absolute;bottom:8px;left:8px;background:rgba(0,0,0,0.65);color:white;font-size:11px;font-weight:600;padding:3px 10px;border-radius:9999px;display:flex;align-items:center;gap:5px;backdrop-filter:blur(6px);}
-        /* Live avatar ring */
-        .live-avatar-ring{position:relative;flex-shrink:0;cursor:pointer;}
-        .live-avatar-ring img{width:42px;height:42px;border-radius:50%;object-fit:cover;border:2.5px solid var(--background);display:block;}
-        .live-avatar-ring::before{content:'';position:absolute;inset:-3px;border-radius:50%;background:conic-gradient(#FF3040,#FF6B35,#FF3040);animation:liveRingSpin 3s linear infinite;z-index:-1;}
-        @keyframes liveRingSpin{to{transform:rotate(360deg);}}
-        /* Search live user avatar ring */
-        .search-live-ring{position:relative;display:inline-block;}
-        .search-live-ring::before{content:'';position:absolute;inset:-3px;border-radius:50%;background:conic-gradient(#FF3040,#FF6B35,#FF3040);animation:liveRingSpin 3s linear infinite;z-index:0;}
-        .search-live-ring img{position:relative;z-index:1;border:2px solid var(--background) !important;}
+
 
         .post-header{display:flex;gap:10px;margin-bottom:8px;padding-right:32px;align-items:center;}
         .avatar{width:36px;height:36px;border-radius:50%;object-fit:cover;cursor:pointer;border:1px solid var(--border);}
@@ -216,7 +196,7 @@
         .bottom-nav{position:fixed;bottom:0;left:0;right:0;width:100%;background:var(--background);border-top:1px solid var(--border);padding:8px 16px calc(8px + env(safe-area-inset-bottom));display:flex;justify-content:space-around;align-items:center;z-index:100;transition:background 0.3s,transform 0.35s cubic-bezier(0.4,0,0.2,1);animation:navSlideUp 0.4s cubic-bezier(0.34,1.56,0.64,1) both;}
         .bottom-nav.nav-hidden{transform:translateY(110%);}
         /* Prevent long-press context menus globally */
-        img,video,.avatar,.post-avatar,.live-avatar-ring img,.nav-avatar-ring img{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;pointer-events:auto;}
+        img,video,.avatar,.post-avatar,.nav-avatar-ring img{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;pointer-events:auto;}
         *{-webkit-touch-callout:none;}
         .nav-item{flex:1;display:flex;align-items:center;justify-content:center;padding:8px;background:none;border:none;cursor:pointer;color:var(--text-primary);position:relative;transition:transform 0.15s;}
         .nav-item:active{transform:scale(0.85);}
@@ -314,8 +294,7 @@
         .edit-profile-pic-overlay{position:absolute;bottom:0;right:0;background:var(--primary);color:white;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid var(--surface);box-shadow:0 2px 4px rgba(0,0,0,0.1);}
 
         /* ── LIVE BUTTON IN COMPOSE ── */
-        .live-go-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;background:linear-gradient(135deg,#FF3040 0%,#FF6B35 100%);color:white;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:8px;transition:opacity 0.2s,transform 0.15s;box-shadow:0 4px 16px rgba(255,48,64,0.35);}
-        .live-go-btn:active{opacity:0.85;transform:scale(0.98);}
+
 
         #pwa-install-popup{position:fixed;bottom:calc(70px + env(safe-area-inset-bottom));left:0;right:0;z-index:90;pointer-events:none;display:none;opacity:0;transform:translateY(110%);transition:transform 0.4s cubic-bezier(0.22,1,0.36,1),opacity 0.35s ease;padding:0 12px;}
         #pwa-install-popup.show{display:block;opacity:1;transform:translateY(0);pointer-events:auto;}
@@ -905,15 +884,7 @@
         </div>
     </div>
 
-    <!-- LIVE BUTTON -->
-    <button class="live-go-btn" onclick="goLive()">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="2" fill="white" stroke="none"/>
-            <path d="M16.24 7.76a6 6 0 0 1 0 8.49"/><path d="M7.76 16.24a6 6 0 0 1 0-8.49"/>
-            <path d="M20.07 4.93a10 10 0 0 1 0 14.14"/><path d="M3.93 19.07a10 10 0 0 1 0-14.14"/>
-        </svg>
-        Go Live
-    </button>
+
 </div>
 
 <div class="modal-overlay" id="edit-overlay" onclick="closeEditModal()"></div>
@@ -978,7 +949,6 @@ let loadedPostIds=new Set(),postsListenerAttached=false;
 const postListeners=new Map();
 const commentListeners=new Map();
 const commentLikeListeners=new Map();
-let activeLiveSessions=new Map(); // uid -> liveData
 
 /* ══ OFFLINE CACHE ══ */
 function saveOfflineData(){try{localStorage.setItem('vynix_posts',JSON.stringify(allPostsCache.slice(0,50)));if(currentUserData)localStorage.setItem('vynix_user',JSON.stringify(currentUserData));}catch(e){}}
@@ -1139,6 +1109,10 @@ window.closePostDetail=(e)=>{
 history.replaceState({tab:'home',idx:0},'');
 
 window.switchMainTab=(tabId,args=null)=>{
+    // Detach messages realtime listener when leaving messages tab
+    if(mainTabsList[currentMainTabIdx]==='messages'&&tabId!=='messages'){
+        detachMessagesTabListener();
+    }
     tabScrolls[mainTabsList[currentMainTabIdx]]=window.scrollY;
     document.querySelectorAll('.view-container').forEach(v=>v.classList.remove('active'));
     document.getElementById(`view-${tabId}`).classList.add('active');
@@ -1176,105 +1150,6 @@ window.addEventListener('popstate',(e)=>{
     }
     // 4. Already home — do nothing (let OS handle app exit)
 });
-
-/* ══ LIVE FEATURE ══ */
-window.goLive=()=>{
-    closeCompose();
-    window.location.href='live.html';
-};
-
-function setupLiveSessionsListener(){
-    onValue(ref(db,'liveSessions'),async(snap)=>{
-        activeLiveSessions.clear();
-        if(snap.exists()){
-            const promises=[];
-            snap.forEach(child=>{
-                const session={id:child.key,...child.val()};
-                if(session.active){
-                    activeLiveSessions.set(session.uid,session);
-                    promises.push((async()=>{
-                        try{const us=await get(ref(db,`users/${session.uid}`));session.user=us.val()||{};}catch{}
-                    })());
-                }
-            });
-            await Promise.all(promises);
-        }
-        renderLiveCards();
-    });
-}
-
-function renderLiveCards(){
-    // Remove existing live cards
-    document.querySelectorAll('.live-card').forEach(c=>c.remove());
-    if(!activeLiveSessions.size)return;
-    const feed=document.getElementById('feed');
-    const firstPost=feed.querySelector('.post-card,.skeleton-card');
-
-    activeLiveSessions.forEach((session,uid)=>{
-        if(document.getElementById(`live-card-${uid}`))return;
-        const user=session.user||{};
-        const isOwn=uid===currentUser?.uid;
-        const viewerCount=session.viewerCount||0;
-
-        const card=document.createElement('div');
-        card.className='live-card';
-        card.id=`live-card-${uid}`;
-        card.innerHTML=`
-            <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
-                <div class="live-avatar-ring" onclick="goToProfile('${uid}')">
-                    <img src="${user.photoURL||DEFAULT_AVATAR}" onerror="this.src='${DEFAULT_AVATAR}'" alt="${escapeHtml(user.username||'User')}">
-                </div>
-                <div style="flex:1;min-width:0;">
-                    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-                        <span style="font-weight:700;font-size:14px;color:var(--text-primary);">${escapeHtml(user.username||'User')}</span>
-                        ${user.verified?`<span class="verified-badge">${VERIFIED_BADGE_SVG}</span>`:''}
-                        <span class="live-badge"><span class="live-dot"></span>LIVE</span>
-                    </div>
-                    <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(session.title||'Live stream')}</div>
-                </div>
-                ${isOwn?`<button onclick="endMyLive()" style="background:rgba(255,48,64,0.1);color:#FF3040;border:1px solid rgba(255,48,64,0.25);padding:6px 12px;border-radius:9999px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;transition:all 0.2s;">End Live</button>`:''}
-            </div>
-            <div class="live-preview-thumb" onclick="window.location.href='live.html?join=${uid}'">
-                <div class="live-preview-overlay">
-                    <div class="live-play-btn">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><polygon points="6 3 20 12 6 21 6 3"/></svg>
-                    </div>
-                </div>
-                <div class="live-viewer-count">
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3" fill="black"/></svg>
-                    ${viewerCount} watching
-                </div>
-            </div>
-            <button onclick="window.location.href='live.html?join=${uid}'" style="display:flex;align-items:center;justify-content:center;width:100%;padding:11px;background:linear-gradient(135deg,rgba(255,48,64,0.12),rgba(255,107,53,0.08));border:1px solid rgba(255,48,64,0.25);border-radius:12px;font-size:14px;font-weight:700;color:#FF3040;cursor:pointer;font-family:inherit;gap:8px;transition:all 0.2s;">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="2" fill="currentColor"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49"/><path d="M7.76 16.24a6 6 0 0 1 0-8.49"/></svg>
-                Join Live
-            </button>
-        `;
-        if(firstPost)feed.insertBefore(card,firstPost);
-        else feed.appendChild(card);
-    });
-
-    // Remove cards for ended sessions
-    document.querySelectorAll('.live-card').forEach(card=>{
-        const uid=card.id.replace('live-card-','');
-        if(!activeLiveSessions.has(uid))card.remove();
-    });
-}
-
-window.endMyLive=async()=>{
-    if(!currentUser)return;
-    try{
-        const snap=await get(ref(db,'liveSessions'));
-        if(snap.exists()){
-            snap.forEach(child=>{
-                if(child.val().uid===currentUser.uid){
-                    update(ref(db,`liveSessions/${child.key}`),{active:false,endedAt:serverTimestamp()});
-                }
-            });
-        }
-        showToast('Live ended');
-    }catch(e){showToast('Error ending live');}
-};
 
 /* ══ SEARCH ══ */
 function renderSearchVideoStrip(){
@@ -1319,7 +1194,7 @@ window.handleMainSearch=async(query)=>{
     const userResults=users.filter(u=>u.username?.toLowerCase().includes(q)||u.displayName?.toLowerCase().includes(q)).slice(0,6);
     const postResults=allPostsCache.filter(p=>(p.text||'').toLowerCase().includes(q)||(p.user?.username||'').toLowerCase().includes(q)).slice(0,15);
     let html='';
-    if(userResults.length){html+=`<div style="padding:12px 16px 4px;font-weight:600;font-size:13px;color:var(--text-secondary);">Users</div>`;html+=userResults.map(u=>{const isLive=[...activeLiveSessions.keys()].includes(u.uid);const avatarHtml=isLive?`<div class="search-live-ring" onclick="window.location.href='live.html?join=${u.uid}'" style="cursor:pointer;width:40px;height:40px;border-radius:50%;flex-shrink:0;"><img src="${u.photoURL||DEFAULT_AVATAR}" class="avatar" style="width:40px;height:40px;border-radius:50%;"></div>`:`<img src="${u.photoURL||DEFAULT_AVATAR}" class="avatar">`;return`<div class="search-result-item" onclick="goToProfile('${u.uid}')">${avatarHtml}<div style="flex:1;"><div style="font-weight:600;font-size:15px;display:flex;align-items:center;gap:4px;">${escapeHtml(u.displayName||u.username)} ${u.verified?VERIFIED_BADGE_SVG:''}${isLive?`<span class="live-badge" style="font-size:9px;padding:2px 6px;"><span class="live-dot"></span>LIVE</span>`:''}</div><div style="font-size:13px;color:var(--text-secondary);">@${escapeHtml(u.username)}</div></div></div>`;}).join('');}
+    if(userResults.length){html+=`<div style="padding:12px 16px 4px;font-weight:600;font-size:13px;color:var(--text-secondary);">Users</div>`;html+=userResults.map(u=>{return`<div class="search-result-item" onclick="goToProfile('${u.uid}')"><img src="${u.photoURL||DEFAULT_AVATAR}" class="avatar"><div style="flex:1;"><div style="font-weight:600;font-size:15px;display:flex;align-items:center;gap:4px;">${escapeHtml(u.displayName||u.username)} ${u.verified?VERIFIED_BADGE_SVG:''}</div><div style="font-size:13px;color:var(--text-secondary);">@${escapeHtml(u.username)}</div></div></div>`;}).join('');}
     if(postResults.length){html+=`<div style="padding:12px 16px 4px;font-weight:600;font-size:13px;color:var(--text-secondary);">Posts</div>`;html+=postResults.map(p=>`<div class="search-result-item" onclick="goToPost('${p.id}')" style="align-items:flex-start;"><img src="${p.user?.photoURL||DEFAULT_AVATAR}" class="avatar" style="width:36px;height:36px;"><div style="flex:1;"><div style="font-weight:600;font-size:13px;">${escapeHtml(p.user?.username||'User')}</div><div style="font-size:13px;color:var(--text-primary);margin-top:2px;">${escapeHtml((p.text||'').substring(0,80))}${p.text?.length>80?'...':''}</div></div>${p.mediaUrls?`<img src="${p.mediaUrls[0].url}" style="width:48px;height:48px;object-fit:cover;border-radius:6px;">`:(p.mediaUrl?`<img src="${p.mediaUrl}" style="width:48px;height:48px;object-fit:cover;border-radius:6px;">`:'')}</div>`).join('');}
     if(!html)html='<div class="empty-state">No results found.</div>';
     container.innerHTML=html;
@@ -1422,8 +1297,6 @@ function rerenderFeed(){
     loadedPostIds.clear();pageIndex=0;hasMorePages=true;
     allPostKeys=getSortedPosts(currentTab).map(p=>({id:p.id,timestamp:p.timestamp}));
     loadNextPage();setupScrollObserver();
-    // Re-render live cards after feed rebuild
-    setTimeout(renderLiveCards,100);
 }
 
 async function uploadToCloudinary(file,folder='posts'){
@@ -1438,7 +1311,6 @@ onAuthStateChanged(auth,async(user)=>{
     await loadUserData();
     setupNotificationsListener();
     setupMessagesListener();
-    setupLiveSessionsListener();
     setupPresence();
     loadPosts();
 });
@@ -2046,41 +1918,120 @@ window.togglePostMenu=(postId,e)=>{e.stopPropagation();document.getElementById(`
 /* ══ MESSAGES TAB ══ */
 let activeChatUid=null,activeChatListener=null,activeChatConvId=null;
 let lastSeenListeners={};
+let messagesTabListener=null; // realtime conversations listener
+let messagesTabUsersCache={}; // uid -> user data cache
+let messagesTabPendingOpenUid=null;
 
 function hideNav(){document.getElementById('bottom-nav').classList.add('nav-hidden');}
 function showNav(){document.getElementById('bottom-nav').classList.remove('nav-hidden');}
 
+function detachMessagesTabListener(){
+    if(messagesTabListener){
+        off(ref(db,'conversations'));
+        messagesTabListener=null;
+    }
+}
+
+function renderConvList(convList){
+    const convListEl=document.getElementById('messages-conv-list');
+    if(!convListEl)return;
+    if(!convList.length){
+        convListEl.innerHTML=`<div style="padding:60px 24px;text-align:center;"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--text-muted);margin:0 auto 12px;display:block;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><div style="font-size:16px;font-weight:600;color:var(--text-primary);margin-bottom:6px;">No messages yet</div><div style="font-size:14px;color:var(--text-secondary);">Start a conversation from someone's profile.</div></div>`;
+        return;
+    }
+    convListEl.innerHTML=convList.map(c=>`<div class="search-result-item" id="conv-item-${c.id}" onclick="openInlineChat('${c.otherId}','${encodeURIComponent(JSON.stringify(c.other))}')" style="gap:12px;padding:13px 16px;cursor:pointer;"><img src="${c.other.photoURL||DEFAULT_AVATAR}" onerror="this.src='${DEFAULT_AVATAR}'" style="width:48px;height:48px;border-radius:50%;object-fit:cover;flex-shrink:0;border:1px solid var(--border);"><div style="flex:1;min-width:0;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;"><span style="font-weight:700;font-size:14px;color:var(--text-primary);">${escapeHtml(c.other.username||'User')}</span><span style="font-size:11px;color:var(--text-muted);">${formatTime(c.lastTimestamp)}</span></div><div style="font-size:13px;color:${c.unread>0?'var(--text-primary)':'var(--text-secondary)'};font-weight:${c.unread>0?'600':'400'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(c.lastMessage||'Tap to chat')}</div></div>${c.unread>0?`<span style="background:var(--primary);color:white;border-radius:50%;min-width:20px;height:20px;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0 4px;">${c.unread}</span>`:''}</div>`).join('');
+}
+
 window.loadMessagesTab=async(openUid=null)=>{
     showNav();
     const body=document.getElementById('messages-tab-body');
-    body.innerHTML=`<div style="padding:40px 0;display:flex;justify-content:center;"><div style="width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--text-secondary);border-radius:50%;animation:spin 0.8s linear infinite;"></div></div>`;
+
+    // Detach any previous conversations listener
+    detachMessagesTabListener();
+
+    // Show initial spinner only if list isn't already rendered
+    if(!document.getElementById('messages-conv-list')){
+        body.innerHTML=`<div style="padding:40px 0;display:flex;justify-content:center;"><div style="width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--text-secondary);border-radius:50%;animation:spin 0.8s linear infinite;"></div></div>`;
+    }
+
+    messagesTabPendingOpenUid=openUid;
+
+    // Pre-fetch users cache once
     try{
-        const convSnap=await get(ref(db,'conversations'));
         const usersSnap=await get(ref(db,'users'));
-        const allUsers={};if(usersSnap.exists())usersSnap.forEach(c=>{allUsers[c.key]=c.val();});
+        messagesTabUsersCache={};
+        if(usersSnap.exists())usersSnap.forEach(c=>{messagesTabUsersCache[c.key]=c.val();});
+    }catch(e){}
+
+    // Set up real-time listener on conversations
+    messagesTabListener=onValue(ref(db,'conversations'),async(convSnap)=>{
+        // If inline chat is open, only update unread badges silently
+        const panelOpen=activeChatUid!==null;
+
         let convList=[];
         if(convSnap.exists()){
+            // Fetch any missing user profiles
+            const missingUids=new Set();
+            convSnap.forEach(child=>{
+                const conv=child.val();
+                const members=Object.keys(conv.members||{});
+                if(!members.includes(currentUser.uid))return;
+                const otherId=members.find(m=>m!==currentUser.uid);
+                if(otherId&&!messagesTabUsersCache[otherId])missingUids.add(otherId);
+            });
+            await Promise.all([...missingUids].map(async uid=>{
+                try{const s=await get(ref(db,`users/${uid}`));if(s.exists())messagesTabUsersCache[uid]=s.val();}catch{}
+            }));
+
             convSnap.forEach(child=>{
                 const conv=child.val();
                 const members=Object.keys(conv.members||{});
                 if(!members.includes(currentUser.uid))return;
                 const otherId=members.find(m=>m!==currentUser.uid);
                 if(!otherId)return;
-                const other=allUsers[otherId]||{username:'User'};
+                const other=messagesTabUsersCache[otherId]||{username:'User'};
                 convList.push({id:child.key,otherId,other,lastMessage:conv.lastMessage||'',lastTimestamp:conv.lastTimestamp||0,unread:conv.unread?.[currentUser.uid]||0});
             });
         }
         convList.sort((a,b)=>b.lastTimestamp-a.lastTimestamp);
-        if(!convList.length&&!openUid){
-            body.innerHTML=`<div style="padding:60px 24px;text-align:center;"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--text-muted);margin:0 auto 12px;display:block;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><div style="font-size:16px;font-weight:600;color:var(--text-primary);margin-bottom:6px;">No messages yet</div><div style="font-size:14px;color:var(--text-secondary);">Start a conversation from someone's profile.</div></div>`;
+
+        // Update total unread badge on nav
+        const totalUnread=convList.reduce((sum,c)=>sum+(c.unread>0?1:0),0);
+        const badgeEl=document.getElementById('badge-messages');
+        const sidebarBadgeEl=document.getElementById('sidebar-badge-messages');
+        if(badgeEl){badgeEl.classList.toggle('show',totalUnread>0);}
+        if(sidebarBadgeEl){sidebarBadgeEl.classList.toggle('show',totalUnread>0);}
+
+        if(panelOpen){
+            // Only silently refresh timestamps/unread on list items without full re-render
+            convList.forEach(c=>{
+                const item=document.getElementById(`conv-item-${c.id}`);
+                if(!item)return;
+                // update unread badge
+                let badge=item.querySelector('.conv-unread-badge');
+                if(c.unread>0){
+                    if(!badge){badge=document.createElement('span');badge.className='conv-unread-badge';badge.style.cssText='background:var(--primary);color:white;border-radius:50%;min-width:20px;height:20px;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0 4px;';item.appendChild(badge);}
+                    badge.textContent=c.unread;
+                }else if(badge){badge.remove();}
+            });
             return;
         }
-        body.innerHTML=`<div id="messages-conv-list">${convList.map(c=>`<div class="search-result-item" onclick="openInlineChat('${c.otherId}','${encodeURIComponent(JSON.stringify(c.other))}')" style="gap:12px;padding:13px 16px;cursor:pointer;"><img src="${c.other.photoURL||DEFAULT_AVATAR}" onerror="this.src='${DEFAULT_AVATAR}'" style="width:48px;height:48px;border-radius:50%;object-fit:cover;flex-shrink:0;border:1px solid var(--border);"><div style="flex:1;min-width:0;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;"><span style="font-weight:700;font-size:14px;color:var(--text-primary);">${escapeHtml(c.other.username||'User')}</span><span style="font-size:11px;color:var(--text-muted);">${formatTime(c.lastTimestamp)}</span></div><div style="font-size:13px;color:${c.unread>0?'var(--text-primary)':'var(--text-secondary)'};font-weight:${c.unread>0?'600':'400'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(c.lastMessage||'Tap to chat')}</div></div>${c.unread>0?`<span style="background:var(--primary);color:white;border-radius:50%;min-width:20px;height:20px;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0 4px;">${c.unread}</span>`:''}</div>`).join('')}</div><div id="inline-chat-panel" style="display:none;"></div>`;
-        if(openUid){
-            const other=allUsers[openUid]||{username:'User'};
-            openInlineChat(openUid,encodeURIComponent(JSON.stringify(other)));
+
+        // Ensure scaffold exists
+        if(!document.getElementById('messages-conv-list')){
+            body.innerHTML=`<div id="messages-conv-list"></div><div id="inline-chat-panel" style="display:none;"></div>`;
         }
-    }catch(e){body.innerHTML=`<div class="empty-state">Could not load messages.</div>`;}
+
+        renderConvList(convList);
+
+        // Open specific chat if requested (only first time)
+        if(messagesTabPendingOpenUid){
+            const uid=messagesTabPendingOpenUid;
+            messagesTabPendingOpenUid=null;
+            const other=messagesTabUsersCache[uid]||{username:'User'};
+            openInlineChat(uid,encodeURIComponent(JSON.stringify(other)));
+        }
+    });
 };
 
 function formatChatTime(ts){
