@@ -54,8 +54,16 @@
         @keyframes slideUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
         @keyframes shimmerAnimate { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
 
-        .header{margin-bottom:20px;padding:8px 4px;display:flex;align-items:center;justify-content:space-between;}
+        .header{margin-bottom:12px;padding:8px 4px;display:flex;align-items:center;justify-content:space-between;}
         .header h2{font-size:26px;font-weight:800;letter-spacing:-0.5px;}
+
+        /* Search Bar */
+        .search-container { padding: 0 4px 16px; }
+        .search-box { display: flex; align-items: center; background: var(--surface); border-radius: 16px; padding: 10px 16px; box-shadow: var(--shadow-sm); border: 1px solid var(--border); transition: all 0.2s ease; }
+        .search-box:focus-within { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.1); }
+        .search-box i { color: var(--text-muted); margin-right: 10px; flex-shrink: 0; }
+        .search-box input { border: none; background: transparent; outline: none; width: 100%; font-size: 15px; color: var(--text-primary); font-family: inherit; }
+        .search-box input::placeholder { color: var(--text-muted); }
 
         /* Bottom Nav */
         .bottom-nav-container{position:fixed;bottom:20px;left:0;right:0;display:flex;justify-content:center;z-index:100;padding:0 24px;bottom:calc(20px + env(safe-area-inset-bottom));}
@@ -75,8 +83,9 @@
 
         /* Chat Card List */
         .chats-holder{display:flex;flex-direction:column;gap:10px;}
-        .chat-list-item{display:flex;align-items:center;gap:14px;padding:14px;background:var(--surface);border-radius:20px;cursor:pointer;transition:all 0.2s ease;box-shadow:var(--shadow-sm);border:1px solid transparent;}
-        .chat-list-item:active{transform:scale(0.98);background:var(--surface2);}
+        .chat-list-item{display:flex;align-items:center;gap:14px;padding:14px;background:var(--surface);border-radius:20px;cursor:pointer;transition:transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s ease;box-shadow:var(--shadow-sm);border:1px solid transparent;}
+        .chat-list-item.pressing {transform:scale(0.96); background:var(--surface2);}
+        .chat-list-item:active{background:var(--surface2);}
         .avatar{width:52px;height:52px;border-radius:18px;object-fit:cover;flex-shrink:0;}
         .chat-info{flex:1;min-width:0;}
         .chat-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
@@ -138,13 +147,22 @@
         .sheet-btn.danger { background: rgba(239, 68, 68, 0.08); color: var(--danger); }
         .sheet-scroll-area { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin: 0 -12px; padding: 0 12px;}
 
-        /* Profile Sheet */
+        /* Profile Sheet & Extended Settings */
         .profile-card{background:var(--surface);border-radius:24px;padding:32px 20px;text-align:center;box-shadow:var(--shadow-sm);border:1px solid var(--border);margin-top:8px;}
         .profile-avatar-large{width:110px;height:110px;border-radius:32px;object-fit:cover;box-shadow:var(--shadow-md);border:3px solid var(--surface);}
         .profile-name{font-size:24px;font-weight:800;letter-spacing:-0.5px;margin-bottom:4px;}
         .profile-handle{font-size:14px;color:var(--text-secondary);margin-bottom:28px;}
         .profile-btn{width:100%;max-width:220px;padding:14px;border-radius:16px;font-weight:700;font-size:15px;cursor:pointer;border:none;background:var(--surface2);color:var(--text-primary);transition:all 0.2s;}
         .profile-btn.logout{background:rgba(239,68,68,0.08);color:#EF4444;margin-top:12px;}
+
+        .settings-list { margin-top: 24px; text-align: left; }
+        .setting-item { display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--surface); border-radius: 16px; margin-bottom: 8px; box-shadow: var(--shadow-sm); border: 1px solid var(--border); transition: transform 0.2s; }
+        .setting-item:active { transform: scale(0.98); }
+        .setting-label { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 12px; }
+        .toggle-switch { position: relative; width: 44px; height: 24px; background: var(--text-muted); border-radius: 12px; cursor: pointer; transition: 0.3s; }
+        .toggle-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; background: white; border-radius: 50%; transition: 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .toggle-switch.active { background: var(--primary); }
+        .toggle-switch.active::after { transform: translateX(20px); }
 
         .empty-state{padding:80px 24px;text-align:center;color:var(--text-secondary);font-size:15px;line-height:1.5;}
         
@@ -171,6 +189,14 @@
         <header class="header">
             <h2>Messages</h2>
         </header>
+        
+        <div class="search-container">
+            <div class="search-box">
+                <i data-feather="search" style="width:18px;height:18px;"></i>
+                <input type="text" id="chat-search" placeholder="Search conversations..." oninput="filterChats(this.value)">
+            </div>
+        </div>
+
         <div id="chats-list" class="chats-holder"></div>
         
         <button class="fab" onclick="openNewChatSheet()">
@@ -299,6 +325,11 @@ let activeChatListener = null;
 let longPressTimer = null;
 let selectedConvId = null;
 let selectedTargetUid = null;
+let longPressTriggered = false;
+
+// Initialize Theme
+const savedTheme = localStorage.getItem('vynix-theme') || 'light';
+document.documentElement.setAttribute('data-theme', savedTheme);
 
 window.showToast=msg=>{const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);};
 
@@ -318,6 +349,7 @@ document.getElementById('profile-content').innerHTML = getShimmerHTML().substrin
 feather.replace();
 
 document.addEventListener('contextmenu', e => {
+    // Only allow context menu on actual inputs so users can paste text
     if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
         e.preventDefault();
     }
@@ -368,7 +400,20 @@ async function uploadToFirebaseStorage(file, targetPath) {
     return await getDownloadURL(fileRef);
 }
 
-// --- Conversations List ---
+// --- Conversations List & Search Logic ---
+window.filterChats = (query) => {
+    const lowerQuery = query.toLowerCase();
+    const items = document.querySelectorAll('#chats-list .chat-list-item');
+    items.forEach(item => {
+        const name = item.querySelector('.chat-name').textContent.toLowerCase();
+        if (name.includes(lowerQuery)) {
+            item.style.display = 'flex';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+};
+
 async function loadChatsTab() {
     const listEl = document.getElementById('chats-list');
     const usersSnap = await get(ref(db, 'users'));
@@ -420,13 +465,15 @@ async function loadChatsTab() {
             return;
         }
 
+        // Long press is bound EXCLUSIVELY to these initialized chat cards.
         listEl.innerHTML = convList.map(c => `
             <div class="chat-list-item" 
-                 onmousedown="startLongPress(event, '${c.id}', '${c.otherId}', '${escapeHtml(c.other.username)}')" 
-                 onmouseup="endLongPress(event, '${c.otherId}')" 
-                 onmouseleave="endLongPress(event)"
-                 ontouchstart="startLongPress(event, '${c.id}', '${c.otherId}', '${escapeHtml(c.other.username)}')" 
-                 ontouchend="endLongPress(event, '${c.otherId}')">
+                 onmousedown="startLongPress(event, this, '${c.id}', '${c.otherId}', '${escapeHtml(c.other.username)}')" 
+                 onmouseup="endLongPress(event, this, '${c.otherId}')" 
+                 onmouseleave="cancelLongPress(this)"
+                 ontouchstart="startLongPress(event, this, '${c.id}', '${c.otherId}', '${escapeHtml(c.other.username)}')" 
+                 ontouchend="endLongPress(event, this, '${c.otherId}')"
+                 ontouchmove="cancelLongPress(this)">
                 <img src="${c.other.photoURL || DEFAULT_AVATAR}" onerror="this.src='${DEFAULT_AVATAR}'" class="avatar">
                 <div class="chat-info">
                     <div class="chat-header">
@@ -440,6 +487,12 @@ async function loadChatsTab() {
                 </div>
             </div>
         `).join('');
+
+        // Re-apply any active search filter after refreshing the list
+        const currentSearch = document.getElementById('chat-search').value;
+        if (currentSearch) window.filterChats(currentSearch);
+        
+        feather.replace();
     });
 }
 
@@ -463,6 +516,7 @@ window.openNewChatSheet = async () => {
         return;
     }
 
+    // Notice: New Chat global list has NO long-press functionality. Only standard click.
     listEl.innerHTML = users.map(u => `
         <div class="chat-list-item" onclick="closeNewChatSheet(); openChat('${u.uid}')" style="box-shadow:none; border-bottom:1px solid var(--border); border-radius:0;">
             <img src="${u.photoURL || DEFAULT_AVATAR}" onerror="this.src='${DEFAULT_AVATAR}'" class="avatar" style="border-radius:14px; width:44px; height:44px;">
@@ -584,25 +638,36 @@ window.handleProfileUpload = async (e) => {
     }
 };
 
-// --- Long Press Logic ---
-window.startLongPress = (e, convId, targetUid, targetName) => {
+// --- Strict Long Press Logic specifically for Chat Cards ---
+window.startLongPress = (e, element, convId, targetUid, targetName) => {
+    longPressTriggered = false;
+    element.classList.add('pressing');
+    
     longPressTimer = setTimeout(() => {
-        longPressTimer = null;
+        longPressTriggered = true;
+        element.classList.remove('pressing');
         selectedConvId = convId;
         selectedTargetUid = targetUid;
         document.getElementById('sheet-target-name').textContent = targetName;
         document.getElementById('action-sheet-overlay').classList.add('active');
         if(navigator.vibrate) navigator.vibrate(50);
-    }, 600); 
+    }, 550); // Slightly faster long press detection
 };
 
-window.endLongPress = (e, targetUid) => {
+window.cancelLongPress = (element) => {
     if (longPressTimer) {
         clearTimeout(longPressTimer);
         longPressTimer = null;
-        if (targetUid && !document.getElementById('action-sheet-overlay').classList.contains('active')) {
-            window.openChat(targetUid);
-        }
+    }
+    if (element) element.classList.remove('pressing');
+};
+
+window.endLongPress = (e, element, targetUid) => {
+    cancelLongPress(element);
+    
+    // Only open the chat if the long press hasn't triggered the settings sheet
+    if (!longPressTriggered && targetUid && !document.getElementById('action-sheet-overlay').classList.contains('active')) {
+        window.openChat(targetUid);
     }
 };
 
@@ -753,12 +818,13 @@ window.resizeTextarea = (el) => {
     document.getElementById('send-btn').disabled = el.value.trim().length === 0;
 };
 
-// --- Profile Block ---
+// --- Expanded Profile Block ---
 function renderProfile() {
     const container = document.getElementById('profile-content');
     if(!currentUserData) return;
     
     const safePhotoUrl = currentUserData.photoURL || DEFAULT_AVATAR;
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
     
     container.innerHTML = `
         <div class="profile-card">
@@ -773,9 +839,43 @@ function renderProfile() {
             <div class="profile-handle">${escapeHtml(currentUserData.email)}</div>
             <button class="profile-btn logout" onclick="handleLogout()">Disconnect Session</button>
         </div>
+
+        <div class="settings-list">
+            <div class="setting-item">
+                <div class="setting-label"><i data-feather="moon" style="width:20px;height:20px;"></i> Dark Mode</div>
+                <div class="toggle-switch ${isDark ? 'active' : ''}" onclick="toggleTheme(this)"></div>
+            </div>
+            <div class="setting-item">
+                <div class="setting-label"><i data-feather="bell" style="width:20px;height:20px;"></i> Notifications</div>
+                <div class="toggle-switch active" onclick="this.classList.toggle('active'); showToast('Notification settings updated');"></div>
+            </div>
+            <div class="setting-item" style="cursor:pointer;" onclick="showToast('Privacy Settings Coming Soon')">
+                <div class="setting-label"><i data-feather="lock" style="width:20px;height:20px;"></i> Privacy & Security</div>
+                <i data-feather="chevron-right" style="width:20px;height:20px;color:var(--text-muted);"></i>
+            </div>
+            <div class="setting-item" style="cursor:pointer;" onclick="showToast('Data & Storage Settings Coming Soon')">
+                <div class="setting-label"><i data-feather="hard-drive" style="width:20px;height:20px;"></i> Data & Storage</div>
+                <i data-feather="chevron-right" style="width:20px;height:20px;color:var(--text-muted);"></i>
+            </div>
+            <div class="setting-item" style="cursor:pointer;" onclick="showToast('Help & Support')">
+                <div class="setting-label"><i data-feather="help-circle" style="width:20px;height:20px;"></i> Help & Support</div>
+                <i data-feather="chevron-right" style="width:20px;height:20px;color:var(--text-muted);"></i>
+            </div>
+            <div class="setting-item" style="cursor:pointer;" onclick="showToast('Vynix Chat v1.0.0')">
+                <div class="setting-label"><i data-feather="info" style="width:20px;height:20px;"></i> About Vynix</div>
+                <i data-feather="chevron-right" style="width:20px;height:20px;color:var(--text-muted);"></i>
+            </div>
+        </div>
     `;
     feather.replace();
 }
+
+window.toggleTheme = (el) => {
+    el.classList.toggle('active');
+    const isDark = el.classList.contains('active');
+    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    localStorage.setItem('vynix-theme', isDark ? 'dark' : 'light');
+};
 
 window.handleLogout = () => {
     update(ref(db, `users/${currentUser.uid}`), { online: false, lastSeen: serverTimestamp() })
