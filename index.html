@@ -94,13 +94,39 @@
 
         /* Statuses Grid */
         .status-grid {display:grid;grid-template-columns:repeat(2, 1fr);gap:12px;}
-        .status-card {position:relative;border-radius:20px;overflow:hidden;aspect-ratio:3/4;background:var(--surface2);box-shadow:var(--shadow-sm);cursor:pointer;}
-        .status-card img, .status-card video {width:100%;height:100%;object-fit:cover;pointer-events:none;}
-        .status-overlay {position:absolute;inset:0;background:linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 40%);display:flex;flex-direction:column;justify-content:flex-end;padding:12px;}
-        .status-author {color:white;font-weight:700;font-size:14px;display:flex;align-items:center;gap:8px;}
-        .status-author img {width:24px;height:24px;border-radius:8px;border:1px solid rgba(255,255,255,0.4);margin-bottom:0 !important;box-shadow:none !important;}
-        .upload-status-btn {background:var(--surface);border:1px dashed var(--primary);border-radius:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--primary);font-weight:700;font-size:14px;cursor:pointer;gap:8px;}
+        .status-card {position:relative;border-radius:20px;overflow:hidden;aspect-ratio:3/4;background:var(--surface2);box-shadow:var(--shadow-sm);cursor:pointer;transition:transform 0.18s cubic-bezier(0.4,0,0.2,1);}
+        .status-card:active {transform:scale(0.96);}
+        .status-card img {width:100%;height:100%;object-fit:cover;pointer-events:none;}
+        .status-card video {width:100%;height:100%;object-fit:cover;pointer-events:none;}
+        .status-overlay {position:absolute;inset:0;background:linear-gradient(to top, rgba(0,0,0,0.72) 0%, transparent 45%);display:flex;flex-direction:column;justify-content:flex-end;padding:12px;}
+        .status-author {color:white;font-weight:700;font-size:13px;display:flex;align-items:center;gap:6px;}
+        .status-author img {width:22px;height:22px;border-radius:7px;border:1px solid rgba(255,255,255,0.4);flex-shrink:0;}
+        .status-author .verified-badge {flex-shrink:0;display:inline-flex;}
+        .upload-status-btn {background:var(--surface);border:2px dashed var(--primary);border-radius:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--primary);font-weight:700;font-size:14px;cursor:pointer;gap:10px;transition:background 0.15s;}
         .upload-status-btn:active {background:var(--surface2);}
+        .upload-status-btn .upload-icon-wrap {width:52px;height:52px;border-radius:16px;background:rgba(124,58,237,0.1);display:flex;align-items:center;justify-content:center;}
+
+        /* Mute pill on video cards */
+        .mute-pill {position:absolute;top:10px;right:10px;background:rgba(0,0,0,0.5);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border-radius:20px;padding:4px 8px;display:flex;align-items:center;gap:4px;color:white;font-size:11px;font-weight:700;pointer-events:none;transition:opacity 0.2s;}
+        .mute-pill svg {width:13px;height:13px;stroke:white;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;}
+
+        /* Video type badge */
+        .media-type-badge {position:absolute;top:10px;left:10px;background:rgba(0,0,0,0.5);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border-radius:8px;padding:3px 7px;color:white;font-size:10px;font-weight:800;letter-spacing:0.5px;}
+
+        /* Fullscreen Status Viewer */
+        .status-viewer {position:fixed;inset:0;background:#000;z-index:500;display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity 0.25s ease;}
+        .status-viewer.active {opacity:1;pointer-events:auto;}
+        .status-viewer-media {flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+        .status-viewer-media img {max-width:100%;max-height:100%;object-fit:contain;}
+        .status-viewer-media video {width:100%;height:100%;object-fit:contain;}
+        .status-viewer-topbar {position:absolute;top:0;left:0;right:0;padding:calc(20px + env(safe-area-inset-top)) 20px 20px;display:flex;align-items:center;gap:12px;background:linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, transparent 100%);z-index:1;}
+        .status-viewer-topbar img {width:38px;height:38px;border-radius:12px;border:2px solid rgba(255,255,255,0.4);}
+        .status-viewer-info {flex:1;}
+        .status-viewer-name {color:white;font-weight:700;font-size:15px;display:flex;align-items:center;gap:6px;}
+        .status-viewer-time {color:rgba(255,255,255,0.6);font-size:12px;margin-top:1px;}
+        .status-viewer-close {width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,0.15);border:none;color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}
+        .viewer-sound-btn {position:absolute;bottom:calc(40px + env(safe-area-inset-bottom));right:20px;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.18);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:none;color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:1;}
+        .viewer-sound-btn svg {width:20px;height:20px;stroke:white;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
 
         /* Shimmer */
         .shimmer-card { display: flex; align-items: center; gap: 14px; padding: 14px; background: var(--surface); border-radius: 20px; border: 1px solid var(--border); }
@@ -220,13 +246,10 @@
             <h2>Global Status</h2>
         </header>
 
-        <div class="status-grid" id="status-grid">
-            <div class="status-card upload-status-btn" onclick="document.getElementById('status-upload').click()">
-                <i data-feather="camera" style="width:24px;height:24px;"></i>
-                <span>Add Status</span>
-            </div>
-            <input type="file" id="status-upload" accept="image/*,video/*" style="display:none;" onchange="handleStatusUpload(event)">
-        </div>
+        <!-- Hidden file input lives here permanently, outside the re-rendered grid -->
+        <input type="file" id="status-upload" accept="image/*,video/*" style="display:none;" onchange="handleStatusUpload(event)">
+
+        <div class="status-grid" id="status-grid"></div>
     </div>
 
     <div id="view-profile" class="view-container">
@@ -316,6 +339,24 @@
             <i data-feather="send" style="width:18px;height:18px;margin-left:2px;"></i>
         </button>
     </div>
+</div>
+
+<!-- Fullscreen Status Viewer -->
+<div class="status-viewer" id="status-viewer">
+    <div class="status-viewer-topbar">
+        <img id="sv-avatar" src="" alt="" onerror="this.src=DEFAULT_AVATAR_INLINE">
+        <div class="status-viewer-info">
+            <div class="status-viewer-name" id="sv-name"></div>
+            <div class="status-viewer-time" id="sv-time"></div>
+        </div>
+        <button class="status-viewer-close" onclick="closeStatusViewer()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+    </div>
+    <div class="status-viewer-media" id="sv-media"></div>
+    <button class="viewer-sound-btn" id="sv-sound-btn" style="display:none;" onclick="toggleViewerSound()">
+        <svg id="sv-sound-icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+    </button>
 </div>
 
 <script type="module">
@@ -676,7 +717,9 @@ window.executeBlockUser = async () => {
 
 // ─── History API Back Handling ───────────────────────────────────────────────
 window.addEventListener('popstate', () => {
-    if (document.getElementById('action-sheet-overlay').classList.contains('active')) {
+    if (document.getElementById('status-viewer').classList.contains('active')) {
+        closeStatusViewer();
+    } else if (document.getElementById('action-sheet-overlay').classList.contains('active')) {
         closeActionSheet();
     } else if (document.getElementById('new-chat-sheet-overlay').classList.contains('active')) {
         closeNewChatSheet();
@@ -812,13 +855,30 @@ window.handleStatusUpload = async (e) => {
     }
 };
 
+// Verified badge SVG — matches Twitter/X style with Vynix purple
+const VERIFIED_SVG = `<svg class="verified-badge" width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M12 2L14.09 7.26L20 8.27L16 12.14L17.18 18.02L12 15.27L6.82 18.02L8 12.14L4 8.27L9.91 7.26L12 2Z" fill="#A78BFA" stroke="#fff" stroke-width="0.5"/>
+  <path d="M9 12L11 14L15 10" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>`;
+
+// Mute SVG icons
+const ICON_SOUND_ON = `<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>`;
+const ICON_SOUND_OFF = `<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>`;
+const ICON_MUTE_PILL_ON = `<svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>`;
+const ICON_MUTE_PILL_OFF = `<svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>`;
+
 function loadStatuses() {
     onValue(ref(db, 'statuses'), (snap) => {
         const grid = document.getElementById('status-grid');
+
+        // Upload card — always first
         const uploadBtnHTML = `
-            <div class="status-card upload-status-btn" onclick="document.getElementById('status-upload').click()">
-                <i data-feather="camera" style="width:24px;height:24px;"></i>
+            <div class="status-card upload-status-btn" id="add-status-card">
+                <div class="upload-icon-wrap">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="12" cy="12" r="3"/><path d="M16.5 7.5h.01"/></svg>
+                </div>
                 <span>Add Status</span>
+                <span style="font-size:11px;font-weight:500;opacity:0.65;">Photo or Video</span>
             </div>
         `;
 
@@ -831,16 +891,26 @@ function loadStatuses() {
 
         const html = statuses.map(s => {
             const author = allUsersCache[s.uid] || { username: 'User', photoURL: DEFAULT_AVATAR };
-            const media = s.mediaType === 'video'
-                ? `<video src="${s.mediaUrl}" autoplay muted loop playsinline></video>`
+            const isVideo = s.mediaType === 'video';
+            const verifiedBadge = author.verified ? VERIFIED_SVG : '';
+
+            const media = isVideo
+                ? `<video src="${s.mediaUrl}" autoplay muted loop playsinline data-status-id="${s.id}"></video>`
                 : `<img src="${s.mediaUrl}" alt="Status">`;
+
+            const videoBadge = isVideo ? `<div class="media-type-badge">VIDEO</div>` : '';
+            const mutePill = isVideo ? `<div class="mute-pill" id="mute-pill-${s.id}">${ICON_MUTE_PILL_OFF}<span>Muted</span></div>` : '';
+
             return `
-                <div class="status-card">
+                <div class="status-card" data-status-id="${s.id}" data-media-type="${s.mediaType}" data-media-url="${s.mediaUrl}" data-author-uid="${s.uid}" data-timestamp="${s.timestamp}">
                     ${media}
+                    ${videoBadge}
+                    ${mutePill}
                     <div class="status-overlay">
                         <div class="status-author">
                             <img src="${author.photoURL || DEFAULT_AVATAR}" onerror="this.src='${DEFAULT_AVATAR}'">
                             <span>${escapeHtml(author.username)}</span>
+                            ${verifiedBadge}
                         </div>
                     </div>
                 </div>
@@ -848,9 +918,114 @@ function loadStatuses() {
         }).join('');
 
         grid.innerHTML = uploadBtnHTML + html;
+
+        // Wire up add-status card
+        document.getElementById('add-status-card').addEventListener('click', () => {
+            document.getElementById('status-upload').click();
+        });
+
+        // Wire up status cards — tap to open viewer; video mute pill shows state
+        grid.querySelectorAll('.status-card[data-status-id]').forEach(card => {
+            const statusId = card.dataset.statusId;
+            const mediaType = card.dataset.mediaType;
+            const mediaUrl = card.dataset.mediaUrl;
+            const authorUid = card.dataset.authorUid;
+            const ts = parseInt(card.dataset.timestamp, 10);
+
+            card.addEventListener('click', () => {
+                openStatusViewer({ statusId, mediaType, mediaUrl, authorUid, ts });
+            });
+
+            // Auto-play card videos muted; tap on card toggles mute with feedback
+            if (mediaType === 'video') {
+                const video = card.querySelector('video');
+                const pill = card.querySelector('.mute-pill');
+
+                video.addEventListener('click', (e) => {
+                    e.stopPropagation(); // prevent card click (viewer open) on video area
+                    const nowMuted = !video.muted;
+                    // Mute all other card videos first
+                    grid.querySelectorAll('video').forEach(v => { v.muted = true; });
+                    video.muted = nowMuted;
+                    updateMutePill(pill, nowMuted);
+                    // Re-enable pointer events for this video temporarily
+                });
+
+                // Re-enable pointer events on video so it can receive click
+                video.style.pointerEvents = 'auto';
+            }
+        });
+
         feather.replace();
     });
 }
+
+function updateMutePill(pill, isMuted) {
+    if (!pill) return;
+    pill.innerHTML = isMuted
+        ? `${ICON_MUTE_PILL_OFF}<span>Muted</span>`
+        : `${ICON_MUTE_PILL_ON}<span>Sound</span>`;
+}
+
+// ─── Fullscreen Status Viewer ─────────────────────────────────────────────────
+let viewerVideo = null;
+
+window.openStatusViewer = ({ statusId, mediaType, mediaUrl, authorUid, ts }) => {
+    const author = allUsersCache[authorUid] || { username: 'User', photoURL: DEFAULT_AVATAR };
+    const viewer = document.getElementById('status-viewer');
+    const mediaEl = document.getElementById('sv-media');
+    const soundBtn = document.getElementById('sv-sound-btn');
+
+    document.getElementById('sv-avatar').src = author.photoURL || DEFAULT_AVATAR;
+    document.getElementById('sv-name').innerHTML = `${escapeHtml(author.username)}${author.verified ? ' ' + VERIFIED_SVG : ''}`;
+    document.getElementById('sv-time').textContent = ts ? formatChatTime(ts) : '';
+
+    // Clear previous
+    mediaEl.innerHTML = '';
+    viewerVideo = null;
+
+    if (mediaType === 'video') {
+        const vid = document.createElement('video');
+        vid.src = mediaUrl;
+        vid.autoplay = true;
+        vid.loop = true;
+        vid.playsInline = true;
+        vid.muted = false; // Sound on in fullscreen
+        vid.style.cssText = 'width:100%;height:100%;object-fit:contain;';
+        mediaEl.appendChild(vid);
+        viewerVideo = vid;
+        soundBtn.style.display = 'flex';
+        document.getElementById('sv-sound-icon').innerHTML = ICON_SOUND_ON.replace(/<svg[^>]*>|<\/svg>/g, '');
+        soundBtn.innerHTML = ICON_SOUND_ON;
+    } else {
+        const img = document.createElement('img');
+        img.src = mediaUrl;
+        img.style.cssText = 'max-width:100%;max-height:100%;object-fit:contain;';
+        mediaEl.appendChild(img);
+        soundBtn.style.display = 'none';
+    }
+
+    viewer.classList.add('active');
+    history.pushState({ viewerActive: true }, '', '#viewer');
+};
+
+window.closeStatusViewer = () => {
+    const viewer = document.getElementById('status-viewer');
+    viewer.classList.remove('active');
+    if (viewerVideo) {
+        viewerVideo.pause();
+        viewerVideo.src = '';
+        viewerVideo = null;
+    }
+    document.getElementById('sv-media').innerHTML = '';
+    if (history.state?.viewerActive) history.back();
+};
+
+window.toggleViewerSound = () => {
+    if (!viewerVideo) return;
+    viewerVideo.muted = !viewerVideo.muted;
+    document.getElementById('sv-sound-btn').innerHTML = viewerVideo.muted ? ICON_SOUND_OFF : ICON_SOUND_ON;
+};
 
 // ─── Profile ──────────────────────────────────────────────────────────────────
 window.handleProfileUpload = async (e) => {
