@@ -136,6 +136,7 @@
         .bottom-sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 300; display: flex; align-items: flex-end; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
         .bottom-sheet-overlay.active { opacity: 1; pointer-events: auto; }
         .bottom-sheet { width: 100%; background: var(--surface); border-radius: 28px 28px 0 0; padding: 20px 24px calc(24px + env(safe-area-inset-bottom)); transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 -8px 32px rgba(0,0,0,0.1); max-height: 85vh; display: flex; flex-direction: column; }
+        .bottom-sheet-overlay.active .bottom-sheet { transform: translateY(0); }
         @media(min-width:768px){.bottom-sheet { max-width:480px; margin: 0 auto; border-radius: 28px; bottom: 20px; transform: translateY(120%); } .bottom-sheet-overlay { justify-content: center; align-items: center; padding: 20px; } .bottom-sheet-overlay.active .bottom-sheet { transform: translateY(0); } }
         .sheet-handle { width: 36px; height: 5px; background: var(--border); border-radius: 999px; margin: 0 auto 20px; flex-shrink: 0;}
         .sheet-title { font-size: 15px; font-weight: 700; color: var(--text-muted); text-align: center; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 0.5px; flex-shrink: 0;}
@@ -178,6 +179,11 @@
         .sheet-input { width: 100%; padding: 14px 16px; border-radius: 16px; border: 1px solid var(--border); background: var(--surface2); color: var(--text-primary); font-size: 16px; font-family: inherit; outline: none; margin-bottom: 12px; transition: border-color 0.2s; }
         .sheet-input:focus { border-color: var(--primary); }
         .sheet-input::placeholder { color: var(--text-muted); }
+
+        /* New chat user rows — no border-radius hack needed, just clean rows */
+        .user-row { display: flex; align-items: center; gap: 14px; padding: 12px 4px; cursor: pointer; border-bottom: 1px solid var(--border); transition: background 0.15s; border-radius: 12px; }
+        .user-row:last-child { border-bottom: none; }
+        .user-row:active { background: var(--surface2); }
     </style>
 <base target="_blank">
 </head>
@@ -249,9 +255,9 @@
     </nav>
 </div>
 
-<!-- Chat Action Sheet -->
-<div class="bottom-sheet-overlay" id="action-sheet-overlay" onclick="closeActionSheet()">
-    <div class="bottom-sheet" onclick="event.stopPropagation()">
+<!-- Chat Action Sheet (long press) -->
+<div class="bottom-sheet-overlay" id="action-sheet-overlay">
+    <div class="bottom-sheet" id="action-sheet">
         <div class="sheet-handle"></div>
         <div class="sheet-title" id="sheet-target-name">Chat Actions</div>
         <button class="sheet-btn danger" onclick="executeClearChat()">
@@ -265,17 +271,18 @@
 </div>
 
 <!-- New Chat / Add Friends Sheet -->
-<div class="bottom-sheet-overlay" id="new-chat-sheet-overlay" onclick="closeNewChatSheet()">
-    <div class="bottom-sheet" onclick="event.stopPropagation()">
+<div class="bottom-sheet-overlay" id="new-chat-sheet-overlay">
+    <div class="bottom-sheet" id="new-chat-sheet">
         <div class="sheet-handle"></div>
         <div class="sheet-title">Start a Conversation</div>
         <div class="sheet-scroll-area" id="all-users-list"></div>
+        <button class="sheet-btn" style="background:transparent; margin-top:8px;" onclick="closeNewChatSheet()">Cancel</button>
     </div>
 </div>
 
 <!-- Edit Name Bottom Sheet -->
-<div class="bottom-sheet-overlay" id="edit-name-sheet-overlay" onclick="closeEditNameSheet()">
-    <div class="bottom-sheet" onclick="event.stopPropagation()">
+<div class="bottom-sheet-overlay" id="edit-name-sheet-overlay">
+    <div class="bottom-sheet" id="edit-name-sheet">
         <div class="sheet-handle"></div>
         <div class="sheet-title">Edit Profile Name</div>
         <input type="text" class="sheet-input" id="edit-name-input" placeholder="Enter your name..." maxlength="30">
@@ -332,7 +339,6 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 
-// Cloudinary Config
 const CLOUDINARY_CLOUD_NAME = 'dqkujefxj';
 const CLOUDINARY_UPLOAD_PRESET = 'banter_box';
 
@@ -382,6 +388,20 @@ document.addEventListener('contextmenu', e => {
     }
 });
 
+// ─── Sheet overlay click-outside dismissal ─────────────────────────────────
+// Only dismiss when the backdrop itself is clicked (not the sheet inner content)
+['action-sheet-overlay', 'new-chat-sheet-overlay', 'edit-name-sheet-overlay'].forEach(id => {
+    const overlay = document.getElementById(id);
+    overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) {
+            if (id === 'action-sheet-overlay') closeActionSheet();
+            else if (id === 'new-chat-sheet-overlay') closeNewChatSheet();
+            else if (id === 'edit-name-sheet-overlay') closeEditNameSheet();
+        }
+    });
+});
+
+// ─── Auth ───────────────────────────────────────────────────────────────────
 onAuthStateChanged(auth, async (user) => {
     if (!user) {
         window.location.href = 'signup.html';
@@ -404,7 +424,6 @@ async function loadUserData() {
     }
 
     const safePhotoUrl = currentUserData.photoURL || DEFAULT_AVATAR;
-
     const navAvatarImg = document.getElementById('nav-profile-avatar');
     if (navAvatarImg) {
         navAvatarImg.src = safePhotoUrl;
@@ -420,7 +439,7 @@ window.switchTab = (tabId) => {
     document.querySelector(`.nav-item[data-nav="${tabId}"]`).classList.add('active');
 };
 
-// --- Cloudinary Upload Helper ---
+// ─── Cloudinary Upload Helper ────────────────────────────────────────────────
 async function uploadToCloudinary(file, folder = 'vynix') {
     const formData = new FormData();
     formData.append('file', file);
@@ -428,28 +447,23 @@ async function uploadToCloudinary(file, folder = 'vynix') {
     formData.append('folder', folder);
 
     const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`, {
-        method: 'POST',
-        body: formData
+        method: 'POST', body: formData
     });
-
-    if (!response.ok) {
-        throw new Error('Cloudinary upload failed');
-    }
-
+    if (!response.ok) throw new Error('Cloudinary upload failed');
     const data = await response.json();
     return data.secure_url;
 }
 
-// --- Conversations List & Search Logic ---
+// ─── Chat search ─────────────────────────────────────────────────────────────
 window.filterChats = (query) => {
     const lowerQuery = query.toLowerCase();
-    const items = document.querySelectorAll('#chats-list .chat-list-item');
-    items.forEach(item => {
+    document.querySelectorAll('#chats-list .chat-list-item').forEach(item => {
         const name = item.querySelector('.chat-name').textContent.toLowerCase();
         item.style.display = name.includes(lowerQuery) ? 'flex' : 'none';
     });
 };
 
+// ─── Load Chats Tab ──────────────────────────────────────────────────────────
 async function loadChatsTab() {
     const listEl = document.getElementById('chats-list');
     const usersSnap = await get(ref(db, 'users'));
@@ -486,7 +500,7 @@ async function loadChatsTab() {
         }
 
         const badge = document.getElementById('badge-messages');
-        if(totalUnread > 0) {
+        if (totalUnread > 0) {
             badge.textContent = totalUnread;
             badge.classList.add('show');
         } else {
@@ -502,13 +516,10 @@ async function loadChatsTab() {
         }
 
         listEl.innerHTML = convList.map(c => `
-            <div class="chat-list-item" 
-                 onmousedown="startLongPress(event, this, '${c.id}', '${c.otherId}', '${escapeHtml(c.other.username)}')" 
-                 onmouseup="endLongPress(event, this, '${c.otherId}')" 
-                 onmouseleave="cancelLongPress(this)"
-                 ontouchstart="startLongPress(event, this, '${c.id}', '${c.otherId}', '${escapeHtml(c.other.username)}')" 
-                 ontouchend="endLongPress(event, this, '${c.otherId}')"
-                 ontouchmove="cancelLongPress(this)">
+            <div class="chat-list-item"
+                 data-conv-id="${c.id}"
+                 data-other-id="${c.otherId}"
+                 data-other-name="${escapeAttr(c.other.username || 'User')}">
                 <img src="${c.other.photoURL || DEFAULT_AVATAR}" onerror="this.src='${DEFAULT_AVATAR}'" class="avatar">
                 <div class="chat-info">
                     <div class="chat-header">
@@ -523,6 +534,11 @@ async function loadChatsTab() {
             </div>
         `).join('');
 
+        // Attach long press listeners after rendering
+        listEl.querySelectorAll('.chat-list-item').forEach(el => {
+            attachChatCardListeners(el);
+        });
+
         const currentSearch = document.getElementById('chat-search').value;
         if (currentSearch) window.filterChats(currentSearch);
 
@@ -530,9 +546,62 @@ async function loadChatsTab() {
     });
 }
 
-// --- Add Friends Bottom Sheet (replaces FAB) ---
+// ─── Long Press Logic ────────────────────────────────────────────────────────
+// Attach to each card element via JS (not inline HTML) to avoid escaping issues
+function attachChatCardListeners(el) {
+    const convId = el.dataset.convId;
+    const otherId = el.dataset.otherId;
+    const otherName = el.dataset.otherName;
+
+    function onStart(e) {
+        // Don't start if a sheet is already open
+        if (document.querySelector('.bottom-sheet-overlay.active')) return;
+
+        longPressTriggered = false;
+        el.classList.add('pressing');
+
+        longPressTimer = setTimeout(() => {
+            longPressTriggered = true;
+            el.classList.remove('pressing');
+            selectedConvId = convId;
+            selectedTargetUid = otherId;
+            document.getElementById('sheet-target-name').textContent = otherName;
+            document.getElementById('action-sheet-overlay').classList.add('active');
+            if (navigator.vibrate) navigator.vibrate(50);
+        }, 500);
+    }
+
+    function onEnd(e) {
+        clearLongPress(el);
+        if (!longPressTriggered) {
+            window.openChat(otherId);
+        }
+    }
+
+    function onCancel(e) {
+        clearLongPress(el);
+    }
+
+    el.addEventListener('mousedown', onStart);
+    el.addEventListener('mouseup', onEnd);
+    el.addEventListener('mouseleave', onCancel);
+    el.addEventListener('touchstart', onStart, { passive: true });
+    el.addEventListener('touchend', onEnd);
+    el.addEventListener('touchmove', onCancel, { passive: true });
+}
+
+function clearLongPress(el) {
+    if (longPressTimer) {
+        clearTimeout(longPressTimer);
+        longPressTimer = null;
+    }
+    if (el) el.classList.remove('pressing');
+}
+
+// ─── New Chat Sheet ──────────────────────────────────────────────────────────
 window.openNewChatSheet = async () => {
-    document.getElementById('new-chat-sheet-overlay').classList.add('active');
+    const overlay = document.getElementById('new-chat-sheet-overlay');
+    overlay.classList.add('active');
 
     const listEl = document.getElementById('all-users-list');
     listEl.innerHTML = getShimmerHTML();
@@ -554,14 +623,22 @@ window.openNewChatSheet = async () => {
             return;
         }
 
+        // Build rows and attach listeners via JS (no inline onclick)
         listEl.innerHTML = users.map(u => `
-            <div class="chat-list-item" onclick="closeNewChatSheet(); openChat('${u.uid}')" style="box-shadow:none; border-bottom:1px solid var(--border); border-radius:0;">
-                <img src="${u.photoURL || DEFAULT_AVATAR}" onerror="this.src='${DEFAULT_AVATAR}'" class="avatar" style="border-radius:14px; width:44px; height:44px;">
-                <div class="chat-info">
-                    <div class="chat-name">${escapeHtml(u.username || 'User')}</div>
-                </div>
+            <div class="user-row" data-uid="${u.uid}">
+                <img src="${u.photoURL || DEFAULT_AVATAR}" onerror="this.src='${DEFAULT_AVATAR}'" class="avatar" style="width:44px;height:44px;border-radius:14px;flex-shrink:0;">
+                <div class="chat-name">${escapeHtml(u.username || 'User')}</div>
             </div>
         `).join('');
+
+        listEl.querySelectorAll('.user-row').forEach(row => {
+            const uid = row.dataset.uid;
+            row.addEventListener('click', () => {
+                closeNewChatSheet();
+                window.openChat(uid);
+            });
+        });
+
     } catch(err) {
         listEl.innerHTML = '<div class="empty-state" style="padding:40px 20px;">Failed to load users.</div>';
     }
@@ -571,139 +648,7 @@ window.closeNewChatSheet = () => {
     document.getElementById('new-chat-sheet-overlay').classList.remove('active');
 };
 
-// --- Cloudinary Status Upload Engine ---
-window.handleStatusUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    document.getElementById('upload-loader').classList.add('active');
-
-    try {
-        const type = file.type.startsWith('video/') ? 'video' : 'image';
-        const downloadUrl = await uploadToCloudinary(file, 'vynix_statuses');
-
-        await push(ref(db, 'statuses'), {
-            uid: currentUser.uid,
-            mediaUrl: downloadUrl,
-            mediaType: type,
-            timestamp: serverTimestamp()
-        });
-
-        showToast('Status shared!');
-    } catch (err) {
-        console.error(err);
-        showToast('Failed to upload status.');
-    } finally {
-        document.getElementById('upload-loader').classList.remove('active');
-        e.target.value = '';
-    }
-};
-
-function loadStatuses() {
-    onValue(ref(db, 'statuses'), (snap) => {
-        const grid = document.getElementById('status-grid');
-        const uploadBtnHTML = `
-            <div class="status-card upload-status-btn" onclick="document.getElementById('status-upload').click()">
-                <i data-feather="camera" style="width:24px;height:24px;"></i>
-                <span>Add Status</span>
-            </div>
-        `;
-
-        let statuses = [];
-        if(snap.exists()){
-            snap.forEach(c => statuses.push({ id: c.key, ...c.val() }));
-        }
-
-        const now = Date.now();
-        statuses = statuses.filter(s => (now - s.timestamp) < 86400000);
-        statuses.sort((a,b) => b.timestamp - a.timestamp);
-
-        const html = statuses.map(s => {
-            const author = allUsersCache[s.uid] || { username: 'User', photoURL: DEFAULT_AVATAR };
-            const media = s.mediaType === 'video' 
-                ? `<video src="${s.mediaUrl}" autoplay muted loop playsinline></video>`
-                : `<img src="${s.mediaUrl}" alt="Status">`;
-
-            return `
-                <div class="status-card">
-                    ${media}
-                    <div class="status-overlay">
-                        <div class="status-author">
-                            <img src="${author.photoURL || DEFAULT_AVATAR}" onerror="this.src='${DEFAULT_AVATAR}'">
-                            <span>${escapeHtml(author.username)}</span>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }).join('');
-
-        grid.innerHTML = uploadBtnHTML + html;
-        feather.replace();
-    });
-}
-
-// --- Cloudinary Profile Picture Upload Engine ---
-window.handleProfileUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    document.getElementById('upload-loader').classList.add('active');
-
-    try {
-        const downloadUrl = await uploadToCloudinary(file, 'vynix_profiles');
-
-        await update(ref(db, `users/${currentUser.uid}`), {
-            photoURL: downloadUrl
-        });
-
-        currentUserData.photoURL = downloadUrl;
-        allUsersCache[currentUser.uid] = currentUserData;
-
-        const navAvatarImg = document.getElementById('nav-profile-avatar');
-        if (navAvatarImg) navAvatarImg.src = downloadUrl;
-
-        renderProfile();
-        showToast('Profile picture updated!');
-    } catch (err) {
-        console.error(err);
-        showToast('Failed to update profile picture.');
-    } finally {
-        document.getElementById('upload-loader').classList.remove('active');
-    }
-};
-
-// --- Strict Long Press Logic specifically for Chat Cards ---
-window.startLongPress = (e, element, convId, targetUid, targetName) => {
-    longPressTriggered = false;
-    element.classList.add('pressing');
-
-    longPressTimer = setTimeout(() => {
-        longPressTriggered = true;
-        element.classList.remove('pressing');
-        selectedConvId = convId;
-        selectedTargetUid = targetUid;
-        document.getElementById('sheet-target-name').textContent = targetName;
-        document.getElementById('action-sheet-overlay').classList.add('active');
-        if(navigator.vibrate) navigator.vibrate(50);
-    }, 550);
-};
-
-window.cancelLongPress = (element) => {
-    if (longPressTimer) {
-        clearTimeout(longPressTimer);
-        longPressTimer = null;
-    }
-    if (element) element.classList.remove('pressing');
-};
-
-window.endLongPress = (e, element, targetUid) => {
-    cancelLongPress(element);
-
-    if (!longPressTriggered && targetUid && !document.getElementById('action-sheet-overlay').classList.contains('active')) {
-        window.openChat(targetUid);
-    }
-};
-
+// ─── Action Sheet ─────────────────────────────────────────────────────────────
 window.closeActionSheet = () => {
     document.getElementById('action-sheet-overlay').classList.remove('active');
 };
@@ -729,23 +674,20 @@ window.executeBlockUser = async () => {
     }
 };
 
-// --- History API Back Handling ---
-window.addEventListener('popstate', (e) => {
+// ─── History API Back Handling ───────────────────────────────────────────────
+window.addEventListener('popstate', () => {
     if (document.getElementById('action-sheet-overlay').classList.contains('active')) {
         closeActionSheet();
-    }
-    if (document.getElementById('new-chat-sheet-overlay').classList.contains('active')) {
+    } else if (document.getElementById('new-chat-sheet-overlay').classList.contains('active')) {
         closeNewChatSheet();
-    }
-    if (document.getElementById('edit-name-sheet-overlay').classList.contains('active')) {
+    } else if (document.getElementById('edit-name-sheet-overlay').classList.contains('active')) {
         closeEditNameSheet();
-    }
-    if (document.getElementById('chat-window').classList.contains('active')) {
-        closeChat(true); 
+    } else if (document.getElementById('chat-window').classList.contains('active')) {
+        closeChat(true);
     }
 });
 
-// --- Chat Window Workspace ---
+// ─── Chat Window ─────────────────────────────────────────────────────────────
 window.openChat = async (targetUid) => {
     const otherUser = allUsersCache[targetUid] || { username: 'User' };
     activeChatUid = targetUid;
@@ -769,7 +711,7 @@ window.openChat = async (targetUid) => {
 
     activeChatListener = onChildAdded(chatRef, (snap) => {
         const msg = snap.val();
-        if(!msg) return;
+        if (!msg) return;
 
         const isMe = msg.senderId === currentUser.uid;
         const msgTime = msg.timestamp || Date.now();
@@ -796,7 +738,7 @@ window.openChat = async (targetUid) => {
         msgsEl.scrollTop = msgsEl.scrollHeight;
     });
 
-    update(ref(db, `conversations/${activeChatConvId}/unread`), { [currentUser.uid]: 0 }).catch(()=>{});
+    update(ref(db, `conversations/${activeChatConvId}/unread`), { [currentUser.uid]: 0 }).catch(() => {});
 
     onValue(ref(db, `users/${targetUid}/online`), s => {
         document.getElementById('chat-header-status').textContent = s.val() === true ? 'Active Now' : 'Offline';
@@ -811,10 +753,7 @@ window.closeChat = (fromPopState = false) => {
     }
     activeChatUid = null;
     activeChatConvId = null;
-
-    if(!fromPopState) {
-        history.back();
-    }
+    if (!fromPopState) history.back();
 };
 
 window.sendChatMessage = async () => {
@@ -842,7 +781,6 @@ window.sendChatMessage = async () => {
             lastTimestamp: Date.now(),
             [`unread/${activeChatUid}`]: currentUnread + 1
         });
-
     } catch(e) {
         showToast('Message could not be sent.');
     }
@@ -854,10 +792,90 @@ window.resizeTextarea = (el) => {
     document.getElementById('send-btn').disabled = el.value.trim().length === 0;
 };
 
-// --- Expanded Profile Block ---
+// ─── Status Upload ────────────────────────────────────────────────────────────
+window.handleStatusUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    document.getElementById('upload-loader').classList.add('active');
+    try {
+        const type = file.type.startsWith('video/') ? 'video' : 'image';
+        const downloadUrl = await uploadToCloudinary(file, 'vynix_statuses');
+        await push(ref(db, 'statuses'), {
+            uid: currentUser.uid, mediaUrl: downloadUrl, mediaType: type, timestamp: serverTimestamp()
+        });
+        showToast('Status shared!');
+    } catch (err) {
+        showToast('Failed to upload status.');
+    } finally {
+        document.getElementById('upload-loader').classList.remove('active');
+        e.target.value = '';
+    }
+};
+
+function loadStatuses() {
+    onValue(ref(db, 'statuses'), (snap) => {
+        const grid = document.getElementById('status-grid');
+        const uploadBtnHTML = `
+            <div class="status-card upload-status-btn" onclick="document.getElementById('status-upload').click()">
+                <i data-feather="camera" style="width:24px;height:24px;"></i>
+                <span>Add Status</span>
+            </div>
+        `;
+
+        let statuses = [];
+        if (snap.exists()) snap.forEach(c => statuses.push({ id: c.key, ...c.val() }));
+
+        const now = Date.now();
+        statuses = statuses.filter(s => (now - s.timestamp) < 86400000);
+        statuses.sort((a, b) => b.timestamp - a.timestamp);
+
+        const html = statuses.map(s => {
+            const author = allUsersCache[s.uid] || { username: 'User', photoURL: DEFAULT_AVATAR };
+            const media = s.mediaType === 'video'
+                ? `<video src="${s.mediaUrl}" autoplay muted loop playsinline></video>`
+                : `<img src="${s.mediaUrl}" alt="Status">`;
+            return `
+                <div class="status-card">
+                    ${media}
+                    <div class="status-overlay">
+                        <div class="status-author">
+                            <img src="${author.photoURL || DEFAULT_AVATAR}" onerror="this.src='${DEFAULT_AVATAR}'">
+                            <span>${escapeHtml(author.username)}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        grid.innerHTML = uploadBtnHTML + html;
+        feather.replace();
+    });
+}
+
+// ─── Profile ──────────────────────────────────────────────────────────────────
+window.handleProfileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    document.getElementById('upload-loader').classList.add('active');
+    try {
+        const downloadUrl = await uploadToCloudinary(file, 'vynix_profiles');
+        await update(ref(db, `users/${currentUser.uid}`), { photoURL: downloadUrl });
+        currentUserData.photoURL = downloadUrl;
+        allUsersCache[currentUser.uid] = currentUserData;
+        const navAvatarImg = document.getElementById('nav-profile-avatar');
+        if (navAvatarImg) navAvatarImg.src = downloadUrl;
+        renderProfile();
+        showToast('Profile picture updated!');
+    } catch (err) {
+        showToast('Failed to update profile picture.');
+    } finally {
+        document.getElementById('upload-loader').classList.remove('active');
+    }
+};
+
 function renderProfile() {
     const container = document.getElementById('profile-content');
-    if(!currentUserData) return;
+    if (!currentUserData) return;
 
     const safePhotoUrl = currentUserData.photoURL || DEFAULT_AVATAR;
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
@@ -871,12 +889,10 @@ function renderProfile() {
                 </div>
             </div>
             <input type="file" id="profile-upload" accept="image/*" style="display:none;" onchange="handleProfileUpload(event)">
-
             <div class="profile-name">
                 ${escapeHtml(currentUserData.username)}
                 <button class="edit-name-btn" onclick="openEditNameSheet()"><i data-feather="edit-2" style="width:18px;height:18px;"></i></button>
             </div>
-
             <div class="profile-handle">${escapeHtml(currentUserData.email)}</div>
             <button class="profile-btn logout" onclick="handleLogout()">Disconnect Session</button>
         </div>
@@ -911,7 +927,6 @@ function renderProfile() {
     feather.replace();
 }
 
-// --- Edit Name Bottom Sheet ---
 window.openEditNameSheet = () => {
     const input = document.getElementById('edit-name-input');
     input.value = currentUserData.username || '';
@@ -926,12 +941,7 @@ window.closeEditNameSheet = () => {
 window.saveUsername = async () => {
     const input = document.getElementById('edit-name-input');
     const newName = input.value.trim();
-
-    if (!newName || newName === currentUserData.username) {
-        closeEditNameSheet();
-        return;
-    }
-
+    if (!newName || newName === currentUserData.username) { closeEditNameSheet(); return; }
     try {
         await update(ref(db, `users/${currentUser.uid}`), { username: newName });
         currentUserData.username = newName;
@@ -957,38 +967,44 @@ window.handleLogout = () => {
     });
 };
 
-function setupPresence(){
-    if(!currentUser) return;
+function setupPresence() {
+    if (!currentUser) return;
     const presRef = ref(db, `users/${currentUser.uid}`);
-    update(presRef, { online: true, lastSeen: serverTimestamp() }).catch(()=>{});
+    update(presRef, { online: true, lastSeen: serverTimestamp() }).catch(() => {});
     window.addEventListener('beforeunload', () => {
-        update(presRef, { online: false, lastSeen: Date.now() }).catch(()=>{});
+        update(presRef, { online: false, lastSeen: Date.now() }).catch(() => {});
     });
 }
 
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 function formatChatTime(ts) {
-    if(!ts) return '';
+    if (!ts) return '';
     const d = new Date(ts), now = new Date();
-    if(d.toDateString() === now.toDateString()) {
+    if (d.toDateString() === now.toDateString()) {
         return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
     }
     const yesterday = new Date(now); yesterday.setDate(now.getDate() - 1);
-    if(d.toDateString() === yesterday.toDateString()) return 'Yesterday';
+    if (d.toDateString() === yesterday.toDateString()) return 'Yesterday';
     return `${d.getDate()}/${d.getMonth()+1}`;
 }
 
 function getDayLabel(ts) {
     const d = new Date(ts), now = new Date();
-    if(d.toDateString() === now.toDateString()) return 'Today';
+    if (d.toDateString() === now.toDateString()) return 'Today';
     const yesterday = new Date(now); yesterday.setDate(now.getDate() - 1);
-    if(d.toDateString() === yesterday.toDateString()) return 'Yesterday';
+    if (d.toDateString() === yesterday.toDateString()) return 'Yesterday';
     return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
 function escapeHtml(text) {
     const div = document.createElement('div');
-    div.textContent = text;
+    div.textContent = String(text || '');
     return div.innerHTML;
+}
+
+// For HTML attributes (data-* attrs) — escape quotes
+function escapeAttr(text) {
+    return String(text || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
 switchTab('chats');
