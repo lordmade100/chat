@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Vynix Premium Chat & Status</title>
+    <title>Vynix Messages</title>
     <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#7C3AED">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -12,7 +12,8 @@
     <style>
         :root,[data-theme="light"]{
             --primary:#7C3AED;
-            --primary-gradient: linear-gradient(135deg, #7C3AED 0%, #4F46E5 100%);
+            --primary-rgb:124,58,237;
+            --primary-gradient:linear-gradient(135deg,#7C3AED 0%,#4F46E5 100%);
             --background:#F8FAFC;
             --surface:#FFFFFF;
             --surface2:#F1F5F9;
@@ -20,361 +21,477 @@
             --text-primary:#0F172A;
             --text-secondary:#475569;
             --text-muted:#94A3B8;
-            --shadow-sm: 0 2px 8px rgba(148, 163, 184, 0.08);
-            --shadow-md: 0 12px 32px rgba(124, 58, 237, 0.06);
-            --danger: #EF4444;
+            --shadow-sm:0 2px 8px rgba(148,163,184,0.08);
+            --shadow-md:0 12px 32px rgba(124,58,237,0.06);
+            --danger:#EF4444;
         }
         [data-theme="dark"]{
             --primary:#A78BFA;
-            --primary-gradient: linear-gradient(135deg, #A78BFA 0%, #818CF8 100%);
+            --primary-rgb:167,139,250;
+            --primary-gradient:linear-gradient(135deg,#A78BFA 0%,#818CF8 100%);
             --background:#09090B;
             --surface:#18181B;
             --surface2:#27272A;
-            --border:#27272A;
+            --border:#3F3F46;
             --text-primary:#F4F4F5;
             --text-secondary:#A1A1AA;
             --text-muted:#71717A;
-            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
-            --shadow-md: 0 12px 32px rgba(0, 0, 0, 0.4);
-            --danger: #F87171;
+            --shadow-sm:0 2px 8px rgba(0,0,0,0.25);
+            --shadow-md:0 12px 32px rgba(0,0,0,0.45);
+            --danger:#F87171;
         }
 
         *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;}
-        input, textarea { user-select: text; -webkit-user-select: text; }
-        img, .avatar, .nav-item, .bottom-nav, .chat-list-item, .status-card { -webkit-touch-callout: none !important; -webkit-user-drag: none !important; }
+        input,textarea{user-select:text;-webkit-user-select:text;}
+        img,.avatar,.nav-item,.bottom-nav,.chat-list-item{-webkit-touch-callout:none!important;-webkit-user-drag:none!important;}
 
-        body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--background);color:var(--text-primary);-webkit-font-smoothing:antialiased;overflow-x:hidden;padding-bottom:calc(76px + env(safe-area-inset-bottom));transition:background 0.3s,color 0.3s;}
+        body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--background);color:var(--text-primary);-webkit-font-smoothing:antialiased;overflow-x:hidden;padding-bottom:calc(90px + env(safe-area-inset-bottom));transition:background 0.3s,color 0.3s;}
 
         .app-container{max-width:100%;margin:0 auto;padding:16px;}
-        @media(min-width:768px){.app-container{max-width:480px;min-height:100vh;padding:24px 0;}}
+        @media(min-width:768px){.app-container{max-width:480px;margin:0 auto;min-height:100vh;padding:24px 0;}}
 
-        .view-container{display:none;width:100%;animation:slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);}
+        .view-container{display:none;width:100%;animation:slideUp 0.35s cubic-bezier(0.16,1,0.3,1);}
         .view-container.active{display:block;}
+        @keyframes slideUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+        @keyframes shimmerAnimate{0%{background-position:-200% 0;}100%{background-position:200% 0;}}
 
-        @keyframes slideUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
-        @keyframes shimmerAnimate { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
-
-        .header{margin-bottom:12px;padding:8px 4px;display:flex;align-items:center;justify-content:space-between;}
+        /* ── Header ── */
+        .header{margin-bottom:14px;padding:8px 4px;display:flex;align-items:center;justify-content:space-between;}
         .header h2{font-size:26px;font-weight:800;letter-spacing:-0.5px;}
-        .header-btn { background: var(--surface); border: 1px solid var(--border); color: var(--text-primary); width: 40px; height: 40px; border-radius: 14px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: var(--shadow-sm); transition: all 0.2s; }
-        .header-btn:active { transform: scale(0.92); background: var(--surface2); }
+        .header-btn{background:var(--surface);border:1px solid var(--border);color:var(--text-primary);width:40px;height:40px;border-radius:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:var(--shadow-sm);transition:all 0.18s;}
+        .header-btn:active{transform:scale(0.91);background:var(--surface2);}
 
-        /* Search Bar */
-        .search-container { padding: 0 4px 16px; }
-        .search-box { display: flex; align-items: center; background: var(--surface); border-radius: 16px; padding: 10px 16px; box-shadow: var(--shadow-sm); border: 1px solid var(--border); transition: all 0.2s ease; }
-        .search-box:focus-within { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.1); }
-        .search-box i { color: var(--text-muted); margin-right: 10px; flex-shrink: 0; }
-        .search-box input { border: none; background: transparent; outline: none; width: 100%; font-size: 15px; color: var(--text-primary); font-family: inherit; }
-        .search-box input::placeholder { color: var(--text-muted); }
+        /* ── Pill Tab Switcher ── */
+        .tab-switcher{display:flex;background:var(--surface2);border-radius:18px;padding:4px;margin-bottom:16px;gap:2px;position:relative;}
+        .tab-pill{flex:1;padding:9px 0;border-radius:14px;border:none;background:transparent;color:var(--text-secondary);font-size:14px;font-weight:700;cursor:pointer;transition:all 0.22s cubic-bezier(0.4,0,0.2,1);position:relative;display:flex;align-items:center;justify-content:center;gap:7px;}
+        .tab-pill.active{background:var(--surface);color:var(--primary);box-shadow:0 2px 8px rgba(0,0,0,0.08);}
+        .tab-pill .pill-badge{background:var(--danger);color:white;border-radius:10px;min-width:18px;height:18px;font-size:10px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;padding:0 5px;transition:all 0.2s;}
+        .tab-pill .pill-badge.hidden{display:none;}
 
-        /* Bottom Nav */
-        .bottom-nav-container{position:fixed;bottom:20px;left:0;right:0;display:flex;justify-content:center;z-index:100;padding:0 24px;bottom:calc(20px + env(safe-area-inset-bottom));}
-        .bottom-nav{background:rgba(var(--surface), 0.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--border);padding:10px 24px;display:flex;justify-content:space-between;align-items:center;border-radius:32px;width:100%;max-width:400px;box-shadow:var(--shadow-md);}
-        .nav-item{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;width:44px;height:44px;background:none;border:none;cursor:pointer;color:var(--text-secondary);transition:all 0.2s ease;border-radius:50%;}
-        .nav-item.active{color:var(--primary);background:var(--surface2);transform:translateY(-2px);}
-        .nav-avatar-wrapper {width:26px;height:26px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;border:2px solid transparent;transition:all 0.2s ease;}
-        .nav-item.active .nav-avatar-wrapper {border-color:var(--primary);}
-        .nav-avatar-img {width:100%;height:100%;object-fit:cover;}
-        .nav-badge{position:absolute;top:2px;right:2px;background:#EF4444;color:white;font-size:10px;font-weight:800;border-radius:10px;min-width:18px;height:18px;display:none;align-items:center;justify-content:center;padding:0 4px;border:2px solid var(--background);box-shadow: 0 2px 4px rgba(0,0,0,0.1);}
+        /* ── Search Bar ── */
+        .search-container{padding:0 4px 14px;}
+        .search-box{display:flex;align-items:center;background:var(--surface);border-radius:16px;padding:10px 16px;box-shadow:var(--shadow-sm);border:1px solid var(--border);transition:all 0.2s;}
+        .search-box:focus-within{border-color:var(--primary);box-shadow:0 0 0 2px rgba(var(--primary-rgb),0.12);}
+        .search-box i{color:var(--text-muted);margin-right:10px;flex-shrink:0;}
+        .search-box input{border:none;background:transparent;outline:none;width:100%;font-size:15px;color:var(--text-primary);font-family:inherit;}
+        .search-box input::placeholder{color:var(--text-muted);}
+
+        /* ── Bottom Nav (2 items) ── */
+        .bottom-nav-container{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom));left:0;right:0;display:flex;justify-content:center;z-index:100;padding:0 24px;}
+        .bottom-nav{background:var(--surface);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--border);padding:10px 36px;display:flex;justify-content:space-between;align-items:center;border-radius:32px;width:100%;max-width:280px;box-shadow:var(--shadow-md);}
+        .nav-item{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;width:48px;height:48px;background:none;border:none;cursor:pointer;color:var(--text-muted);transition:all 0.22s cubic-bezier(0.4,0,0.2,1);border-radius:50%;}
+        .nav-item.active{color:var(--primary);background:rgba(var(--primary-rgb),0.1);transform:translateY(-2px);}
+        .nav-avatar-wrapper{width:28px;height:28px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;border:2px solid transparent;transition:all 0.2s;}
+        .nav-item.active .nav-avatar-wrapper{border-color:var(--primary);}
+        .nav-avatar-img{width:100%;height:100%;object-fit:cover;}
+        .nav-badge{position:absolute;top:4px;right:4px;background:var(--danger);color:white;font-size:9px;font-weight:800;border-radius:10px;min-width:17px;height:17px;display:none;align-items:center;justify-content:center;padding:0 4px;border:2px solid var(--background);}
         .nav-badge.show{display:flex;}
 
-        /* Chat Card List */
-        .chats-holder{display:flex;flex-direction:column;gap:10px;}
-        .chat-list-item{display:flex;align-items:center;gap:14px;padding:14px;background:var(--surface);border-radius:20px;cursor:pointer;transition:transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s ease;box-shadow:var(--shadow-sm);border:1px solid transparent;}
-        .chat-list-item.pressing {transform:scale(0.96); background:var(--surface2);}
-        .chat-list-item:active{background:var(--surface2);}
-        .avatar{width:52px;height:52px;border-radius:18px;object-fit:cover;flex-shrink:0;}
+        /* ── Chat Cards ── */
+        .chats-holder{display:flex;flex-direction:column;gap:8px;}
+        .chat-list-item{display:flex;align-items:center;gap:14px;padding:14px;background:var(--surface);border-radius:20px;cursor:pointer;transition:transform 0.18s,background 0.18s;box-shadow:var(--shadow-sm);border:1px solid transparent;}
+        .chat-list-item.pressing{transform:scale(0.96);background:var(--surface2);}
+        .avatar{width:52px;height:52px;border-radius:18px;object-fit:cover;flex-shrink:0;background:var(--surface2);}
         .chat-info{flex:1;min-width:0;}
         .chat-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
-        .chat-name{font-weight:700;font-size:16px;color:var(--text-primary);letter-spacing:-0.2px;}
-        .chat-time{font-size:12px;color:var(--text-muted);}
-        .chat-preview{font-size:14px;color:var(--text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .chat-name{font-weight:700;font-size:15px;color:var(--text-primary);letter-spacing:-0.1px;}
+        .chat-time{font-size:11px;color:var(--text-muted);flex-shrink:0;}
+        .chat-preview{font-size:13px;color:var(--text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .chat-preview.unread{font-weight:700;color:var(--text-primary);}
-        .unread-badge{background:var(--primary);color:white;border-radius:10px;min-width:20px;height:20px;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 6px;}
+        .unread-dot-wrap{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+        .unread-badge{background:var(--primary);color:white;border-radius:10px;min-width:20px;height:20px;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 6px;}
 
-        /* Statuses Grid */
-        .status-grid {display:grid;grid-template-columns:repeat(2, 1fr);gap:12px;}
-        .status-card {position:relative;border-radius:20px;overflow:hidden;aspect-ratio:3/4;background:var(--surface2);box-shadow:var(--shadow-sm);cursor:pointer;transition:transform 0.18s cubic-bezier(0.4,0,0.2,1);}
-        .status-card:active {transform:scale(0.96);}
-        .status-card img {width:100%;height:100%;object-fit:cover;pointer-events:none;}
-        .status-card video {width:100%;height:100%;object-fit:cover;pointer-events:none;}
-        .status-overlay {position:absolute;inset:0;background:linear-gradient(to top, rgba(0,0,0,0.72) 0%, transparent 45%);display:flex;flex-direction:column;justify-content:flex-end;padding:12px;}
-        .status-author {color:white;font-weight:700;font-size:13px;display:flex;align-items:center;gap:6px;}
-        .status-author img {width:22px;height:22px;border-radius:7px;border:1px solid rgba(255,255,255,0.4);flex-shrink:0;}
-        .status-author .verified-badge {flex-shrink:0;display:inline-flex;}
-        .upload-status-btn {background:var(--surface);border:2px dashed var(--primary);border-radius:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--primary);font-weight:700;font-size:14px;cursor:pointer;gap:10px;transition:background 0.15s;}
-        .upload-status-btn:active {background:var(--surface2);}
-        .upload-status-btn .upload-icon-wrap {width:52px;height:52px;border-radius:16px;background:rgba(124,58,237,0.1);display:flex;align-items:center;justify-content:center;}
+        /* ── Shimmer ── */
+        .shimmer-card{display:flex;align-items:center;gap:14px;padding:14px;background:var(--surface);border-radius:20px;border:1px solid var(--border);}
+        .shimmer-element{background:linear-gradient(90deg,var(--surface2) 25%,var(--border) 50%,var(--surface2) 75%);background-size:200% 100%;animation:shimmerAnimate 1.5s infinite linear;border-radius:8px;}
+        .shimmer-avatar{width:52px;height:52px;border-radius:18px;flex-shrink:0;}
+        .shimmer-line{height:13px;margin-bottom:8px;}
 
-        /* Mute pill on video cards */
-        .mute-pill {position:absolute;top:10px;right:10px;background:rgba(0,0,0,0.5);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border-radius:20px;padding:4px 8px;display:flex;align-items:center;gap:4px;color:white;font-size:11px;font-weight:700;pointer-events:none;transition:opacity 0.2s;}
-        .mute-pill svg {width:13px;height:13px;stroke:white;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;}
-
-        /* Video type badge */
-        .media-type-badge {position:absolute;top:10px;left:10px;background:rgba(0,0,0,0.5);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border-radius:8px;padding:3px 7px;color:white;font-size:10px;font-weight:800;letter-spacing:0.5px;}
-
-        /* Fullscreen Status Viewer */
-        .status-viewer {position:fixed;inset:0;background:#000;z-index:500;display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity 0.25s ease;}
-        .status-viewer.active {opacity:1;pointer-events:auto;}
-        .status-viewer-media {flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;}
-        .status-viewer-media img {max-width:100%;max-height:100%;object-fit:contain;}
-        .status-viewer-media video {width:100%;height:100%;object-fit:contain;}
-        .status-viewer-topbar {position:absolute;top:0;left:0;right:0;padding:calc(20px + env(safe-area-inset-top)) 20px 20px;display:flex;align-items:center;gap:12px;background:linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, transparent 100%);z-index:1;}
-        .status-viewer-topbar img {width:38px;height:38px;border-radius:12px;border:2px solid rgba(255,255,255,0.4);}
-        .status-viewer-info {flex:1;}
-        .status-viewer-name {color:white;font-weight:700;font-size:15px;display:flex;align-items:center;gap:6px;}
-        .status-viewer-time {color:rgba(255,255,255,0.6);font-size:12px;margin-top:1px;}
-        .status-viewer-close {width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,0.15);border:none;color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}
-        .viewer-sound-btn {position:absolute;bottom:calc(40px + env(safe-area-inset-bottom));right:20px;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.18);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:none;color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:1;}
-        .viewer-sound-btn svg {width:20px;height:20px;stroke:white;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
-
-        /* Shimmer */
-        .shimmer-card { display: flex; align-items: center; gap: 14px; padding: 14px; background: var(--surface); border-radius: 20px; border: 1px solid var(--border); }
-        .shimmer-element { background: linear-gradient(90deg, var(--surface2) 25%, var(--border) 50%, var(--surface2) 75%); background-size: 200% 100%; animation: shimmerAnimate 1.5s infinite linear; }
-        .shimmer-avatar { width: 52px; height: 52px; border-radius: 18px; }
-        .shimmer-line { height: 14px; border-radius: 4px; margin-bottom: 8px; }
-
-        /* Fullscreen Chat Window */
-        .chat-window{position:fixed;inset:0;background:var(--background);z-index:200;display:flex;flex-direction:column;transform:translateX(100%);transition:transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);visibility:hidden;}
+        /* ── Chat Window ── */
+        .chat-window{position:fixed;inset:0;background:var(--background);z-index:200;display:flex;flex-direction:column;transform:translateX(100%);transition:transform 0.32s cubic-bezier(0.22,1,0.36,1);visibility:hidden;}
         .chat-window.active{transform:translateX(0);visibility:visible;}
-        @media(min-width:768px){.chat-window{left:calc(50% - 240px);right:calc(50% - 240px);box-shadow:0 0 40px rgba(0,0,0,0.1);}}
-
+        @media(min-width:768px){.chat-window{left:calc(50% - 240px);right:calc(50% - 240px);box-shadow:0 0 40px rgba(0,0,0,0.12);}}
         .chat-topbar{display:flex;align-items:center;gap:14px;padding:calc(16px + env(safe-area-inset-top)) 20px 16px;background:var(--surface);box-shadow:var(--shadow-sm);flex-shrink:0;border-bottom:1px solid var(--border);}
-        .back-btn{background:var(--surface2);border:none;color:var(--text-primary);width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;}
-
-        .messages-area{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:10px;}
-        .message-wrapper{display:flex;flex-direction:column;max-width:75%;margin-bottom:2px;}
+        .back-btn{background:var(--surface2);border:none;color:var(--text-primary);width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
+        .messages-area{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:8px;}
+        .message-wrapper{display:flex;flex-direction:column;max-width:78%;}
         .message-wrapper.me{align-self:flex-end;align-items:flex-end;}
         .message-wrapper.other{align-self:flex-start;align-items:flex-start;}
-        .message-bubble{padding:12px 16px;font-size:15px;line-height:1.45;word-break:break-word;box-shadow:var(--shadow-sm);}
+        .message-bubble{padding:12px 16px;font-size:15px;line-height:1.45;word-break:break-word;}
         .message-wrapper.me .message-bubble{background:var(--primary-gradient);color:white;border-radius:22px 22px 4px 22px;}
-        .message-wrapper.other .message-bubble{background:var(--surface);color:var(--text-primary);border-radius:22px 22px 22px 4px;border:1px solid var(--border);}
+        .message-wrapper.other .message-bubble{background:var(--surface);color:var(--text-primary);border-radius:22px 22px 22px 4px;border:1px solid var(--border);box-shadow:var(--shadow-sm);}
         .message-time{font-size:10px;color:var(--text-muted);margin-top:4px;padding:0 6px;}
-
-        /* Input Deck */
-        .input-bar{padding:16px 20px calc(16px + env(safe-area-inset-bottom));background:transparent;display:flex;gap:12px;align-items:flex-end;flex-shrink:0;}
-        .chat-input-wrapper{flex:1;background:var(--surface);border-radius:24px;padding:12px 20px;display:flex;align-items:center;min-height:48px;box-shadow:var(--shadow-sm);border:1px solid var(--border);}
+        .input-bar{padding:16px 20px calc(16px + env(safe-area-inset-bottom));display:flex;gap:10px;align-items:flex-end;flex-shrink:0;background:var(--surface);border-top:1px solid var(--border);}
+        .chat-input-wrapper{flex:1;background:var(--surface2);border-radius:24px;padding:12px 18px;display:flex;align-items:center;min-height:48px;border:1px solid var(--border);}
         .chat-input-wrapper textarea{flex:1;border:none;background:transparent;outline:none;font-size:15px;color:var(--text-primary);font-family:inherit;resize:none;max-height:120px;line-height:1.4;}
-        .send-btn{background:var(--primary-gradient);border:none;border-radius:50%;width:48px;height:48px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;color:white;box-shadow:0 4px 12px rgba(124, 58, 237, 0.3);transition:all 0.2s;}
-        .send-btn:disabled{opacity:0.4;box-shadow:none;pointer-events:none;}
+        .send-btn{background:var(--primary-gradient);border:none;border-radius:50%;width:48px;height:48px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;color:white;box-shadow:0 4px 12px rgba(var(--primary-rgb),0.3);transition:all 0.18s;}
+        .send-btn:disabled{opacity:0.35;box-shadow:none;pointer-events:none;}
 
-        /* Bottom Sheet Action Overlay */
-        .bottom-sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 300; display: flex; align-items: flex-end; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
-        .bottom-sheet-overlay.active { opacity: 1; pointer-events: auto; }
-        .bottom-sheet { width: 100%; background: var(--surface); border-radius: 28px 28px 0 0; padding: 20px 24px calc(24px + env(safe-area-inset-bottom)); transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 -8px 32px rgba(0,0,0,0.1); max-height: 85vh; display: flex; flex-direction: column; }
-        .bottom-sheet-overlay.active .bottom-sheet { transform: translateY(0); }
-        @media(min-width:768px){.bottom-sheet { max-width:480px; margin: 0 auto; border-radius: 28px; bottom: 20px; transform: translateY(120%); } .bottom-sheet-overlay { justify-content: center; align-items: center; padding: 20px; } .bottom-sheet-overlay.active .bottom-sheet { transform: translateY(0); } }
-        .sheet-handle { width: 36px; height: 5px; background: var(--border); border-radius: 999px; margin: 0 auto 20px; flex-shrink: 0;}
-        .sheet-title { font-size: 15px; font-weight: 700; color: var(--text-muted); text-align: center; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 0.5px; flex-shrink: 0;}
-        .sheet-btn { width: 100%; padding: 16px; border-radius: 16px; font-size: 16px; font-weight: 700; border: none; background: var(--surface2); color: var(--text-primary); display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 10px; cursor: pointer; transition: all 0.2s; flex-shrink: 0;}
-        .sheet-btn:active { transform: scale(0.98); }
-        .sheet-btn.danger { background: rgba(239, 68, 68, 0.08); color: var(--danger); }
-        .sheet-btn.primary { background: var(--primary-gradient); color: white; }
-        .sheet-scroll-area { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin: 0 -12px; padding: 0 12px;}
+        /* ── Bottom Sheets ── */
+        .bottom-sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);z-index:300;display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity 0.25s;}
+        .bottom-sheet-overlay.active{opacity:1;pointer-events:auto;}
+        .bottom-sheet{width:100%;background:var(--surface);border-radius:28px 28px 0 0;padding:20px 24px calc(28px + env(safe-area-inset-bottom));transform:translateY(100%);transition:transform 0.32s cubic-bezier(0.16,1,0.3,1);box-shadow:0 -8px 40px rgba(0,0,0,0.12);max-height:88vh;display:flex;flex-direction:column;}
+        .bottom-sheet-overlay.active .bottom-sheet{transform:translateY(0);}
+        @media(min-width:768px){.bottom-sheet-overlay{justify-content:center;align-items:center;padding:20px;} .bottom-sheet{max-width:480px;border-radius:28px;} .bottom-sheet-overlay.active .bottom-sheet{transform:translateY(0);}}
+        .sheet-handle{width:36px;height:5px;background:var(--border);border-radius:999px;margin:0 auto 18px;flex-shrink:0;}
+        .sheet-title{font-size:13px;font-weight:700;color:var(--text-muted);text-align:center;margin-bottom:18px;text-transform:uppercase;letter-spacing:0.8px;flex-shrink:0;}
+        .sheet-btn{width:100%;padding:16px;border-radius:16px;font-size:16px;font-weight:700;border:none;background:var(--surface2);color:var(--text-primary);display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:10px;cursor:pointer;transition:all 0.18s;flex-shrink:0;}
+        .sheet-btn:active{transform:scale(0.97);}
+        .sheet-btn.danger{background:rgba(239,68,68,0.08);color:var(--danger);}
+        .sheet-btn.primary{background:var(--primary-gradient);color:white;}
+        .sheet-btn.transparent{background:transparent;color:var(--text-secondary);}
+        .sheet-scroll-area{flex:1;overflow-y:auto;display:flex;flex-direction:column;}
+        .sheet-input{width:100%;padding:14px 16px;border-radius:16px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text-primary);font-size:16px;font-family:inherit;outline:none;margin-bottom:12px;transition:border-color 0.2s;}
+        .sheet-input:focus{border-color:var(--primary);}
+        .sheet-input::placeholder{color:var(--text-muted);}
+        .sheet-section-label{font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:0.8px;text-transform:uppercase;padding:4px 4px 8px;}
 
-        /* Profile Sheet & Extended Settings */
-        .profile-card{background:var(--surface);border-radius:24px;padding:32px 20px;text-align:center;box-shadow:var(--shadow-sm);border:1px solid var(--border);margin-top:8px;}
-        .profile-avatar-large{width:110px;height:110px;border-radius:32px;object-fit:cover;box-shadow:var(--shadow-md);border:3px solid var(--surface);}
-        .profile-name{font-size:24px;font-weight:800;letter-spacing:-0.5px;margin-bottom:4px;display:flex;align-items:center;justify-content:center;}
-        .edit-name-btn { background: none; border: none; color: var(--text-secondary); cursor: pointer; margin-left: 8px; padding: 4px; border-radius: 50%; transition: background 0.2s; }
-        .edit-name-btn:active { background: var(--surface2); }
-        .profile-handle{font-size:14px;color:var(--text-secondary);margin-bottom:28px;}
-        .profile-btn{width:100%;max-width:220px;padding:14px;border-radius:16px;font-weight:700;font-size:15px;cursor:pointer;border:none;background:var(--surface2);color:var(--text-primary);transition:all 0.2s;}
-        .profile-btn.logout{background:rgba(239,68,68,0.08);color:#EF4444;margin-top:12px;}
+        /* ── Profile ── */
+        .profile-card{background:var(--surface);border-radius:24px;padding:32px 20px 24px;text-align:center;box-shadow:var(--shadow-sm);border:1px solid var(--border);margin-top:8px;}
+        .profile-avatar-large{width:100px;height:100px;border-radius:30px;object-fit:cover;box-shadow:var(--shadow-md);border:3px solid var(--surface);background:var(--surface2);}
+        .profile-name{font-size:22px;font-weight:800;letter-spacing:-0.5px;margin-bottom:3px;display:flex;align-items:center;justify-content:center;gap:8px;}
+        .edit-name-btn{background:none;border:none;color:var(--text-muted);cursor:pointer;padding:4px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:background 0.18s;}
+        .edit-name-btn:active{background:var(--surface2);}
+        .profile-handle{font-size:13px;color:var(--text-muted);margin-bottom:20px;}
+        .profile-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(var(--primary-rgb),0.1);color:var(--primary);padding:5px 14px;border-radius:20px;font-size:12px;font-weight:700;margin-bottom:20px;}
+        .profile-btn{width:100%;max-width:200px;padding:12px;border-radius:16px;font-weight:700;font-size:14px;cursor:pointer;border:none;background:var(--surface2);color:var(--text-primary);transition:all 0.18s;}
+        .profile-btn:active{transform:scale(0.97);}
+        .profile-btn.logout{background:rgba(239,68,68,0.08);color:var(--danger);margin-top:10px;}
+        .settings-list{margin-top:20px;}
+        .settings-section{margin-bottom:20px;}
+        .settings-section-label{font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:0.8px;text-transform:uppercase;padding:0 4px 8px;}
+        .setting-item{display:flex;justify-content:space-between;align-items:center;padding:15px 16px;background:var(--surface);border-radius:16px;margin-bottom:6px;box-shadow:var(--shadow-sm);border:1px solid var(--border);cursor:pointer;transition:transform 0.15s,background 0.15s;}
+        .setting-item:active{transform:scale(0.98);background:var(--surface2);}
+        .setting-label{font-size:15px;font-weight:600;display:flex;align-items:center;gap:12px;pointer-events:none;}
+        .setting-label-icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+        .toggle-switch{position:relative;width:44px;height:26px;background:var(--text-muted);border-radius:13px;cursor:pointer;transition:background 0.25s;flex-shrink:0;}
+        .toggle-switch::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;background:white;border-radius:50%;transition:transform 0.25s;box-shadow:0 1px 4px rgba(0,0,0,0.25);}
+        .toggle-switch.active{background:var(--primary);}
+        .toggle-switch.active::after{transform:translateX(18px);}
 
-        .settings-list { margin-top: 24px; text-align: left; }
-        .setting-item { display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--surface); border-radius: 16px; margin-bottom: 8px; box-shadow: var(--shadow-sm); border: 1px solid var(--border); transition: transform 0.2s; }
-        .setting-item:active { transform: scale(0.98); }
-        .setting-label { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 12px; }
-        .toggle-switch { position: relative; width: 44px; height: 24px; background: var(--text-muted); border-radius: 12px; cursor: pointer; transition: 0.3s; }
-        .toggle-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; background: white; border-radius: 50%; transition: 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-        .toggle-switch.active { background: var(--primary); }
-        .toggle-switch.active::after { transform: translateX(20px); }
+        /* ── Sheet info rows ── */
+        .info-row{display:flex;align-items:center;gap:12px;padding:14px 4px;border-bottom:1px solid var(--border);}
+        .info-row:last-child{border-bottom:none;}
+        .info-row-icon{width:38px;height:38px;border-radius:12px;background:rgba(var(--primary-rgb),0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--primary);}
+        .info-row-text{flex:1;}
+        .info-row-title{font-size:14px;font-weight:700;color:var(--text-primary);}
+        .info-row-sub{font-size:12px;color:var(--text-muted);margin-top:1px;}
 
-        .empty-state{padding:80px 24px;text-align:center;color:var(--text-secondary);font-size:15px;line-height:1.5;}
+        /* ── User rows (new chat) ── */
+        .user-row{display:flex;align-items:center;gap:14px;padding:12px 4px;cursor:pointer;border-bottom:1px solid var(--border);transition:background 0.15s;border-radius:12px;}
+        .user-row:last-child{border-bottom:none;}
+        .user-row:active{background:var(--surface2);}
 
-        /* Toast */
-        .toast{position:fixed;bottom:calc(100px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(100px);background:var(--text-primary);color:var(--background);padding:14px 24px;border-radius:9999px;font-size:14px;font-weight:600;opacity:0;transition:all 0.3s;z-index:9999;pointer-events:none;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,0.15);}
+        /* ── Empty / Toast / Loader ── */
+        .empty-state{padding:70px 24px;text-align:center;color:var(--text-secondary);font-size:15px;line-height:1.6;display:flex;flex-direction:column;align-items:center;gap:10px;}
+        .toast{position:fixed;bottom:calc(110px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(16px);background:var(--text-primary);color:var(--background);padding:13px 22px;border-radius:9999px;font-size:14px;font-weight:600;opacity:0;transition:all 0.28s;z-index:9999;pointer-events:none;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,0.18);}
         .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
-        .global-loader {position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:none;align-items:center;justify-content:center;}
-        .global-loader.active {display:flex;}
-        .spinner{width:36px;height:36px;border:4px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.8s linear infinite;}
+        .global-loader{position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:none;align-items:center;justify-content:center;}
+        .global-loader.active{display:flex;}
+        .spinner{width:36px;height:36px;border:4px solid rgba(255,255,255,0.25);border-top-color:#fff;border-radius:50%;animation:spin 0.75s linear infinite;}
         @keyframes spin{to{transform:rotate(360deg);}}
-
-        /* Text Input in Bottom Sheet */
-        .sheet-input { width: 100%; padding: 14px 16px; border-radius: 16px; border: 1px solid var(--border); background: var(--surface2); color: var(--text-primary); font-size: 16px; font-family: inherit; outline: none; margin-bottom: 12px; transition: border-color 0.2s; }
-        .sheet-input:focus { border-color: var(--primary); }
-        .sheet-input::placeholder { color: var(--text-muted); }
-
-        /* New chat user rows — no border-radius hack needed, just clean rows */
-        .user-row { display: flex; align-items: center; gap: 14px; padding: 12px 4px; cursor: pointer; border-bottom: 1px solid var(--border); transition: background 0.15s; border-radius: 12px; }
-        .user-row:last-child { border-bottom: none; }
-        .user-row:active { background: var(--surface2); }
     </style>
-<base target="_blank">
 </head>
 <body>
 
 <div class="toast" id="toast"></div>
-
-<div class="global-loader" id="upload-loader">
-    <div class="spinner"></div>
-</div>
+<div class="global-loader" id="upload-loader"><div class="spinner"></div></div>
 
 <div class="app-container">
 
+    <!-- ── Messages Tab ── -->
     <div id="view-chats" class="view-container active">
         <header class="header">
             <h2>Messages</h2>
-            <button class="header-btn" onclick="openNewChatSheet()">
-                <i data-feather="plus" style="width:20px;height:20px;"></i>
+            <button class="header-btn" id="new-chat-btn" title="New chat">
+                <i data-feather="edit" style="width:18px;height:18px;"></i>
             </button>
         </header>
+
+        <!-- Pill tab switcher -->
+        <div class="tab-switcher">
+            <button class="tab-pill active" id="tab-all" onclick="switchChatTab('all')">
+                All
+            </button>
+            <button class="tab-pill" id="tab-unread" onclick="switchChatTab('unread')">
+                Unread
+                <span class="pill-badge hidden" id="unread-pill-count">0</span>
+            </button>
+        </div>
 
         <div class="search-container">
             <div class="search-box">
                 <i data-feather="search" style="width:18px;height:18px;"></i>
-                <input type="text" id="chat-search" placeholder="Search conversations..." oninput="filterChats(this.value)">
+                <input type="text" id="chat-search" placeholder="Search messages..." oninput="filterChats(this.value)">
             </div>
         </div>
 
         <div id="chats-list" class="chats-holder"></div>
     </div>
 
-    <div id="view-statuses" class="view-container">
-        <header class="header">
-            <h2>Global Status</h2>
-        </header>
-
-        <div class="search-container">
-            <div class="search-box">
-                <i data-feather="search" style="width:18px;height:18px;"></i>
-                <input type="text" id="status-search" placeholder="Search by name..." oninput="filterStatuses(this.value)">
-            </div>
-        </div>
-
-        <!-- Hidden file input lives here permanently, outside the re-rendered grid -->
-        <input type="file" id="status-upload" accept="image/*,video/*" style="display:none;" onchange="handleStatusUpload(event)">
-
-        <div class="status-grid" id="status-grid"></div>
-        <div id="status-empty" style="display:none;" class="empty-state" style="padding-top:40px;">No statuses match your search.</div>
-    </div>
-
+    <!-- ── Profile Tab ── -->
     <div id="view-profile" class="view-container">
         <header class="header">
-            <h2>Settings</h2>
+            <h2>Profile</h2>
         </header>
         <div id="profile-content"></div>
     </div>
 
 </div>
 
+<!-- Bottom Nav -->
 <div class="bottom-nav-container">
-    <nav class="bottom-nav" id="bottom-nav">
-        <button class="nav-item active" data-nav="chats" onclick="switchTab('chats')">
-            <i data-feather="message-square" style="width:22px;height:22px;"></i>
+    <nav class="bottom-nav">
+        <button class="nav-item active" data-nav="chats" id="nav-chats">
+            <i data-feather="message-circle" style="width:22px;height:22px;"></i>
             <span class="nav-badge" id="badge-messages"></span>
         </button>
-        <button class="nav-item" data-nav="statuses" onclick="switchTab('statuses')">
-            <i data-feather="aperture" style="width:22px;height:22px;"></i>
-        </button>
-        <button class="nav-item" data-nav="profile" onclick="switchTab('profile')">
+        <button class="nav-item" data-nav="profile" id="nav-profile">
             <div class="nav-avatar-wrapper">
-                <img src="" id="nav-profile-avatar" class="nav-avatar-img" alt="Profile">
+                <img src="" id="nav-profile-avatar" class="nav-avatar-img" alt="Me">
             </div>
         </button>
     </nav>
 </div>
 
-<!-- Chat Action Sheet (long press) -->
+<!-- ── Chat Action Sheet (long press) ── -->
 <div class="bottom-sheet-overlay" id="action-sheet-overlay">
-    <div class="bottom-sheet" id="action-sheet">
+    <div class="bottom-sheet">
         <div class="sheet-handle"></div>
-        <div class="sheet-title" id="sheet-target-name">Chat Actions</div>
-        <button class="sheet-btn danger" onclick="executeClearChat()">
+        <div class="sheet-title" id="sheet-target-name">Chat Options</div>
+        <button class="sheet-btn danger" id="btn-clear-chat">
             <i data-feather="trash-2" style="width:18px;height:18px;"></i> Clear Chat History
         </button>
-        <button class="sheet-btn danger" onclick="executeBlockUser()">
-            <i data-feather="slash" style="width:18px;height:18px;"></i> Block Friend
+        <button class="sheet-btn danger" id="btn-block-user">
+            <i data-feather="slash" style="width:18px;height:18px;"></i> Block User
         </button>
-        <button class="sheet-btn" style="margin-top:8px; background:transparent;" onclick="closeActionSheet()">Cancel</button>
+        <button class="sheet-btn transparent" id="btn-cancel-action">Cancel</button>
     </div>
 </div>
 
-<!-- New Chat / Add Friends Sheet -->
+<!-- ── New Chat Sheet ── -->
 <div class="bottom-sheet-overlay" id="new-chat-sheet-overlay">
-    <div class="bottom-sheet" id="new-chat-sheet">
+    <div class="bottom-sheet">
         <div class="sheet-handle"></div>
-        <div class="sheet-title">Start a Conversation</div>
+        <div class="sheet-title">New Message</div>
         <div class="sheet-scroll-area" id="all-users-list"></div>
-        <button class="sheet-btn" style="background:transparent; margin-top:8px;" onclick="closeNewChatSheet()">Cancel</button>
+        <button class="sheet-btn transparent" style="margin-top:8px;" id="btn-cancel-newchat">Cancel</button>
     </div>
 </div>
 
-<!-- Edit Name Bottom Sheet -->
+<!-- ── Edit Name Sheet ── -->
 <div class="bottom-sheet-overlay" id="edit-name-sheet-overlay">
-    <div class="bottom-sheet" id="edit-name-sheet">
+    <div class="bottom-sheet">
         <div class="sheet-handle"></div>
-        <div class="sheet-title">Edit Profile Name</div>
-        <input type="text" class="sheet-input" id="edit-name-input" placeholder="Enter your name..." maxlength="30">
-        <button class="sheet-btn primary" onclick="saveUsername()">
-            <i data-feather="check" style="width:18px;height:18px;"></i> Save Changes
+        <div class="sheet-title">Edit Display Name</div>
+        <input type="text" class="sheet-input" id="edit-name-input" placeholder="Your name..." maxlength="30">
+        <button class="sheet-btn primary" id="btn-save-name">
+            <i data-feather="check" style="width:18px;height:18px;"></i> Save
         </button>
-        <button class="sheet-btn" style="background:transparent;" onclick="closeEditNameSheet()">Cancel</button>
+        <button class="sheet-btn transparent" id="btn-cancel-editname">Cancel</button>
     </div>
 </div>
 
-<!-- Chat Window -->
+<!-- ── Privacy Sheet ── -->
+<div class="bottom-sheet-overlay" id="privacy-sheet-overlay">
+    <div class="bottom-sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-title">Privacy & Security</div>
+        <div class="sheet-scroll-area">
+            <div class="setting-item" id="toggle-read-receipts">
+                <div class="setting-label">
+                    <div class="setting-label-icon" style="background:rgba(124,58,237,0.1);color:var(--primary);">
+                        <i data-feather="eye" style="width:16px;height:16px;"></i>
+                    </div>
+                    Read Receipts
+                </div>
+                <div class="toggle-switch active" id="toggle-receipts-sw"></div>
+            </div>
+            <div class="setting-item" id="toggle-last-seen">
+                <div class="setting-label">
+                    <div class="setting-label-icon" style="background:rgba(16,185,129,0.1);color:#10B981;">
+                        <i data-feather="clock" style="width:16px;height:16px;"></i>
+                    </div>
+                    Show Last Seen
+                </div>
+                <div class="toggle-switch active" id="toggle-lastseen-sw"></div>
+            </div>
+            <div class="setting-item" id="toggle-online-status">
+                <div class="setting-label">
+                    <div class="setting-label-icon" style="background:rgba(59,130,246,0.1);color:#3B82F6;">
+                        <i data-feather="activity" style="width:16px;height:16px;"></i>
+                    </div>
+                    Online Status
+                </div>
+                <div class="toggle-switch active" id="toggle-online-sw"></div>
+            </div>
+            <div class="setting-item" id="toggle-two-step">
+                <div class="setting-label">
+                    <div class="setting-label-icon" style="background:rgba(245,158,11,0.1);color:#F59E0B;">
+                        <i data-feather="shield" style="width:16px;height:16px;"></i>
+                    </div>
+                    Two-Step Verification
+                </div>
+                <div class="toggle-switch" id="toggle-twostep-sw"></div>
+            </div>
+        </div>
+        <button class="sheet-btn transparent" style="margin-top:10px;" id="btn-close-privacy">Done</button>
+    </div>
+</div>
+
+<!-- ── Data & Storage Sheet ── -->
+<div class="bottom-sheet-overlay" id="storage-sheet-overlay">
+    <div class="bottom-sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-title">Data & Storage</div>
+        <div class="sheet-scroll-area">
+            <div class="setting-item" id="toggle-auto-dl">
+                <div class="setting-label">
+                    <div class="setting-label-icon" style="background:rgba(16,185,129,0.1);color:#10B981;">
+                        <i data-feather="download" style="width:16px;height:16px;"></i>
+                    </div>
+                    Auto-Download Media
+                </div>
+                <div class="toggle-switch active" id="toggle-autodl-sw"></div>
+            </div>
+            <div class="setting-item" id="toggle-wifi-only">
+                <div class="setting-label">
+                    <div class="setting-label-icon" style="background:rgba(59,130,246,0.1);color:#3B82F6;">
+                        <i data-feather="wifi" style="width:16px;height:16px;"></i>
+                    </div>
+                    Wi-Fi Only Downloads
+                </div>
+                <div class="toggle-switch" id="toggle-wifionly-sw"></div>
+            </div>
+            <div class="setting-item" id="toggle-reduce-data">
+                <div class="setting-label">
+                    <div class="setting-label-icon" style="background:rgba(239,68,68,0.1);color:var(--danger);">
+                        <i data-feather="bar-chart-2" style="width:16px;height:16px;"></i>
+                    </div>
+                    Reduce Data Usage
+                </div>
+                <div class="toggle-switch" id="toggle-reducedata-sw"></div>
+            </div>
+            <div class="sheet-section-label" style="margin-top:12px;">Cache</div>
+            <button class="sheet-btn danger" id="btn-clear-cache">
+                <i data-feather="trash" style="width:16px;height:16px;"></i> Clear Cache
+            </button>
+        </div>
+        <button class="sheet-btn transparent" style="margin-top:8px;" id="btn-close-storage">Done</button>
+    </div>
+</div>
+
+<!-- ── Help Sheet ── -->
+<div class="bottom-sheet-overlay" id="help-sheet-overlay">
+    <div class="bottom-sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-title">Help & Support</div>
+        <div class="sheet-scroll-area">
+            <div class="info-row">
+                <div class="info-row-icon"><i data-feather="book-open" style="width:16px;height:16px;"></i></div>
+                <div class="info-row-text">
+                    <div class="info-row-title">FAQ</div>
+                    <div class="info-row-sub">Frequently asked questions</div>
+                </div>
+                <i data-feather="chevron-right" style="width:16px;height:16px;color:var(--text-muted);"></i>
+            </div>
+            <div class="info-row">
+                <div class="info-row-icon"><i data-feather="mail" style="width:16px;height:16px;"></i></div>
+                <div class="info-row-text">
+                    <div class="info-row-title">Contact Support</div>
+                    <div class="info-row-sub">support@vynix.app</div>
+                </div>
+                <i data-feather="chevron-right" style="width:16px;height:16px;color:var(--text-muted);"></i>
+            </div>
+            <div class="info-row">
+                <div class="info-row-icon"><i data-feather="flag" style="width:16px;height:16px;"></i></div>
+                <div class="info-row-text">
+                    <div class="info-row-title">Report a Problem</div>
+                    <div class="info-row-sub">Help us improve</div>
+                </div>
+                <i data-feather="chevron-right" style="width:16px;height:16px;color:var(--text-muted);"></i>
+            </div>
+            <div class="info-row">
+                <div class="info-row-icon"><i data-feather="star" style="width:16px;height:16px;"></i></div>
+                <div class="info-row-text">
+                    <div class="info-row-title">Rate Vynix</div>
+                    <div class="info-row-sub">Leave a review on the app store</div>
+                </div>
+                <i data-feather="chevron-right" style="width:16px;height:16px;color:var(--text-muted);"></i>
+            </div>
+        </div>
+        <button class="sheet-btn transparent" style="margin-top:10px;" id="btn-close-help">Close</button>
+    </div>
+</div>
+
+<!-- ── About Sheet ── -->
+<div class="bottom-sheet-overlay" id="about-sheet-overlay">
+    <div class="bottom-sheet">
+        <div class="sheet-handle"></div>
+        <div style="text-align:center;padding:10px 0 24px;">
+            <div style="width:72px;height:72px;border-radius:22px;background:var(--primary-gradient);margin:0 auto 16px;display:flex;align-items:center;justify-content:center;">
+                <i data-feather="message-circle" style="width:32px;height:32px;color:white;"></i>
+            </div>
+            <div style="font-size:22px;font-weight:800;letter-spacing:-0.5px;">Vynix</div>
+            <div style="font-size:13px;color:var(--text-muted);margin-top:4px;">Version 1.0.0 · Mzansi's Social Platform</div>
+        </div>
+        <div class="sheet-scroll-area">
+            <div class="info-row">
+                <div class="info-row-icon"><i data-feather="file-text" style="width:16px;height:16px;"></i></div>
+                <div class="info-row-text">
+                    <div class="info-row-title">Terms of Service</div>
+                </div>
+                <i data-feather="chevron-right" style="width:16px;height:16px;color:var(--text-muted);"></i>
+            </div>
+            <div class="info-row">
+                <div class="info-row-icon"><i data-feather="lock" style="width:16px;height:16px;"></i></div>
+                <div class="info-row-text">
+                    <div class="info-row-title">Privacy Policy</div>
+                </div>
+                <i data-feather="chevron-right" style="width:16px;height:16px;color:var(--text-muted);"></i>
+            </div>
+            <div class="info-row">
+                <div class="info-row-icon"><i data-feather="code" style="width:16px;height:16px;"></i></div>
+                <div class="info-row-text">
+                    <div class="info-row-title">Open Source Licenses</div>
+                </div>
+                <i data-feather="chevron-right" style="width:16px;height:16px;color:var(--text-muted);"></i>
+            </div>
+        </div>
+        <button class="sheet-btn transparent" style="margin-top:10px;" id="btn-close-about">Close</button>
+    </div>
+</div>
+
+<!-- ── Chat Window ── -->
 <div class="chat-window" id="chat-window">
     <div class="chat-topbar">
-        <button class="back-btn" onclick="closeChat(false)">
+        <button class="back-btn" id="chat-back-btn">
             <i data-feather="arrow-left" style="width:20px;height:20px;"></i>
         </button>
-        <img src="" id="chat-header-avatar" class="avatar" style="width:40px;height:40px;border-radius:14px;">
-        <div style="flex:1;">
-            <div style="font-weight:700;font-size:16px;letter-spacing:-0.2px;" id="chat-header-name">User</div>
+        <img src="" id="chat-header-avatar" class="avatar" style="width:42px;height:42px;border-radius:14px;background:var(--surface2);">
+        <div style="flex:1;min-width:0;">
+            <div style="font-weight:700;font-size:16px;letter-spacing:-0.2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" id="chat-header-name">User</div>
             <div style="font-size:12px;color:var(--text-muted);margin-top:1px;" id="chat-header-status"></div>
         </div>
     </div>
-
     <div class="messages-area" id="messages-area"></div>
-
     <div class="input-bar">
         <div class="chat-input-wrapper">
-            <textarea id="chat-input" placeholder="Type a message..." rows="1" oninput="resizeTextarea(this)" onkeydown="if(event.key==='Enter' && !event.shiftKey) { event.preventDefault(); sendChatMessage(); }"></textarea>
+            <textarea id="chat-input" placeholder="Message..." rows="1" oninput="resizeTextarea(this)" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChatMessage();}"></textarea>
         </div>
-        <button class="send-btn" id="send-btn" onclick="sendChatMessage()" disabled>
+        <button class="send-btn" id="send-btn" disabled>
             <i data-feather="send" style="width:18px;height:18px;margin-left:2px;"></i>
         </button>
     </div>
 </div>
 
-<!-- Fullscreen Status Viewer -->
-<div class="status-viewer" id="status-viewer">
-    <div class="status-viewer-topbar">
-        <img id="sv-avatar" src="" alt="" onerror="this.src=DEFAULT_AVATAR_INLINE">
-        <div class="status-viewer-info">
-            <div class="status-viewer-name" id="sv-name"></div>
-            <div class="status-viewer-time" id="sv-time"></div>
-        </div>
-        <button class="status-viewer-close" onclick="closeStatusViewer()">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </button>
-    </div>
-    <div class="status-viewer-media" id="sv-media"></div>
-    <button class="viewer-sound-btn" id="sv-sound-btn" style="display:none;" onclick="toggleViewerSound()">
-        <svg id="sv-sound-icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
-    </button>
-</div>
-
 <script type="module">
-import {
-    getDatabase, ref, onValue, onChildAdded, push, set, get, update, remove, serverTimestamp, off
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, onValue, onChildAdded, push, set, get, update, remove, serverTimestamp, off }
+    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-const firebaseConfig={
+const firebaseConfig = {
     apiKey:"AIzaSyBOyZ3As4GTuNvjemvPF_SpsC6m6vqtNhc",
     authDomain:"fire-b-a8878.firebaseapp.com",
     databaseURL:"https://fire-b-a8878.firebaseio.com",
@@ -383,848 +500,641 @@ const firebaseConfig={
     messagingSenderId:"658673187627",
     appId:"1:658673187627:web:6e4c29af661785f0afa36e"
 };
-
-const app = initializeApp(firebaseConfig);
+const app  = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getDatabase(app);
+const db   = getDatabase(app);
 
-const CLOUDINARY_CLOUD_NAME = 'dqkujefxj';
+const CLOUDINARY_CLOUD_NAME   = 'dqkujefxj';
 const CLOUDINARY_UPLOAD_PRESET = 'banter_box';
 
-const DEFAULT_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23A1A1AA' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' style='background-color:%23E4E4E7'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3C/svg%3E";
+// Inline default avatar – shown immediately before any data loads
+const DEFAULT_AVATAR = `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52"><rect width="52" height="52" rx="14" fill="#E4E4E7"/><circle cx="26" cy="20" r="9" fill="#A1A1AA"/><path d="M8 46c0-9.941 8.059-18 18-18s18 8.059 18 18" fill="#A1A1AA"/></svg>`)}`;
 
-let currentUser = null;
+let currentUser     = null;
 let currentUserData = null;
-let allUsersCache = {};
-let activeChatUid = null;
+let allUsersCache   = {};
+let activeChatUid   = null;
 let activeChatConvId = null;
 let activeChatListener = null;
+let allConversations = [];   // full list for tab filter
+let currentChatTab  = 'all';
 
-let longPressTimer = null;
-let selectedConvId = null;
+let longPressTimer    = null;
+let selectedConvId    = null;
 let selectedTargetUid = null;
 let longPressTriggered = false;
 
-// Initialize Theme
+// Privacy / storage preferences (persisted in localStorage)
+const PREFS_KEY = 'vynix-prefs';
+function loadPrefs() {
+    try { return JSON.parse(localStorage.getItem(PREFS_KEY)) || {}; } catch { return {}; }
+}
+function savePrefs(obj) {
+    localStorage.setItem(PREFS_KEY, JSON.stringify({ ...loadPrefs(), ...obj }));
+}
+
+// Init theme
 const savedTheme = localStorage.getItem('vynix-theme') || 'light';
 document.documentElement.setAttribute('data-theme', savedTheme);
 
-window.showToast = msg => {
+// ── Toast ──
+window.showToast = (msg) => {
     const t = document.getElementById('toast');
     t.textContent = msg;
     t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 3000);
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => t.classList.remove('show'), 2800);
 };
 
-const getShimmerHTML = () => Array(4).fill(0).map(() => `
+// ── Shimmer ──
+const shimmerHTML = () => Array(5).fill(0).map(() => `
     <div class="shimmer-card">
         <div class="shimmer-element shimmer-avatar"></div>
-        <div class="shimmer-info" style="flex:1;">
-            <div class="shimmer-element shimmer-line title"></div>
-            <div class="shimmer-element shimmer-line subtitle"></div>
+        <div style="flex:1;">
+            <div class="shimmer-element shimmer-line" style="width:60%;margin-bottom:8px;"></div>
+            <div class="shimmer-element shimmer-line" style="width:85%;"></div>
         </div>
-    </div>
-`).join('');
+    </div>`).join('');
 
-document.getElementById('chats-list').innerHTML = getShimmerHTML();
-document.getElementById('profile-content').innerHTML = getShimmerHTML().substring(0, getShimmerHTML().length/4);
+// Set default avatars immediately
+document.getElementById('nav-profile-avatar').src = DEFAULT_AVATAR;
+document.getElementById('chats-list').innerHTML = shimmerHTML();
 
 feather.replace();
-
 document.addEventListener('contextmenu', e => {
-    if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
-        e.preventDefault();
-    }
+    if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') e.preventDefault();
 });
 
-// ─── Sheet overlay click-outside dismissal ─────────────────────────────────
-// Only dismiss when the backdrop itself is clicked (not the sheet inner content)
-['action-sheet-overlay', 'new-chat-sheet-overlay', 'edit-name-sheet-overlay'].forEach(id => {
-    const overlay = document.getElementById(id);
-    overlay.addEventListener('click', function(e) {
-        if (e.target === overlay) {
-            if (id === 'action-sheet-overlay') closeActionSheet();
-            else if (id === 'new-chat-sheet-overlay') closeNewChatSheet();
-            else if (id === 'edit-name-sheet-overlay') closeEditNameSheet();
-        }
+// ── Wire up all static buttons ──
+document.getElementById('nav-chats').addEventListener('click', () => switchTab('chats'));
+document.getElementById('nav-profile').addEventListener('click', () => switchTab('profile'));
+document.getElementById('new-chat-btn').addEventListener('click', openNewChatSheet);
+document.getElementById('chat-back-btn').addEventListener('click', () => closeChat(false));
+document.getElementById('send-btn').addEventListener('click', sendChatMessage);
+
+// Sheets – backdrop click to dismiss
+['action-sheet-overlay','new-chat-sheet-overlay','edit-name-sheet-overlay',
+ 'privacy-sheet-overlay','storage-sheet-overlay','help-sheet-overlay','about-sheet-overlay'
+].forEach(id => {
+    const el = document.getElementById(id);
+    el.addEventListener('click', e => { if (e.target === el) closeSheet(id); });
+});
+
+document.getElementById('btn-cancel-action').addEventListener('click',   () => closeSheet('action-sheet-overlay'));
+document.getElementById('btn-cancel-newchat').addEventListener('click',  () => closeSheet('new-chat-sheet-overlay'));
+document.getElementById('btn-cancel-editname').addEventListener('click', () => closeSheet('edit-name-sheet-overlay'));
+document.getElementById('btn-close-privacy').addEventListener('click',   () => closeSheet('privacy-sheet-overlay'));
+document.getElementById('btn-close-storage').addEventListener('click',   () => closeSheet('storage-sheet-overlay'));
+document.getElementById('btn-close-help').addEventListener('click',      () => closeSheet('help-sheet-overlay'));
+document.getElementById('btn-close-about').addEventListener('click',     () => closeSheet('about-sheet-overlay'));
+document.getElementById('btn-save-name').addEventListener('click', saveUsername);
+document.getElementById('btn-clear-chat').addEventListener('click', executeClearChat);
+document.getElementById('btn-block-user').addEventListener('click', executeBlockUser);
+document.getElementById('btn-clear-cache').addEventListener('click', () => {
+    localStorage.removeItem('vynix-cache');
+    showToast('Cache cleared');
+});
+
+// Privacy toggles
+['toggle-receipts-sw','toggle-lastseen-sw','toggle-online-sw','toggle-twostep-sw',
+ 'toggle-autodl-sw','toggle-wifionly-sw','toggle-reducedata-sw'
+].forEach(id => {
+    const el = document.getElementById(id);
+    const prefs = loadPrefs();
+    // init state from prefs (default: active for first 3, inactive for others)
+    const defaults = { 'toggle-receipts-sw':true,'toggle-lastseen-sw':true,'toggle-online-sw':true,'toggle-twostep-sw':false,'toggle-autodl-sw':true,'toggle-wifionly-sw':false,'toggle-reducedata-sw':false };
+    const state = (id in prefs) ? prefs[id] : defaults[id];
+    el.classList.toggle('active', state);
+    el.parentElement.addEventListener('click', () => {
+        el.classList.toggle('active');
+        savePrefs({ [id]: el.classList.contains('active') });
     });
 });
 
-// ─── Auth ───────────────────────────────────────────────────────────────────
+// Help rows
+document.querySelectorAll('#help-sheet-overlay .info-row').forEach(row => {
+    row.style.cursor = 'pointer';
+    row.addEventListener('click', () => showToast('Coming soon'));
+});
+document.querySelectorAll('#about-sheet-overlay .info-row').forEach(row => {
+    row.style.cursor = 'pointer';
+    row.addEventListener('click', () => showToast('Coming soon'));
+});
+
+// ── Auth ──
 onAuthStateChanged(auth, async (user) => {
-    if (!user) {
-        window.location.href = 'signup.html';
-        return;
-    }
+    if (!user) { window.location.href = 'signup.html'; return; }
     currentUser = user;
     await loadUserData();
     loadChatsTab();
-    loadStatuses();
     setupPresence();
 });
 
+// ── Sheet helpers ──
+function openSheet(id) { document.getElementById(id).classList.add('active'); }
+function closeSheet(id) { document.getElementById(id).classList.remove('active'); }
+
+// ── Tab switcher ──
+window.switchTab = (tabId) => {
+    document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    const viewId = tabId === 'chats' ? 'view-chats' : 'view-profile';
+    document.getElementById(viewId).classList.add('active');
+    document.getElementById(`nav-${tabId === 'chats' ? 'chats' : 'profile'}`).classList.add('active');
+};
+
+window.switchChatTab = (tab) => {
+    currentChatTab = tab;
+    document.getElementById('tab-all').classList.toggle('active', tab === 'all');
+    document.getElementById('tab-unread').classList.toggle('active', tab === 'unread');
+    renderConversations(allConversations);
+};
+
+// ── User Data ──
 async function loadUserData() {
     const snap = await get(ref(db, `users/${currentUser.uid}`));
     if (snap.exists()) {
         currentUserData = snap.val();
     } else {
-        currentUserData = { uid: currentUser.uid, email: currentUser.email, username: currentUser.email.split('@')[0], photoURL: DEFAULT_AVATAR };
+        currentUserData = { uid: currentUser.uid, email: currentUser.email, username: currentUser.email.split('@')[0], photoURL: '' };
         await set(ref(db, `users/${currentUser.uid}`), currentUserData);
     }
-
-    const safePhotoUrl = currentUserData.photoURL || DEFAULT_AVATAR;
-    const navAvatarImg = document.getElementById('nav-profile-avatar');
-    if (navAvatarImg) {
-        navAvatarImg.src = safePhotoUrl;
-        navAvatarImg.onerror = () => { navAvatarImg.src = DEFAULT_AVATAR; };
-    }
+    const photoUrl = currentUserData.photoURL || DEFAULT_AVATAR;
+    const navImg = document.getElementById('nav-profile-avatar');
+    navImg.src = photoUrl;
+    navImg.onerror = () => { navImg.src = DEFAULT_AVATAR; };
     renderProfile();
 }
 
-window.switchTab = (tabId) => {
-    document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active'));
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    document.getElementById(`view-${tabId}`).classList.add('active');
-    document.querySelector(`.nav-item[data-nav="${tabId}"]`).classList.add('active');
-};
-
-// ─── Cloudinary Upload Helper ────────────────────────────────────────────────
+// ── Cloudinary ──
 async function uploadToCloudinary(file, folder = 'vynix') {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-    formData.append('folder', folder);
-
-    const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`, {
-        method: 'POST', body: formData
-    });
-    if (!response.ok) throw new Error('Cloudinary upload failed');
-    const data = await response.json();
-    return data.secure_url;
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+    fd.append('folder', folder);
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`, { method:'POST', body:fd });
+    if (!res.ok) throw new Error('Upload failed');
+    return (await res.json()).secure_url;
 }
 
-// ─── Chat search ─────────────────────────────────────────────────────────────
-window.filterChats = (query) => {
-    const lowerQuery = query.toLowerCase();
-    document.querySelectorAll('#chats-list .chat-list-item').forEach(item => {
-        const name = item.querySelector('.chat-name').textContent.toLowerCase();
-        item.style.display = name.includes(lowerQuery) ? 'flex' : 'none';
-    });
-};
-
-// ─── Load Chats Tab ──────────────────────────────────────────────────────────
+// ── Load Chats ──
 async function loadChatsTab() {
-    const listEl = document.getElementById('chats-list');
     const usersSnap = await get(ref(db, 'users'));
-    if (usersSnap.exists()) {
-        usersSnap.forEach(c => { allUsersCache[c.key] = c.val(); });
-    }
+    if (usersSnap.exists()) usersSnap.forEach(c => { allUsersCache[c.key] = c.val(); });
 
-    onValue(ref(db, 'conversations'), (snap) => {
+    onValue(ref(db, 'conversations'), snap => {
         let convList = [];
         let totalUnread = 0;
 
         if (snap.exists()) {
             snap.forEach(child => {
-                const conv = child.val();
+                const conv  = child.val();
                 const members = Object.keys(conv.members || {});
                 if (!members.includes(currentUser.uid)) return;
-
                 const otherId = members.find(m => m !== currentUser.uid);
                 if (!otherId) return;
-
-                const other = allUsersCache[otherId] || { username: 'User' };
+                const other  = allUsersCache[otherId] || { username: 'User', photoURL: '' };
                 const unread = conv.unread?.[currentUser.uid] || 0;
                 totalUnread += unread;
-
-                convList.push({
-                    id: child.key,
-                    otherId,
-                    other,
-                    lastMessage: conv.lastMessage || 'Conversation started',
-                    lastTimestamp: conv.lastTimestamp || 0,
-                    unread
-                });
+                convList.push({ id:child.key, otherId, other, lastMessage:conv.lastMessage||'Conversation started', lastTimestamp:conv.lastTimestamp||0, unread });
             });
         }
 
+        // Update nav badge
         const badge = document.getElementById('badge-messages');
-        if (totalUnread > 0) {
-            badge.textContent = totalUnread;
-            badge.classList.add('show');
-        } else {
-            badge.classList.remove('show');
-        }
+        badge.textContent = totalUnread;
+        badge.classList.toggle('show', totalUnread > 0);
 
-        convList.sort((a, b) => b.lastTimestamp - a.lastTimestamp);
+        // Update unread tab pill count
+        const unreadCount = convList.filter(c => c.unread > 0).length;
+        const pillBadge = document.getElementById('unread-pill-count');
+        pillBadge.textContent = unreadCount;
+        pillBadge.classList.toggle('hidden', unreadCount === 0);
 
-        if (!convList.length) {
-            listEl.innerHTML = `<div class="empty-state"><i data-feather="message-circle" style="width:36px;height:36px;margin-bottom:12px;color:var(--text-muted);"></i><br>Your inbox is empty.<br>Tap the + button to start a chat.</div>`;
-            feather.replace();
-            return;
-        }
-
-        listEl.innerHTML = convList.map(c => `
-            <div class="chat-list-item"
-                 data-conv-id="${c.id}"
-                 data-other-id="${c.otherId}"
-                 data-other-name="${escapeAttr(c.other.username || 'User')}">
-                <img src="${c.other.photoURL || DEFAULT_AVATAR}" onerror="this.src='${DEFAULT_AVATAR}'" class="avatar">
-                <div class="chat-info">
-                    <div class="chat-header">
-                        <span class="chat-name">${escapeHtml(c.other.username || 'User')}</span>
-                        <span class="chat-time">${formatChatTime(c.lastTimestamp)}</span>
-                    </div>
-                    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
-                        <span class="chat-preview ${c.unread > 0 ? 'unread' : ''}">${escapeHtml(c.lastMessage)}</span>
-                        ${c.unread > 0 ? `<span class="unread-badge">${c.unread}</span>` : ''}
-                    </div>
-                </div>
-            </div>
-        `).join('');
-
-        // Attach long press listeners after rendering
-        listEl.querySelectorAll('.chat-list-item').forEach(el => {
-            attachChatCardListeners(el);
-        });
-
-        const currentSearch = document.getElementById('chat-search').value;
-        if (currentSearch) window.filterChats(currentSearch);
-
-        feather.replace();
+        convList.sort((a,b) => b.lastTimestamp - a.lastTimestamp);
+        allConversations = convList;
+        renderConversations(convList);
     });
 }
 
-// ─── Long Press Logic ────────────────────────────────────────────────────────
-// Attach to each card element via JS (not inline HTML) to avoid escaping issues
+function renderConversations(convList) {
+    const listEl = document.getElementById('chats-list');
+    const query  = document.getElementById('chat-search').value.toLowerCase();
+
+    let filtered = currentChatTab === 'unread'
+        ? convList.filter(c => c.unread > 0)
+        : convList;
+
+    if (query) {
+        filtered = filtered.filter(c => (c.other.username||'').toLowerCase().includes(query));
+    }
+
+    if (!filtered.length) {
+        const msg = currentChatTab === 'unread'
+            ? 'No unread messages'
+            : query ? 'No results found' : 'No conversations yet.<br>Tap the pencil to start one.';
+        listEl.innerHTML = `<div class="empty-state"><i data-feather="message-circle" style="width:36px;height:36px;color:var(--text-muted);"></i><span style="color:var(--text-muted);font-size:14px;text-align:center;">${msg}</span></div>`;
+        feather.replace();
+        return;
+    }
+
+    listEl.innerHTML = filtered.map(c => {
+        const photo = c.other.photoURL || DEFAULT_AVATAR;
+        return `
+        <div class="chat-list-item"
+             data-conv-id="${c.id}"
+             data-other-id="${c.otherId}"
+             data-other-name="${escapeAttr(c.other.username||'User')}">
+            <img src="${photo}" class="avatar" loading="lazy"
+                 onerror="this.src='${DEFAULT_AVATAR.replace(/'/g,"\\'")}'"
+                 style="background:var(--surface2);">
+            <div class="chat-info">
+                <div class="chat-header">
+                    <span class="chat-name">${escapeHtml(c.other.username||'User')}</span>
+                    <span class="chat-time">${formatChatTime(c.lastTimestamp)}</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;">
+                    <span class="chat-preview${c.unread>0?' unread':''}">${escapeHtml(c.lastMessage)}</span>
+                    ${c.unread > 0 ? `<span class="unread-badge">${c.unread > 99 ? '99+' : c.unread}</span>` : ''}
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+
+    listEl.querySelectorAll('.chat-list-item').forEach(el => attachChatCardListeners(el));
+    feather.replace();
+}
+
+// ── Chat search ──
+window.filterChats = (query) => renderConversations(allConversations);
+
+// ── Long Press ──
 function attachChatCardListeners(el) {
-    const convId = el.dataset.convId;
-    const otherId = el.dataset.otherId;
+    const convId    = el.dataset.convId;
+    const otherId   = el.dataset.otherId;
     const otherName = el.dataset.otherName;
 
-    function onStart(e) {
-        // Don't start if a sheet is already open
+    const onStart = () => {
         if (document.querySelector('.bottom-sheet-overlay.active')) return;
-
         longPressTriggered = false;
         el.classList.add('pressing');
-
         longPressTimer = setTimeout(() => {
             longPressTriggered = true;
             el.classList.remove('pressing');
             selectedConvId = convId;
             selectedTargetUid = otherId;
             document.getElementById('sheet-target-name').textContent = otherName;
-            document.getElementById('action-sheet-overlay').classList.add('active');
-            if (navigator.vibrate) navigator.vibrate(50);
+            openSheet('action-sheet-overlay');
+            if (navigator.vibrate) navigator.vibrate(45);
         }, 500);
-    }
-
-    function onEnd(e) {
-        clearLongPress(el);
-        if (!longPressTriggered) {
-            window.openChat(otherId);
-        }
-    }
-
-    function onCancel(e) {
-        clearLongPress(el);
-    }
+    };
+    const onEnd = () => {
+        clearTimeout(longPressTimer);
+        el.classList.remove('pressing');
+        if (!longPressTriggered) openChat(otherId);
+    };
+    const onCancel = () => {
+        clearTimeout(longPressTimer);
+        el.classList.remove('pressing');
+    };
 
     el.addEventListener('mousedown', onStart);
     el.addEventListener('mouseup', onEnd);
     el.addEventListener('mouseleave', onCancel);
-    el.addEventListener('touchstart', onStart, { passive: true });
+    el.addEventListener('touchstart', onStart, { passive:true });
     el.addEventListener('touchend', onEnd);
-    el.addEventListener('touchmove', onCancel, { passive: true });
+    el.addEventListener('touchmove', onCancel, { passive:true });
 }
 
-function clearLongPress(el) {
-    if (longPressTimer) {
-        clearTimeout(longPressTimer);
-        longPressTimer = null;
-    }
-    if (el) el.classList.remove('pressing');
-}
-
-// ─── New Chat Sheet ──────────────────────────────────────────────────────────
-window.openNewChatSheet = async () => {
-    const overlay = document.getElementById('new-chat-sheet-overlay');
-    overlay.classList.add('active');
-
+// ── New Chat Sheet ──
+async function openNewChatSheet() {
+    openSheet('new-chat-sheet-overlay');
     const listEl = document.getElementById('all-users-list');
-    listEl.innerHTML = getShimmerHTML();
-
+    listEl.innerHTML = shimmerHTML();
     try {
-        if (Object.keys(allUsersCache).length === 0) {
-            const usersSnap = await get(ref(db, 'users'));
-            if (usersSnap.exists()) {
-                usersSnap.forEach(c => { allUsersCache[c.key] = c.val(); });
-            }
+        if (!Object.keys(allUsersCache).length) {
+            const snap = await get(ref(db, 'users'));
+            if (snap.exists()) snap.forEach(c => { allUsersCache[c.key] = c.val(); });
         }
-
         const users = Object.keys(allUsersCache)
             .filter(uid => uid !== currentUser.uid)
             .map(uid => ({ uid, ...allUsersCache[uid] }));
 
-        if (!users.length) {
-            listEl.innerHTML = '<div class="empty-state" style="padding:40px 20px;">No other users found on the platform.</div>';
-            return;
-        }
+        if (!users.length) { listEl.innerHTML = '<div class="empty-state"><span>No other users yet.</span></div>'; return; }
 
-        // Build rows and attach listeners via JS (no inline onclick)
         listEl.innerHTML = users.map(u => `
             <div class="user-row" data-uid="${u.uid}">
-                <img src="${u.photoURL || DEFAULT_AVATAR}" onerror="this.src='${DEFAULT_AVATAR}'" class="avatar" style="width:44px;height:44px;border-radius:14px;flex-shrink:0;">
-                <div class="chat-name">${escapeHtml(u.username || 'User')}</div>
-            </div>
-        `).join('');
+                <img src="${u.photoURL || DEFAULT_AVATAR}" class="avatar" style="width:44px;height:44px;border-radius:14px;background:var(--surface2);" onerror="this.src='${DEFAULT_AVATAR.replace(/'/g,"\\'")}'" loading="lazy">
+                <div>
+                    <div class="chat-name">${escapeHtml(u.username||'User')}</div>
+                    <div style="font-size:12px;color:var(--text-muted);">${escapeHtml(u.email||'')}</div>
+                </div>
+            </div>`).join('');
 
         listEl.querySelectorAll('.user-row').forEach(row => {
-            const uid = row.dataset.uid;
-            row.addEventListener('click', () => {
-                closeNewChatSheet();
-                window.openChat(uid);
-            });
+            row.addEventListener('click', () => { closeSheet('new-chat-sheet-overlay'); openChat(row.dataset.uid); });
         });
-
-    } catch(err) {
-        listEl.innerHTML = '<div class="empty-state" style="padding:40px 20px;">Failed to load users.</div>';
+    } catch(e) {
+        listEl.innerHTML = '<div class="empty-state"><span>Failed to load users.</span></div>';
     }
-};
+}
 
-window.closeNewChatSheet = () => {
-    document.getElementById('new-chat-sheet-overlay').classList.remove('active');
-};
-
-// ─── Action Sheet ─────────────────────────────────────────────────────────────
-window.closeActionSheet = () => {
-    document.getElementById('action-sheet-overlay').classList.remove('active');
-};
-
-window.executeClearChat = async () => {
+// ── Action Sheet ──
+async function executeClearChat() {
     if (!selectedConvId) return;
-    if (confirm("Are you sure you want to delete all messages for this chat?")) {
-        await remove(ref(db, `directMessages/${selectedConvId}`));
-        await update(ref(db, `conversations/${selectedConvId}`), {
-            lastMessage: "Conversation cleared",
-            lastTimestamp: Date.now(),
-            ["unread/" + currentUser.uid]: 0
-        });
-        window.closeActionSheet();
-    }
-};
-
-window.executeBlockUser = async () => {
+    closeSheet('action-sheet-overlay');
+    if (!confirm('Delete all messages in this chat?')) return;
+    await remove(ref(db, `directMessages/${selectedConvId}`));
+    await update(ref(db, `conversations/${selectedConvId}`), { lastMessage:'Chat cleared', lastTimestamp:Date.now(), [`unread/${currentUser.uid}`]:0 });
+    showToast('Chat cleared');
+}
+async function executeBlockUser() {
     if (!selectedTargetUid || !selectedConvId) return;
-    if (confirm("Block this user? You will no longer see this conversation slot.")) {
-        await remove(ref(db, `conversations/${selectedConvId}`));
-        window.closeActionSheet();
-    }
-};
+    closeSheet('action-sheet-overlay');
+    if (!confirm('Block this user? The conversation will be removed.')) return;
+    await remove(ref(db, `conversations/${selectedConvId}`));
+    showToast('User blocked');
+}
 
-// ─── History API Back Handling ───────────────────────────────────────────────
-window.addEventListener('popstate', () => {
-    if (document.getElementById('status-viewer').classList.contains('active')) {
-        closeStatusViewer();
-    } else if (document.getElementById('action-sheet-overlay').classList.contains('active')) {
-        closeActionSheet();
-    } else if (document.getElementById('new-chat-sheet-overlay').classList.contains('active')) {
-        closeNewChatSheet();
-    } else if (document.getElementById('edit-name-sheet-overlay').classList.contains('active')) {
-        closeEditNameSheet();
-    } else if (document.getElementById('chat-window').classList.contains('active')) {
-        closeChat(true);
-    }
-});
-
-// ─── Chat Window ─────────────────────────────────────────────────────────────
-window.openChat = async (targetUid) => {
-    const otherUser = allUsersCache[targetUid] || { username: 'User' };
-    activeChatUid = targetUid;
+// ── Chat Window ──
+async function openChat(targetUid) {
+    const otherUser = allUsersCache[targetUid] || { username:'User', photoURL:'' };
+    activeChatUid   = targetUid;
     activeChatConvId = [currentUser.uid, targetUid].sort().join('_');
 
-    history.pushState({ chatActive: true }, '', '#chat');
+    history.pushState({ chatActive:true }, '', '#chat');
 
-    document.getElementById('chat-header-name').textContent = otherUser.username;
-    document.getElementById('chat-header-avatar').src = otherUser.photoURL || DEFAULT_AVATAR;
+    const headerAvatar = document.getElementById('chat-header-avatar');
+    headerAvatar.src = otherUser.photoURL || DEFAULT_AVATAR;
+    headerAvatar.onerror = () => { headerAvatar.src = DEFAULT_AVATAR; };
+    document.getElementById('chat-header-name').textContent = otherUser.username || 'User';
+    document.getElementById('chat-header-status').textContent = '';
     document.getElementById('messages-area').innerHTML = '';
     document.getElementById('chat-input').value = '';
     document.getElementById('send-btn').disabled = true;
-
     document.getElementById('chat-window').classList.add('active');
 
     if (activeChatListener) off(ref(db, `directMessages/${activeChatConvId}/messages`));
 
-    const chatRef = ref(db, `directMessages/${activeChatConvId}/messages`);
     const msgsEl = document.getElementById('messages-area');
     let lastDateLabel = '';
 
-    activeChatListener = onChildAdded(chatRef, (snap) => {
+    activeChatListener = onChildAdded(ref(db, `directMessages/${activeChatConvId}/messages`), snap => {
         const msg = snap.val();
         if (!msg) return;
-
-        const isMe = msg.senderId === currentUser.uid;
+        const isMe    = msg.senderId === currentUser.uid;
         const msgTime = msg.timestamp || Date.now();
-        const dateLabel = new Date(msgTime).toDateString();
+        const dateLbl = new Date(msgTime).toDateString();
 
-        if (dateLabel !== lastDateLabel) {
-            lastDateLabel = dateLabel;
+        if (dateLbl !== lastDateLabel) {
+            lastDateLabel = dateLbl;
             const sep = document.createElement('div');
-            sep.style.cssText = 'text-align:center;font-size:11px;color:var(--text-muted);font-weight:700;padding:16px 0 6px;text-transform:uppercase;letter-spacing:0.5px;';
+            sep.style.cssText = 'text-align:center;font-size:11px;color:var(--text-muted);font-weight:700;padding:14px 0 4px;text-transform:uppercase;letter-spacing:0.5px;';
             sep.textContent = getDayLabel(msgTime);
             msgsEl.appendChild(sep);
         }
 
-        const hh = String(new Date(msgTime).getHours()).padStart(2, '0');
-        const mm = String(new Date(msgTime).getMinutes()).padStart(2, '0');
-
-        const wrapper = document.createElement('div');
-        wrapper.className = `message-wrapper ${isMe ? 'me' : 'other'}`;
-        wrapper.innerHTML = `
-            <div class="message-bubble">${escapeHtml(msg.text || '')}</div>
-            <div class="message-time">${hh}:${mm}</div>
-        `;
-        msgsEl.appendChild(wrapper);
+        const hh = String(new Date(msgTime).getHours()).padStart(2,'0');
+        const mm = String(new Date(msgTime).getMinutes()).padStart(2,'0');
+        const wrap = document.createElement('div');
+        wrap.className = `message-wrapper ${isMe ? 'me' : 'other'}`;
+        wrap.innerHTML = `<div class="message-bubble">${escapeHtml(msg.text||'')}</div><div class="message-time">${hh}:${mm}</div>`;
+        msgsEl.appendChild(wrap);
         msgsEl.scrollTop = msgsEl.scrollHeight;
     });
 
-    update(ref(db, `conversations/${activeChatConvId}/unread`), { [currentUser.uid]: 0 }).catch(() => {});
+    update(ref(db, `conversations/${activeChatConvId}/unread`), { [currentUser.uid]:0 }).catch(() => {});
 
     onValue(ref(db, `users/${targetUid}/online`), s => {
-        document.getElementById('chat-header-status').textContent = s.val() === true ? 'Active Now' : 'Offline';
+        document.getElementById('chat-header-status').textContent = s.val() === true ? '🟢 Active now' : 'Offline';
     });
-};
+}
 
-window.closeChat = (fromPopState = false) => {
+function closeChat(fromPopState = false) {
     document.getElementById('chat-window').classList.remove('active');
-    if (activeChatListener && activeChatConvId) {
-        off(ref(db, `directMessages/${activeChatConvId}/messages`));
-        activeChatListener = null;
-    }
-    activeChatUid = null;
-    activeChatConvId = null;
+    if (activeChatListener && activeChatConvId) { off(ref(db, `directMessages/${activeChatConvId}/messages`)); activeChatListener = null; }
+    activeChatUid = null; activeChatConvId = null;
     if (!fromPopState) history.back();
-};
+}
 
-window.sendChatMessage = async () => {
+async function sendChatMessage() {
     const input = document.getElementById('chat-input');
-    const text = input.value.trim();
+    const text  = input.value.trim();
     if (!text || !activeChatUid || !activeChatConvId) return;
-
-    input.value = '';
-    input.style.height = 'auto';
+    input.value = ''; input.style.height = 'auto';
     document.getElementById('send-btn').disabled = true;
-
     try {
-        await push(ref(db, `directMessages/${activeChatConvId}/messages`), {
-            senderId: currentUser.uid,
-            text,
-            timestamp: serverTimestamp()
-        });
-
-        const convSnap = await get(ref(db, `conversations/${activeChatConvId}/unread/${activeChatUid}`));
-        const currentUnread = convSnap.exists() ? convSnap.val() : 0;
-
+        await push(ref(db, `directMessages/${activeChatConvId}/messages`), { senderId:currentUser.uid, text, timestamp:serverTimestamp() });
+        const snap = await get(ref(db, `conversations/${activeChatConvId}/unread/${activeChatUid}`));
+        const cur  = snap.exists() ? snap.val() : 0;
         await update(ref(db, `conversations/${activeChatConvId}`), {
-            members: { [currentUser.uid]: true, [activeChatUid]: true },
-            lastMessage: text,
-            lastTimestamp: Date.now(),
-            [`unread/${activeChatUid}`]: currentUnread + 1
+            members:{ [currentUser.uid]:true, [activeChatUid]:true },
+            lastMessage:text, lastTimestamp:Date.now(),
+            [`unread/${activeChatUid}`]: cur + 1
         });
-    } catch(e) {
-        showToast('Message could not be sent.');
-    }
-};
+    } catch(e) { showToast('Failed to send'); }
+}
 
 window.resizeTextarea = (el) => {
     el.style.height = 'auto';
-    el.style.height = (el.scrollHeight) + 'px';
+    el.style.height = el.scrollHeight + 'px';
     document.getElementById('send-btn').disabled = el.value.trim().length === 0;
 };
 
-// ─── Status Upload ────────────────────────────────────────────────────────────
-window.handleStatusUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    document.getElementById('upload-loader').classList.add('active');
-    try {
-        const type = file.type.startsWith('video/') ? 'video' : 'image';
-        const downloadUrl = await uploadToCloudinary(file, 'vynix_statuses');
-        await push(ref(db, 'statuses'), {
-            uid: currentUser.uid, mediaUrl: downloadUrl, mediaType: type, timestamp: serverTimestamp()
-        });
-        showToast('Status shared!');
-    } catch (err) {
-        showToast('Failed to upload status.');
-    } finally {
-        document.getElementById('upload-loader').classList.remove('active');
-        e.target.value = '';
+// ── popstate ──
+window.addEventListener('popstate', () => {
+    for (const id of ['action-sheet-overlay','new-chat-sheet-overlay','edit-name-sheet-overlay','privacy-sheet-overlay','storage-sheet-overlay','help-sheet-overlay','about-sheet-overlay']) {
+        if (document.getElementById(id).classList.contains('active')) { closeSheet(id); return; }
     }
-};
+    if (document.getElementById('chat-window').classList.contains('active')) { closeChat(true); }
+});
 
-// Verified badge SVG — matches Twitter/X style with Vynix purple
-const VERIFIED_SVG = `<svg class="verified-badge" width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path d="M12 2L14.09 7.26L20 8.27L16 12.14L17.18 18.02L12 15.27L6.82 18.02L8 12.14L4 8.27L9.91 7.26L12 2Z" fill="#A78BFA" stroke="#fff" stroke-width="0.5"/>
-  <path d="M9 12L11 14L15 10" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>`;
-
-// Mute SVG icons
-const ICON_SOUND_ON = `<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>`;
-const ICON_SOUND_OFF = `<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>`;
-const ICON_MUTE_PILL_ON = `<svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>`;
-const ICON_MUTE_PILL_OFF = `<svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>`;
-
-function loadStatuses() {
-    onValue(ref(db, 'statuses'), (snap) => {
-        const now = Date.now();
-        let statuses = [];
-        if (snap.exists()) snap.forEach(c => statuses.push({ id: c.key, ...c.val() }));
-
-        // null timestamp = serverTimestamp() not yet resolved server-side; include it so newly
-        // uploaded statuses appear immediately without waiting for the server round-trip
-        statuses = statuses.filter(s => !s.timestamp || (now - s.timestamp) < 86400000);
-        statuses.sort((a, b) => (b.timestamp || now) - (a.timestamp || now));
-
-        window._allStatuses = statuses;
-        renderStatusCards(statuses);
-    });
-}
-
-function renderStatusCards(statuses) {
-    const grid = document.getElementById('status-grid');
-    const emptyEl = document.getElementById('status-empty');
-
-    const UPLOAD_CARD = `
-        <div class="status-card upload-status-btn" id="add-status-card">
-            <div class="upload-icon-wrap">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="12" cy="12" r="3"/><path d="M16.5 7.5h.01"/></svg>
-            </div>
-            <span>Add Status</span>
-            <span style="font-size:11px;font-weight:500;opacity:0.65;">Photo or Video</span>
-        </div>
-    `;
-
-    const html = statuses.map(s => {
-        const author = allUsersCache[s.uid] || { username: 'User', photoURL: DEFAULT_AVATAR };
-        const isVideo = s.mediaType === 'video';
-        const verifiedBadge = author.verified ? VERIFIED_SVG : '';
-        const authorName = escapeHtml(author.username || 'User');
-
-        const media = isVideo
-            ? `<video src="${s.mediaUrl}" autoplay muted loop playsinline></video>`
-            : `<img src="${s.mediaUrl}" alt="Status">`;
-
-        const videoBadge = isVideo ? `<div class="media-type-badge">VIDEO</div>` : '';
-        const mutePill = isVideo ? `<div class="mute-pill">${ICON_MUTE_PILL_OFF}<span>Muted</span></div>` : '';
-
-        return `
-            <div class="status-card"
-                data-status-id="${s.id}"
-                data-media-type="${s.mediaType || 'image'}"
-                data-media-url="${s.mediaUrl}"
-                data-author-uid="${s.uid}"
-                data-author-name="${escapeAttr(author.username || 'User')}"
-                data-timestamp="${s.timestamp || ''}">
-                ${media}
-                ${videoBadge}
-                ${mutePill}
-                <div class="status-overlay">
-                    <div class="status-author">
-                        <img src="${author.photoURL || DEFAULT_AVATAR}" onerror="this.src='${DEFAULT_AVATAR}'">
-                        <span>${authorName}</span>
-                        ${verifiedBadge}
-                    </div>
-                </div>
-            </div>
-        `;
-    }).join('');
-
-    grid.innerHTML = UPLOAD_CARD + html;
-
-    // Show/hide empty state
-    if (emptyEl) emptyEl.style.display = 'none';
-
-    // Wire upload card
-    document.getElementById('add-status-card').addEventListener('click', () => {
-        document.getElementById('status-upload').click();
-    });
-
-    // Wire status cards
-    grid.querySelectorAll('.status-card[data-status-id]').forEach(card => {
-        const { statusId, mediaType, mediaUrl, authorUid, timestamp } = card.dataset;
-        const ts = parseInt(timestamp, 10) || Date.now();
-
-        card.addEventListener('click', () => {
-            openStatusViewer({ statusId, mediaType, mediaUrl, authorUid, ts });
-        });
-
-        if (mediaType === 'video') {
-            const video = card.querySelector('video');
-            const pill = card.querySelector('.mute-pill');
-            video.style.pointerEvents = 'auto';
-            video.addEventListener('click', (e) => {
-                e.stopPropagation();
-                // Mute all other card videos
-                document.querySelectorAll('#status-grid video').forEach(v => {
-                    v.muted = true;
-                    const p = v.closest('.status-card')?.querySelector('.mute-pill');
-                    if (p) updateMutePill(p, true);
-                });
-                video.muted = false;
-                updateMutePill(pill, false);
-            });
-        }
-    });
-
-    feather.replace();
-}
-
-// ─── Status Search / Filter ───────────────────────────────────────────────────
-window.filterStatuses = (query) => {
-    const q = query.trim().toLowerCase();
-    const emptyEl = document.getElementById('status-empty');
-    const grid = document.getElementById('status-grid');
-
-    if (!q) {
-        renderStatusCards(window._allStatuses || []);
-        if (emptyEl) emptyEl.style.display = 'none';
-        return;
-    }
-
-    const filtered = (window._allStatuses || []).filter(s => {
-        const author = allUsersCache[s.uid] || { username: '' };
-        return (author.username || '').toLowerCase().includes(q);
-    });
-
-    renderStatusCards(filtered);
-
-    // After render: if no results (only upload card left), show empty state
-    const cards = grid.querySelectorAll('.status-card[data-status-id]');
-    if (emptyEl) emptyEl.style.display = cards.length === 0 ? 'block' : 'none';
-};
-
-function updateMutePill(pill, isMuted) {
-    if (!pill) return;
-    pill.innerHTML = isMuted
-        ? `${ICON_MUTE_PILL_OFF}<span>Muted</span>`
-        : `${ICON_MUTE_PILL_ON}<span>Sound</span>`;
-}
-
-// ─── Fullscreen Status Viewer ─────────────────────────────────────────────────
-let viewerVideo = null;
-
-window.openStatusViewer = ({ statusId, mediaType, mediaUrl, authorUid, ts }) => {
-    const author = allUsersCache[authorUid] || { username: 'User', photoURL: DEFAULT_AVATAR };
-    const viewer = document.getElementById('status-viewer');
-    const mediaEl = document.getElementById('sv-media');
-    const soundBtn = document.getElementById('sv-sound-btn');
-
-    document.getElementById('sv-avatar').src = author.photoURL || DEFAULT_AVATAR;
-    document.getElementById('sv-name').innerHTML = `${escapeHtml(author.username)}${author.verified ? ' ' + VERIFIED_SVG : ''}`;
-    document.getElementById('sv-time').textContent = ts ? formatChatTime(ts) : '';
-
-    // Clear previous
-    mediaEl.innerHTML = '';
-    viewerVideo = null;
-
-    if (mediaType === 'video') {
-        const vid = document.createElement('video');
-        vid.src = mediaUrl;
-        vid.autoplay = true;
-        vid.loop = true;
-        vid.playsInline = true;
-        vid.muted = false; // Sound on in fullscreen
-        vid.style.cssText = 'width:100%;height:100%;object-fit:contain;';
-        mediaEl.appendChild(vid);
-        viewerVideo = vid;
-        soundBtn.style.display = 'flex';
-        document.getElementById('sv-sound-icon').innerHTML = ICON_SOUND_ON.replace(/<svg[^>]*>|<\/svg>/g, '');
-        soundBtn.innerHTML = ICON_SOUND_ON;
-    } else {
-        const img = document.createElement('img');
-        img.src = mediaUrl;
-        img.style.cssText = 'max-width:100%;max-height:100%;object-fit:contain;';
-        mediaEl.appendChild(img);
-        soundBtn.style.display = 'none';
-    }
-
-    viewer.classList.add('active');
-    history.pushState({ viewerActive: true }, '', '#viewer');
-};
-
-window.closeStatusViewer = () => {
-    const viewer = document.getElementById('status-viewer');
-    viewer.classList.remove('active');
-    if (viewerVideo) {
-        viewerVideo.pause();
-        viewerVideo.src = '';
-        viewerVideo = null;
-    }
-    document.getElementById('sv-media').innerHTML = '';
-    if (history.state?.viewerActive) history.back();
-};
-
-window.toggleViewerSound = () => {
-    if (!viewerVideo) return;
-    viewerVideo.muted = !viewerVideo.muted;
-    document.getElementById('sv-sound-btn').innerHTML = viewerVideo.muted ? ICON_SOUND_OFF : ICON_SOUND_ON;
-};
-
-// ─── Profile ──────────────────────────────────────────────────────────────────
+// ── Profile ──
 window.handleProfileUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+    const file = e.target.files[0]; if (!file) return;
     document.getElementById('upload-loader').classList.add('active');
     try {
-        const downloadUrl = await uploadToCloudinary(file, 'vynix_profiles');
-        await update(ref(db, `users/${currentUser.uid}`), { photoURL: downloadUrl });
-        currentUserData.photoURL = downloadUrl;
-        allUsersCache[currentUser.uid] = currentUserData;
-        const navAvatarImg = document.getElementById('nav-profile-avatar');
-        if (navAvatarImg) navAvatarImg.src = downloadUrl;
-        renderProfile();
-        showToast('Profile picture updated!');
-    } catch (err) {
-        showToast('Failed to update profile picture.');
-    } finally {
-        document.getElementById('upload-loader').classList.remove('active');
-    }
+        const url = await uploadToCloudinary(file, 'vynix_profiles');
+        await update(ref(db, `users/${currentUser.uid}`), { photoURL:url });
+        currentUserData.photoURL = url;
+        allUsersCache[currentUser.uid] = { ...allUsersCache[currentUser.uid], photoURL:url };
+        document.getElementById('nav-profile-avatar').src = url;
+        renderProfile(); showToast('Profile picture updated!');
+    } catch { showToast('Upload failed'); }
+    finally { document.getElementById('upload-loader').classList.remove('active'); }
 };
 
 function renderProfile() {
     const container = document.getElementById('profile-content');
     if (!currentUserData) return;
-
-    const safePhotoUrl = currentUserData.photoURL || DEFAULT_AVATAR;
+    const photo  = currentUserData.photoURL || DEFAULT_AVATAR;
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const prefs  = loadPrefs();
 
     container.innerHTML = `
         <div class="profile-card">
-            <div style="position:relative; display:inline-block; margin-bottom:18px;">
-                <img src="${safePhotoUrl}" onerror="this.src='${DEFAULT_AVATAR}'" class="profile-avatar-large" style="cursor:pointer;" onclick="document.getElementById('profile-upload').click()">
-                <div style="position:absolute; bottom:0; right:0; background:var(--primary); color:white; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer; border:3px solid var(--surface);" onclick="document.getElementById('profile-upload').click()">
-                    <i data-feather="camera" style="width:14px;height:14px;"></i>
+            <div style="position:relative;display:inline-block;margin-bottom:16px;">
+                <img src="${photo}" class="profile-avatar-large" id="profile-avatar-img"
+                     style="cursor:pointer;" onclick="document.getElementById('profile-upload').click()"
+                     onerror="this.src='${DEFAULT_AVATAR.replace(/'/g,"\\'")}'" loading="lazy">
+                <div onclick="document.getElementById('profile-upload').click()"
+                     style="position:absolute;bottom:-2px;right:-2px;background:var(--primary);color:white;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;border:3px solid var(--surface);">
+                    <i data-feather="camera" style="width:13px;height:13px;"></i>
                 </div>
             </div>
             <input type="file" id="profile-upload" accept="image/*" style="display:none;" onchange="handleProfileUpload(event)">
             <div class="profile-name">
-                ${escapeHtml(currentUserData.username)}
-                <button class="edit-name-btn" onclick="openEditNameSheet()"><i data-feather="edit-2" style="width:18px;height:18px;"></i></button>
+                ${escapeHtml(currentUserData.username||'User')}
+                <button class="edit-name-btn" id="edit-name-btn-inline">
+                    <i data-feather="edit-2" style="width:16px;height:16px;"></i>
+                </button>
             </div>
-            <div class="profile-handle">${escapeHtml(currentUserData.email)}</div>
-            <button class="profile-btn logout" onclick="handleLogout()">Disconnect Session</button>
+            <div class="profile-handle">${escapeHtml(currentUserData.email||'')}</div>
+            <button class="profile-btn logout" id="logout-btn">Sign Out</button>
         </div>
 
         <div class="settings-list">
-            <div class="setting-item">
-                <div class="setting-label"><i data-feather="moon" style="width:20px;height:20px;"></i> Dark Mode</div>
-                <div class="toggle-switch ${isDark ? 'active' : ''}" onclick="toggleTheme(this)"></div>
+            <div class="settings-section">
+                <div class="settings-section-label">Preferences</div>
+                <div class="setting-item" id="dark-mode-item">
+                    <div class="setting-label">
+                        <div class="setting-label-icon" style="background:rgba(124,58,237,0.1);color:var(--primary);">
+                            <i data-feather="moon" style="width:16px;height:16px;"></i>
+                        </div>
+                        Dark Mode
+                    </div>
+                    <div class="toggle-switch ${isDark ? 'active' : ''}" id="dark-toggle"></div>
+                </div>
+                <div class="setting-item" id="notif-item">
+                    <div class="setting-label">
+                        <div class="setting-label-icon" style="background:rgba(245,158,11,0.1);color:#F59E0B;">
+                            <i data-feather="bell" style="width:16px;height:16px;"></i>
+                        </div>
+                        Push Notifications
+                    </div>
+                    <div class="toggle-switch ${prefs['notif'] !== false ? 'active' : ''}" id="notif-toggle"></div>
+                </div>
             </div>
-            <div class="setting-item">
-                <div class="setting-label"><i data-feather="bell" style="width:20px;height:20px;"></i> Notifications</div>
-                <div class="toggle-switch active" onclick="this.classList.toggle('active'); showToast('Notification settings updated');"></div>
+
+            <div class="settings-section">
+                <div class="settings-section-label">Account</div>
+                <div class="setting-item" id="privacy-item">
+                    <div class="setting-label">
+                        <div class="setting-label-icon" style="background:rgba(16,185,129,0.1);color:#10B981;">
+                            <i data-feather="shield" style="width:16px;height:16px;"></i>
+                        </div>
+                        Privacy & Security
+                    </div>
+                    <i data-feather="chevron-right" style="width:16px;height:16px;color:var(--text-muted);flex-shrink:0;"></i>
+                </div>
+                <div class="setting-item" id="storage-item">
+                    <div class="setting-label">
+                        <div class="setting-label-icon" style="background:rgba(59,130,246,0.1);color:#3B82F6;">
+                            <i data-feather="hard-drive" style="width:16px;height:16px;"></i>
+                        </div>
+                        Data & Storage
+                    </div>
+                    <i data-feather="chevron-right" style="width:16px;height:16px;color:var(--text-muted);flex-shrink:0;"></i>
+                </div>
             </div>
-            <div class="setting-item" style="cursor:pointer;" onclick="showToast('Privacy Settings Coming Soon')">
-                <div class="setting-label"><i data-feather="lock" style="width:20px;height:20px;"></i> Privacy & Security</div>
-                <i data-feather="chevron-right" style="width:20px;height:20px;color:var(--text-muted);"></i>
+
+            <div class="settings-section">
+                <div class="settings-section-label">Support</div>
+                <div class="setting-item" id="help-item">
+                    <div class="setting-label">
+                        <div class="setting-label-icon" style="background:rgba(239,68,68,0.08);color:var(--danger);">
+                            <i data-feather="help-circle" style="width:16px;height:16px;"></i>
+                        </div>
+                        Help & Support
+                    </div>
+                    <i data-feather="chevron-right" style="width:16px;height:16px;color:var(--text-muted);flex-shrink:0;"></i>
+                </div>
+                <div class="setting-item" id="about-item">
+                    <div class="setting-label">
+                        <div class="setting-label-icon" style="background:rgba(124,58,237,0.1);color:var(--primary);">
+                            <i data-feather="info" style="width:16px;height:16px;"></i>
+                        </div>
+                        About Vynix
+                    </div>
+                    <i data-feather="chevron-right" style="width:16px;height:16px;color:var(--text-muted);flex-shrink:0;"></i>
+                </div>
             </div>
-            <div class="setting-item" style="cursor:pointer;" onclick="showToast('Data & Storage Settings Coming Soon')">
-                <div class="setting-label"><i data-feather="hard-drive" style="width:20px;height:20px;"></i> Data & Storage</div>
-                <i data-feather="chevron-right" style="width:20px;height:20px;color:var(--text-muted);"></i>
-            </div>
-            <div class="setting-item" style="cursor:pointer;" onclick="showToast('Help & Support')">
-                <div class="setting-label"><i data-feather="help-circle" style="width:20px;height:20px;"></i> Help & Support</div>
-                <i data-feather="chevron-right" style="width:20px;height:20px;color:var(--text-muted);"></i>
-            </div>
-            <div class="setting-item" style="cursor:pointer;" onclick="showToast('Vynix Chat v1.0.0')">
-                <div class="setting-label"><i data-feather="info" style="width:20px;height:20px;"></i> About Vynix</div>
-                <i data-feather="chevron-right" style="width:20px;height:20px;color:var(--text-muted);"></i>
-            </div>
-        </div>
-    `;
+        </div>`;
+
     feather.replace();
+
+    // Wire up newly rendered buttons
+    document.getElementById('edit-name-btn-inline').addEventListener('click', openEditNameSheet);
+    document.getElementById('logout-btn').addEventListener('click', handleLogout);
+
+    document.getElementById('dark-mode-item').addEventListener('click', () => {
+        const tog = document.getElementById('dark-toggle');
+        tog.classList.toggle('active');
+        const isDk = tog.classList.contains('active');
+        document.documentElement.setAttribute('data-theme', isDk ? 'dark' : 'light');
+        localStorage.setItem('vynix-theme', isDk ? 'dark' : 'light');
+    });
+    document.getElementById('notif-item').addEventListener('click', () => {
+        const tog = document.getElementById('notif-toggle');
+        tog.classList.toggle('active');
+        savePrefs({ notif: tog.classList.contains('active') });
+        showToast('Notification preference saved');
+    });
+
+    document.getElementById('privacy-item').addEventListener('click', () => openSheet('privacy-sheet-overlay'));
+    document.getElementById('storage-item').addEventListener('click', () => openSheet('storage-sheet-overlay'));
+    document.getElementById('help-item').addEventListener('click',    () => openSheet('help-sheet-overlay'));
+    document.getElementById('about-item').addEventListener('click',   () => openSheet('about-sheet-overlay'));
 }
 
-window.openEditNameSheet = () => {
-    const input = document.getElementById('edit-name-input');
-    input.value = currentUserData.username || '';
-    document.getElementById('edit-name-sheet-overlay').classList.add('active');
-    setTimeout(() => input.focus(), 300);
-};
+function openEditNameSheet() {
+    document.getElementById('edit-name-input').value = currentUserData.username || '';
+    openSheet('edit-name-sheet-overlay');
+    setTimeout(() => document.getElementById('edit-name-input').focus(), 300);
+}
 
-window.closeEditNameSheet = () => {
-    document.getElementById('edit-name-sheet-overlay').classList.remove('active');
-};
-
-window.saveUsername = async () => {
-    const input = document.getElementById('edit-name-input');
+async function saveUsername() {
+    const input   = document.getElementById('edit-name-input');
     const newName = input.value.trim();
-    if (!newName || newName === currentUserData.username) { closeEditNameSheet(); return; }
+    if (!newName || newName === currentUserData.username) { closeSheet('edit-name-sheet-overlay'); return; }
     try {
-        await update(ref(db, `users/${currentUser.uid}`), { username: newName });
+        await update(ref(db, `users/${currentUser.uid}`), { username:newName });
         currentUserData.username = newName;
-        renderProfile();
-        showToast("Username updated!");
-        closeEditNameSheet();
-    } catch(e) {
-        showToast("Failed to update username.");
-    }
-};
+        allUsersCache[currentUser.uid] = { ...allUsersCache[currentUser.uid], username:newName };
+        renderProfile(); showToast('Name updated!'); closeSheet('edit-name-sheet-overlay');
+    } catch { showToast('Failed to update name'); }
+}
 
-window.toggleTheme = (el) => {
-    el.classList.toggle('active');
-    const isDark = el.classList.contains('active');
-    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-    localStorage.setItem('vynix-theme', isDark ? 'dark' : 'light');
-};
-
-window.handleLogout = () => {
-    update(ref(db, `users/${currentUser.uid}`), { online: false, lastSeen: serverTimestamp() })
-    .finally(() => {
-        signOut(auth).then(() => { window.location.reload(); });
-    });
-};
+function handleLogout() {
+    update(ref(db, `users/${currentUser.uid}`), { online:false, lastSeen:serverTimestamp() })
+        .finally(() => signOut(auth).then(() => window.location.reload()));
+}
 
 function setupPresence() {
     if (!currentUser) return;
-    const presRef = ref(db, `users/${currentUser.uid}`);
-    update(presRef, { online: true, lastSeen: serverTimestamp() }).catch(() => {});
-    window.addEventListener('beforeunload', () => {
-        update(presRef, { online: false, lastSeen: Date.now() }).catch(() => {});
-    });
+    const r = ref(db, `users/${currentUser.uid}`);
+    update(r, { online:true, lastSeen:serverTimestamp() }).catch(() => {});
+    window.addEventListener('beforeunload', () => update(r, { online:false, lastSeen:Date.now() }).catch(() => {}));
 }
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+// ── Helpers ──
 function formatChatTime(ts) {
     if (!ts) return '';
     const d = new Date(ts), now = new Date();
-    if (d.toDateString() === now.toDateString()) {
-        return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-    }
-    const yesterday = new Date(now); yesterday.setDate(now.getDate() - 1);
-    if (d.toDateString() === yesterday.toDateString()) return 'Yesterday';
+    if (d.toDateString() === now.toDateString()) return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    const y = new Date(now); y.setDate(now.getDate()-1);
+    if (d.toDateString() === y.toDateString()) return 'Yesterday';
     return `${d.getDate()}/${d.getMonth()+1}`;
 }
-
 function getDayLabel(ts) {
     const d = new Date(ts), now = new Date();
     if (d.toDateString() === now.toDateString()) return 'Today';
-    const yesterday = new Date(now); yesterday.setDate(now.getDate() - 1);
-    if (d.toDateString() === yesterday.toDateString()) return 'Yesterday';
-    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    const y = new Date(now); y.setDate(now.getDate()-1);
+    if (d.toDateString() === y.toDateString()) return 'Yesterday';
+    return d.toLocaleDateString(undefined, { month:'short', day:'numeric' });
 }
-
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = String(text || '');
-    return div.innerHTML;
-}
-
-// For HTML attributes (data-* attrs) — escape quotes
-function escapeAttr(text) {
-    return String(text || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-}
+function escapeHtml(t) { const d = document.createElement('div'); d.textContent = String(t||''); return d.innerHTML; }
+function escapeAttr(t) { return String(t||'').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 
 switchTab('chats');
 </script>
