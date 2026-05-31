@@ -50,6 +50,51 @@
         .app-container{max-width:100%;margin:0 auto;padding:16px;}
         @media(min-width:768px){.app-container{max-width:480px;margin:0 auto;min-height:100vh;padding:24px 0;}}
 
+        /* ── WhatsApp-style desktop/tablet two-panel layout ── */
+        @media(min-width:900px){
+            body{padding-bottom:0;overflow:hidden;height:100vh;}
+            .desktop-layout{display:flex;height:100vh;overflow:hidden;}
+            .sidebar{width:360px;min-width:320px;max-width:400px;flex-shrink:0;display:flex;flex-direction:column;border-right:1px solid var(--border);background:var(--surface);height:100vh;overflow:hidden;}
+            .sidebar-tabs{display:flex;border-bottom:1px solid var(--border);background:var(--surface);}
+            .sidebar-tab{flex:1;padding:14px 0;border:none;background:transparent;color:var(--text-muted);font-size:13px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;transition:all 0.2s;border-bottom:2.5px solid transparent;position:relative;}
+            .sidebar-tab.active{color:var(--primary);border-bottom-color:var(--primary);}
+            .sidebar-tab .nav-badge{position:absolute;top:8px;right:calc(50% - 18px);background:var(--danger);color:white;font-size:9px;font-weight:800;border-radius:10px;min-width:17px;height:17px;display:none;align-items:center;justify-content:center;padding:0 4px;}
+            .sidebar-tab .nav-badge.show{display:flex;}
+            .sidebar-header{padding:16px 20px 12px;background:var(--surface);border-bottom:1px solid var(--border);}
+            .sidebar-header h2{font-size:22px;font-weight:800;letter-spacing:-0.5px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;}
+            .sidebar-content{flex:1;overflow-y:auto;padding:8px 12px;}
+            .sidebar-scroll{flex:1;overflow-y:auto;}
+            /* Main panel */
+            .main-panel{flex:1;display:flex;flex-direction:column;background:var(--background);height:100vh;overflow:hidden;position:relative;}
+            /* Chat list item desktop */
+            .chat-list-item{border-radius:14px;}
+            /* Chat window desktop override */
+            .chat-window{position:static!important;transform:none!important;visibility:visible!important;flex:1;display:flex;flex-direction:column;height:100%;box-shadow:none!important;transition:none!important;}
+            .chat-window.desktop-hidden{display:none;}
+            /* Hide old mobile nav */
+            .bottom-nav-container{display:none;}
+            /* Mobile-only elements hidden on desktop */
+            .app-container{display:none;}
+            /* Bottom sheets centered */
+            .bottom-sheet-overlay{padding:20px;}
+            .bottom-sheet-overlay .bottom-sheet{max-width:460px;border-radius:28px;}
+            .bottom-sheet-overlay.active .bottom-sheet{transform:none;}
+            /* Sidebar profile section */
+            .sidebar-profile{display:flex;align-items:center;gap:10px;padding:12px 20px;border-bottom:1px solid var(--border);}
+            .sidebar-profile-avatar{width:42px;height:42px;border-radius:14px;object-fit:cover;background:var(--surface2);cursor:pointer;flex-shrink:0;}
+            .sidebar-profile-name{font-size:14px;font-weight:700;color:var(--text-primary);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+            .sidebar-icon-btn{background:var(--surface2);border:none;color:var(--text-secondary);width:36px;height:36px;border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all 0.18s;}
+            .sidebar-icon-btn:hover{background:var(--border);color:var(--primary);}
+            /* Empty main panel */
+            .desktop-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:16px;color:var(--text-muted);}
+            .desktop-empty-icon{width:88px;height:88px;border-radius:28px;background:rgba(var(--primary-rgb),0.08);display:flex;align-items:center;justify-content:center;}
+            .desktop-empty h3{font-size:20px;font-weight:700;color:var(--text-primary);}
+            .desktop-empty p{font-size:14px;max-width:280px;text-align:center;line-height:1.5;}
+        }
+        @media(max-width:899px){
+            .desktop-layout,.sidebar,.main-panel{display:contents;}
+        }
+
         .view-container{display:none;width:100%;animation:slideUp 0.35s cubic-bezier(0.16,1,0.3,1);}
         .view-container.active{display:block;}
         @keyframes slideUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
@@ -110,7 +155,7 @@
         /* ── Chat Window ── */
         .chat-window{position:fixed;inset:0;background:var(--background);z-index:200;display:flex;flex-direction:column;transform:translateX(100%);transition:transform 0.32s cubic-bezier(0.22,1,0.36,1);visibility:hidden;}
         .chat-window.active{transform:translateX(0);visibility:visible;}
-        @media(min-width:768px){.chat-window{left:calc(50% - 240px);right:calc(50% - 240px);box-shadow:0 0 40px rgba(0,0,0,0.12);}}
+        @media(min-width:768px) and (max-width:899px){.chat-window{left:calc(50% - 240px);right:calc(50% - 240px);box-shadow:0 0 40px rgba(0,0,0,0.12);}}
         .chat-topbar{display:flex;align-items:center;gap:14px;padding:calc(16px + env(safe-area-inset-top)) 20px 16px;background:var(--surface);box-shadow:var(--shadow-sm);flex-shrink:0;border-bottom:1px solid var(--border);}
         .back-btn{background:var(--surface2);border:none;color:var(--text-primary);width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
         .messages-area{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:8px;}
@@ -230,6 +275,101 @@
 
 <div class="toast" id="toast"></div>
 <div class="global-loader" id="upload-loader"><div class="spinner"></div></div>
+
+<!-- ── WhatsApp-style Desktop / Tablet Layout ── -->
+<div class="desktop-layout" id="desktop-layout" style="display:none;">
+    <!-- Sidebar -->
+    <div class="sidebar" id="desktop-sidebar">
+        <!-- Profile bar -->
+        <div class="sidebar-profile">
+            <img src="" id="desktop-profile-avatar" class="sidebar-profile-avatar" alt="Me" onclick="desktopSwitchPanel('profile')">
+            <span class="sidebar-profile-name" id="desktop-profile-name">Loading…</span>
+            <button class="sidebar-icon-btn" id="desktop-new-chat-btn" title="New message">
+                <i data-feather="edit" style="width:16px;height:16px;"></i>
+            </button>
+            <button class="sidebar-icon-btn" id="desktop-settings-btn" title="Settings" onclick="desktopSwitchPanel('profile')">
+                <i data-feather="settings" style="width:16px;height:16px;"></i>
+            </button>
+        </div>
+
+        <!-- Nav tabs -->
+        <div class="sidebar-tabs">
+            <button class="sidebar-tab active" id="dsk-tab-chats" onclick="desktopNavTab('chats')">
+                <i data-feather="message-circle" style="width:18px;height:18px;"></i>
+                <span>Chats</span>
+                <span class="nav-badge" id="dsk-badge-messages"></span>
+            </button>
+            <button class="sidebar-tab" id="dsk-tab-discover" onclick="desktopNavTab('discover')">
+                <i data-feather="compass" style="width:18px;height:18px;"></i>
+                <span>Discover</span>
+            </button>
+        </div>
+
+        <!-- Chats panel -->
+        <div id="dsk-panel-chats" class="sidebar-scroll">
+            <div class="sidebar-header">
+                <div class="search-box" style="margin:0;">
+                    <i data-feather="search" style="width:16px;height:16px;"></i>
+                    <input type="text" id="dsk-chat-search" placeholder="Search conversations…" oninput="filterChats(this.value)" style="font-size:14px;">
+                </div>
+            </div>
+            <div style="padding:8px 12px;">
+                <div class="tab-switcher" style="margin-bottom:0;">
+                    <button class="tab-pill active" id="dsk-tab-all" onclick="switchChatTab('all');document.getElementById('dsk-tab-all').classList.add('active');document.getElementById('dsk-tab-unread').classList.remove('active');">All</button>
+                    <button class="tab-pill" id="dsk-tab-unread" onclick="switchChatTab('unread');document.getElementById('dsk-tab-unread').classList.add('active');document.getElementById('dsk-tab-all').classList.remove('active');">
+                        Unread <span class="pill-badge hidden" id="dsk-unread-count">0</span>
+                    </button>
+                </div>
+            </div>
+            <div id="dsk-chats-list" class="chats-holder" style="padding:4px 12px 12px;gap:4px;"></div>
+        </div>
+
+        <!-- Discover panel (hidden by default) -->
+        <div id="dsk-panel-discover" class="sidebar-scroll" style="display:none;">
+            <div class="sidebar-header">
+                <h2 style="margin-bottom:0;font-size:18px;">Discover <span style="font-size:12px;font-weight:600;color:var(--text-muted);" id="dsk-discover-counter"></span></h2>
+            </div>
+            <div id="dsk-discover-content" style="padding:8px 12px;"></div>
+        </div>
+    </div>
+
+    <!-- Main panel -->
+    <div class="main-panel" id="desktop-main-panel">
+        <!-- Empty state (default) -->
+        <div class="desktop-empty" id="desktop-empty-state">
+            <div class="desktop-empty-icon">
+                <i data-feather="message-circle" style="width:36px;height:36px;color:var(--primary);"></i>
+            </div>
+            <h3>Vynix Messages</h3>
+            <p>Select a conversation from the sidebar or start a new one to begin chatting.</p>
+        </div>
+
+        <!-- Chat window (inline on desktop) -->
+        <div class="chat-window desktop-hidden" id="desktop-chat-window" style="position:relative;transform:none;visibility:visible;flex:1;">
+            <div class="chat-topbar">
+                <img src="" id="dsk-chat-header-avatar" class="avatar" style="width:42px;height:42px;border-radius:14px;background:var(--surface2);">
+                <div style="flex:1;min-width:0;">
+                    <div style="font-weight:700;font-size:16px;letter-spacing:-0.2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" id="dsk-chat-header-name">User</div>
+                    <div style="font-size:12px;color:var(--text-muted);margin-top:1px;" id="dsk-chat-header-status"></div>
+                </div>
+            </div>
+            <div class="messages-area" id="dsk-messages-area"></div>
+            <div class="input-bar">
+                <div class="chat-input-wrapper">
+                    <textarea id="dsk-chat-input" placeholder="Message…" rows="1" oninput="resizeDskTextarea(this)" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendDskMessage();}"></textarea>
+                </div>
+                <button class="send-btn" id="dsk-send-btn" disabled onclick="sendDskMessage()">
+                    <i data-feather="send" style="width:18px;height:18px;margin-left:2px;"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Profile panel -->
+        <div id="desktop-profile-panel" style="display:none;height:100%;overflow-y:auto;padding:24px;max-width:520px;margin:0 auto;width:100%;">
+            <div id="dsk-profile-content"></div>
+        </div>
+    </div>
+</div>
 
 <div class="app-container">
 
@@ -700,6 +840,208 @@ onAuthStateChanged(auth, async (user) => {
 function openSheet(id) { document.getElementById(id).classList.add('active'); }
 function closeSheet(id) { document.getElementById(id).classList.remove('active'); }
 
+// ── Desktop / Tablet Layout Detection ──
+function isDesktop() { return window.innerWidth >= 900; }
+
+function initDesktopLayout() {
+    const layout = document.getElementById('desktop-layout');
+    if (isDesktop()) {
+        layout.style.display = 'flex';
+        document.getElementById('desktop-new-chat-btn').addEventListener('click', openNewChatSheet);
+    } else {
+        layout.style.display = 'none';
+    }
+}
+
+window.addEventListener('resize', () => {
+    const layout = document.getElementById('desktop-layout');
+    if (isDesktop()) {
+        layout.style.display = 'flex';
+    } else {
+        layout.style.display = 'none';
+    }
+});
+
+// Desktop nav tab switching
+window.desktopNavTab = (tab) => {
+    document.getElementById('dsk-panel-chats').style.display  = tab === 'chats'    ? 'flex' : 'none';
+    document.getElementById('dsk-panel-discover').style.display = tab === 'discover' ? 'flex' : 'none';
+    document.getElementById('dsk-tab-chats').classList.toggle('active',   tab === 'chats');
+    document.getElementById('dsk-tab-discover').classList.toggle('active', tab === 'discover');
+    if (tab === 'discover') renderDskDiscover();
+};
+document.getElementById('dsk-panel-chats').style.display = 'flex';
+document.getElementById('dsk-panel-chats').style.flexDirection = 'column';
+
+// Desktop panel switching (empty state / chat / profile)
+window.desktopSwitchPanel = (panel) => {
+    document.getElementById('desktop-empty-state').style.display      = panel === 'empty'   ? 'flex'   : 'none';
+    document.getElementById('desktop-chat-window').classList.toggle('desktop-hidden', panel !== 'chat');
+    document.getElementById('desktop-profile-panel').style.display    = panel === 'profile' ? 'block'  : 'none';
+    if (panel === 'profile') {
+        document.getElementById('dsk-profile-content').innerHTML = document.getElementById('profile-content').innerHTML;
+        feather.replace();
+        rewireProfileButtons('dsk-profile-content');
+    }
+};
+
+function rewireProfileButtons(containerId) {
+    const c = document.getElementById(containerId);
+    if (!c) return;
+    c.querySelector('#edit-name-btn-inline')?.addEventListener('click', openEditNameSheet);
+    c.querySelector('#edit-bio-btn-inline')?.addEventListener('click', openEditBioSheet);
+    c.querySelector('#logout-btn')?.addEventListener('click', handleLogout);
+    const darkItem = c.querySelector('#dark-mode-item');
+    if (darkItem) darkItem.addEventListener('click', () => {
+        const isDk = document.documentElement.getAttribute('data-theme') !== 'dark';
+        document.documentElement.setAttribute('data-theme', isDk ? 'dark' : 'light');
+        localStorage.setItem('vynix-theme', isDk ? 'dark' : 'light');
+    });
+    c.querySelector('#privacy-item')?.addEventListener('click', () => openSheet('privacy-sheet-overlay'));
+    c.querySelector('#storage-item')?.addEventListener('click', () => openSheet('storage-sheet-overlay'));
+    c.querySelector('#help-item')?.addEventListener('click',    () => openSheet('help-sheet-overlay'));
+    c.querySelector('#about-item')?.addEventListener('click',   () => openSheet('about-sheet-overlay'));
+}
+
+// Desktop chat state
+let dskActiveChatUid    = null;
+let dskActiveChatConvId = null;
+let dskActiveChatListener = null;
+
+function openDskChat(targetUid) {
+    const otherUser = allUsersCache[targetUid] || { username:'User', photoURL:'' };
+    dskActiveChatUid    = targetUid;
+    dskActiveChatConvId = [currentUser.uid, targetUid].sort().join('_');
+
+    const hdrAvatar = document.getElementById('dsk-chat-header-avatar');
+    hdrAvatar.src = otherUser.photoURL || DEFAULT_AVATAR;
+    hdrAvatar.onerror = () => { hdrAvatar.src = DEFAULT_AVATAR; };
+    document.getElementById('dsk-chat-header-name').textContent   = otherUser.username || 'User';
+    document.getElementById('dsk-chat-header-status').textContent = '';
+    document.getElementById('dsk-messages-area').innerHTML = '';
+    document.getElementById('dsk-chat-input').value = '';
+    document.getElementById('dsk-send-btn').disabled = true;
+
+    desktopSwitchPanel('chat');
+
+    if (dskActiveChatListener) off(ref(db, `directMessages/${dskActiveChatConvId}/messages`));
+
+    const msgsEl = document.getElementById('dsk-messages-area');
+    let lastDateLabel = '';
+    dskActiveChatListener = onChildAdded(ref(db, `directMessages/${dskActiveChatConvId}/messages`), snap => {
+        const msg = snap.val();
+        if (!msg) return;
+        const isMe    = msg.senderId === currentUser.uid;
+        const msgTime = msg.timestamp || Date.now();
+        const dateLbl = new Date(msgTime).toDateString();
+        if (dateLbl !== lastDateLabel) {
+            lastDateLabel = dateLbl;
+            const sep = document.createElement('div');
+            sep.style.cssText = 'text-align:center;font-size:11px;color:var(--text-muted);font-weight:700;padding:14px 0 4px;text-transform:uppercase;letter-spacing:0.5px;';
+            sep.textContent = getDayLabel(msgTime);
+            msgsEl.appendChild(sep);
+        }
+        const hh = String(new Date(msgTime).getHours()).padStart(2,'0');
+        const mm = String(new Date(msgTime).getMinutes()).padStart(2,'0');
+        const wrap = document.createElement('div');
+        wrap.className = `message-wrapper ${isMe ? 'me' : 'other'}`;
+        wrap.innerHTML = `<div class="message-bubble">${escapeHtml(msg.text||'')}</div><div class="message-time">${hh}:${mm}</div>`;
+        msgsEl.appendChild(wrap);
+        msgsEl.scrollTop = msgsEl.scrollHeight;
+    });
+
+    update(ref(db, `conversations/${dskActiveChatConvId}/unread`), { [currentUser.uid]:0 }).catch(() => {});
+    onValue(ref(db, `users/${targetUid}/online`), s => {
+        document.getElementById('dsk-chat-header-status').textContent = s.val() === true ? '🟢 Active now' : 'Offline';
+    });
+}
+
+async function sendDskMessage() {
+    const input = document.getElementById('dsk-chat-input');
+    const text  = input.value.trim();
+    if (!text || !dskActiveChatUid || !dskActiveChatConvId) return;
+    input.value = ''; input.style.height = 'auto';
+    document.getElementById('dsk-send-btn').disabled = true;
+    try {
+        await push(ref(db, `directMessages/${dskActiveChatConvId}/messages`), { senderId:currentUser.uid, text, timestamp:serverTimestamp() });
+        const snap = await get(ref(db, `conversations/${dskActiveChatConvId}/unread/${dskActiveChatUid}`));
+        const cur  = snap.exists() ? snap.val() : 0;
+        await update(ref(db, `conversations/${dskActiveChatConvId}`), {
+            members:{ [currentUser.uid]:true, [dskActiveChatUid]:true },
+            lastMessage:text, lastTimestamp:Date.now(),
+            [`unread/${dskActiveChatUid}`]: cur + 1
+        });
+    } catch { showToast('Failed to send'); }
+}
+
+window.resizeDskTextarea = (el) => {
+    el.style.height = 'auto';
+    el.style.height = el.scrollHeight + 'px';
+    document.getElementById('dsk-send-btn').disabled = el.value.trim().length === 0;
+};
+
+// Desktop discover (compact card view in sidebar)
+let dskDiscoverQueue = [], dskDiscoverIndex = 0;
+async function renderDskDiscover() {
+    const container = document.getElementById('dsk-discover-content');
+    if (!Object.keys(allUsersCache).length) {
+        try {
+            const snap = await get(ref(db, 'users'));
+            if (snap.exists()) snap.forEach(c => { allUsersCache[c.key] = c.val(); });
+        } catch { return; }
+    }
+    const users = Object.keys(allUsersCache).filter(uid => uid !== currentUser.uid).map(uid => ({ uid, ...allUsersCache[uid] }));
+    for (let i = users.length - 1; i > 0; i--) { const j = Math.floor(Math.random()*(i+1)); [users[i],users[j]]=[users[j],users[i]]; }
+    dskDiscoverQueue = users; dskDiscoverIndex = 0;
+    showDskDiscoverCard();
+}
+
+function showDskDiscoverCard() {
+    const container = document.getElementById('dsk-discover-content');
+    const counter   = document.getElementById('dsk-discover-counter');
+    if (!dskDiscoverQueue.length || dskDiscoverIndex >= dskDiscoverQueue.length) {
+        container.innerHTML = `<div style="text-align:center;padding:40px 16px;color:var(--text-muted);font-size:13px;">${!dskDiscoverQueue.length ? 'No one here yet' : "You've seen everyone!"}</div>`;
+        counter.textContent = '';
+        feather.replace(); return;
+    }
+    const u = dskDiscoverQueue[dskDiscoverIndex];
+    counter.textContent = `${dskDiscoverQueue.length - dskDiscoverIndex} left`;
+    container.innerHTML = `
+        <div style="border-radius:20px;overflow:hidden;position:relative;aspect-ratio:3/4;max-height:340px;box-shadow:0 8px 32px rgba(0,0,0,0.18);cursor:grab;" id="dsk-disc-card">
+            <img src="${u.photoURL || DEFAULT_AVATAR}" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='${DEFAULT_AVATAR.replace(/'/g,"\\'")}'" draggable="false">
+            <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.8) 0%,transparent 55%);"></div>
+            <div style="position:absolute;bottom:0;left:0;right:0;padding:16px;">
+                <div style="font-size:18px;font-weight:800;color:white;letter-spacing:-0.3px;">${escapeHtml(u.username||'User')}${u.age?`<span style="font-size:15px;font-weight:600;opacity:0.8;margin-left:6px;">${u.age}</span>`:''}</div>
+                ${u.bio ? `<div style="font-size:12px;color:rgba(255,255,255,0.75);margin-top:3px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">${escapeHtml(u.bio)}</div>` : ''}
+            </div>
+        </div>
+        <div style="display:flex;justify-content:center;gap:14px;margin-top:14px;">
+            <button onclick="dskSwipe('left')" style="width:48px;height:48px;border-radius:50%;border:none;background:white;color:#EF4444;box-shadow:0 4px 12px rgba(239,68,68,0.2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform 0.18s;" onmousedown="this.style.transform='scale(0.88)'" onmouseup="this.style.transform=''">
+                <i data-feather="x" style="width:22px;height:22px;"></i>
+            </button>
+            <button onclick="dskSwipe('msg')" style="width:40px;height:40px;border-radius:50%;border:none;background:white;color:var(--primary);box-shadow:0 4px 12px rgba(var(--primary-rgb),0.2);cursor:pointer;display:flex;align-items:center;justify-content:center;" >
+                <i data-feather="message-circle" style="width:18px;height:18px;"></i>
+            </button>
+            <button onclick="dskSwipe('right')" style="width:48px;height:48px;border-radius:50%;border:none;background:white;color:#22C55E;box-shadow:0 4px 12px rgba(34,197,94,0.2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform 0.18s;" onmousedown="this.style.transform='scale(0.88)'" onmouseup="this.style.transform=''">
+                <i data-feather="heart" style="width:22px;height:22px;"></i>
+            </button>
+        </div>`;
+    feather.replace();
+}
+
+window.dskSwipe = (dir) => {
+    const u = dskDiscoverQueue[dskDiscoverIndex];
+    if (dir === 'right' && currentUser && u.uid) {
+        showToast(`Connected with ${u.username||'User'}! 🎉`);
+        const now = Date.now();
+        update(ref(db, `connections/${currentUser.uid}/friends`), { [u.uid]: now }).catch(() => {});
+        update(ref(db, `connections/${u.uid}/friends`), { [currentUser.uid]: now }).catch(() => {});
+    }
+    if (dir === 'msg') { openDskChat(u.uid); return; }
+    dskDiscoverIndex++;
+    showDskDiscoverCard();
+};
+
 // ── Tab switcher ──
 window.switchTab = (tabId) => {
     document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active'));
@@ -731,6 +1073,11 @@ async function loadUserData() {
     const navImg = document.getElementById('nav-profile-avatar');
     navImg.src = photoUrl;
     navImg.onerror = () => { navImg.src = DEFAULT_AVATAR; };
+    // Sync desktop sidebar profile bar
+    const dskAvatar = document.getElementById('desktop-profile-avatar');
+    const dskName   = document.getElementById('desktop-profile-name');
+    if (dskAvatar) { dskAvatar.src = photoUrl; dskAvatar.onerror = () => { dskAvatar.src = DEFAULT_AVATAR; }; }
+    if (dskName)   dskName.textContent = currentUserData.username || 'Profile';
     renderProfile();
 }
 
@@ -750,6 +1097,9 @@ async function loadChatsTab() {
     const usersSnap = await get(ref(db, 'users'));
     if (usersSnap.exists()) usersSnap.forEach(c => { allUsersCache[c.key] = c.val(); });
 
+    // Init desktop layout
+    initDesktopLayout();
+
     onValue(ref(db, 'conversations'), snap => {
         let convList = [];
         let totalUnread = 0;
@@ -768,10 +1118,12 @@ async function loadChatsTab() {
             });
         }
 
-        // Update nav badge
+        // Update nav badge (desktop too)
         const badge = document.getElementById('badge-messages');
         badge.textContent = totalUnread;
         badge.classList.toggle('show', totalUnread > 0);
+        const dskBadge = document.getElementById('dsk-badge-messages');
+        if (dskBadge) { dskBadge.textContent = totalUnread; dskBadge.classList.toggle('show', totalUnread > 0); }
 
         // Update unread tab pill count
         const unreadCount = convList.filter(c => c.unread > 0).length;
@@ -787,7 +1139,8 @@ async function loadChatsTab() {
 
 function renderConversations(convList) {
     const listEl = document.getElementById('chats-list');
-    const query  = document.getElementById('chat-search').value.toLowerCase();
+    const dskListEl = document.getElementById('dsk-chats-list');
+    const query  = (document.getElementById('chat-search')?.value || document.getElementById('dsk-chat-search')?.value || '').toLowerCase();
 
     let filtered = currentChatTab === 'unread'
         ? convList.filter(c => c.unread > 0)
@@ -801,12 +1154,14 @@ function renderConversations(convList) {
         const msg = currentChatTab === 'unread'
             ? 'No unread messages'
             : query ? 'No results found' : 'No conversations yet.<br>Tap the pencil to start one.';
-        listEl.innerHTML = `<div class="empty-state"><i data-feather="message-circle" style="width:36px;height:36px;color:var(--text-muted);"></i><span style="color:var(--text-muted);font-size:14px;text-align:center;">${msg}</span></div>`;
+        const emptyHtml = `<div class="empty-state"><i data-feather="message-circle" style="width:36px;height:36px;color:var(--text-muted);"></i><span style="color:var(--text-muted);font-size:14px;text-align:center;">${msg}</span></div>`;
+        listEl.innerHTML = emptyHtml;
+        if (dskListEl) dskListEl.innerHTML = emptyHtml;
         feather.replace();
         return;
     }
 
-    listEl.innerHTML = filtered.map(c => {
+    const cardsHtml = filtered.map(c => {
         const photo = c.other.photoURL || DEFAULT_AVATAR;
         return `
         <div class="chat-list-item"
@@ -829,7 +1184,11 @@ function renderConversations(convList) {
         </div>`;
     }).join('');
 
+    listEl.innerHTML = cardsHtml;
+    if (dskListEl) dskListEl.innerHTML = cardsHtml;
+
     listEl.querySelectorAll('.chat-list-item').forEach(el => attachChatCardListeners(el));
+    if (dskListEl) dskListEl.querySelectorAll('.chat-list-item').forEach(el => attachDskChatCardListeners(el));
     feather.replace();
 }
 
@@ -874,36 +1233,70 @@ function attachChatCardListeners(el) {
     el.addEventListener('touchmove', onCancel, { passive:true });
 }
 
+// ── Desktop Chat Card Listeners ──
+function attachDskChatCardListeners(el) {
+    el.addEventListener('click', () => openDskChat(el.dataset.otherId));
+    el.addEventListener('mouseenter', () => el.classList.add('pressing'));
+    el.addEventListener('mouseleave', () => el.classList.remove('pressing'));
+}
+
 // ── New Chat Sheet ──
 async function openNewChatSheet() {
     openSheet('new-chat-sheet-overlay');
     const listEl = document.getElementById('all-users-list');
     listEl.innerHTML = shimmerHTML();
     try {
+        // Load connected friends from Firebase connections node
+        const friendsSnap = await get(ref(db, `connections/${currentUser.uid}/friends`));
+        const friendUids = friendsSnap.exists() ? Object.keys(friendsSnap.val()) : [];
+
+        if (!friendUids.length) {
+            listEl.innerHTML = `<div class="empty-state" style="padding:40px 24px;">
+                <i data-feather="users" style="width:32px;height:32px;color:var(--text-muted);"></i>
+                <span style="color:var(--text-muted);font-size:14px;text-align:center;">No connections yet.<br>Go to Discover and connect with people!</span>
+            </div>`;
+            feather.replace();
+            return;
+        }
+
+        // Make sure users are cached
         if (!Object.keys(allUsersCache).length) {
             const snap = await get(ref(db, 'users'));
             if (snap.exists()) snap.forEach(c => { allUsersCache[c.key] = c.val(); });
         }
-        const users = Object.keys(allUsersCache)
-            .filter(uid => uid !== currentUser.uid)
+
+        const friends = friendUids
+            .filter(uid => uid !== currentUser.uid && allUsersCache[uid])
             .map(uid => ({ uid, ...allUsersCache[uid] }));
 
-        if (!users.length) { listEl.innerHTML = '<div class="empty-state"><span>No other users yet.</span></div>'; return; }
+        if (!friends.length) {
+            listEl.innerHTML = `<div class="empty-state" style="padding:40px 24px;">
+                <i data-feather="user-x" style="width:32px;height:32px;color:var(--text-muted);"></i>
+                <span style="color:var(--text-muted);font-size:14px;text-align:center;">No connections found.<br>Connect with people in Discover!</span>
+            </div>`;
+            feather.replace();
+            return;
+        }
 
-        listEl.innerHTML = users.map(u => `
+        listEl.innerHTML = friends.map(u => `
             <div class="user-row" data-uid="${u.uid}">
                 <img src="${u.photoURL || DEFAULT_AVATAR}" class="avatar" style="width:44px;height:44px;border-radius:14px;background:var(--surface2);" onerror="this.src='${DEFAULT_AVATAR.replace(/'/g,"\\'")}'" loading="lazy">
-                <div>
+                <div style="flex:1;min-width:0;">
                     <div class="chat-name">${escapeHtml(u.username||'User')}</div>
                     <div style="font-size:12px;color:var(--text-muted);">${escapeHtml(u.email||'')}</div>
                 </div>
+                <div style="width:8px;height:8px;border-radius:50%;background:${u.online ? '#22C55E' : 'var(--border)'};flex-shrink:0;"></div>
             </div>`).join('');
 
         listEl.querySelectorAll('.user-row').forEach(row => {
-            row.addEventListener('click', () => { closeSheet('new-chat-sheet-overlay'); openChat(row.dataset.uid); });
+            row.addEventListener('click', () => {
+                closeSheet('new-chat-sheet-overlay');
+                if (isDesktop()) openDskChat(row.dataset.uid);
+                else openChat(row.dataset.uid);
+            });
         });
     } catch(e) {
-        listEl.innerHTML = '<div class="empty-state"><span>Failed to load users.</span></div>';
+        listEl.innerHTML = '<div class="empty-state"><span>Failed to load connections.</span></div>';
     }
 }
 
@@ -1356,7 +1749,12 @@ function animateSwipe(dir) {
     const u = discoverQueue[discoverIndex];
     if (dir === 'right') {
         showToast(`Connected with ${u.username || 'User'}! 🎉`);
-        // Optionally open chat
+        // Save connection to Firebase both ways (mutual)
+        if (currentUser && u.uid) {
+            const now = Date.now();
+            update(ref(db, `connections/${currentUser.uid}/friends`), { [u.uid]: now }).catch(() => {});
+            update(ref(db, `connections/${u.uid}/friends`), { [currentUser.uid]: now }).catch(() => {});
+        }
     }
     discoverIndex++;
     setTimeout(showDiscoverCard, 380);
