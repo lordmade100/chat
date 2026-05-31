@@ -76,9 +76,9 @@
         .search-box input{border:none;background:transparent;outline:none;width:100%;font-size:15px;color:var(--text-primary);font-family:inherit;}
         .search-box input::placeholder{color:var(--text-muted);}
 
-        /* ── Bottom Nav (2 items) ── */
+        /* ── Bottom Nav (3 items) ── */
         .bottom-nav-container{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom));left:0;right:0;display:flex;justify-content:center;z-index:100;padding:0 24px;}
-        .bottom-nav{background:var(--surface);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--border);padding:10px 36px;display:flex;justify-content:space-between;align-items:center;border-radius:32px;width:100%;max-width:280px;box-shadow:var(--shadow-md);}
+        .bottom-nav{background:var(--surface);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--border);padding:10px 28px;display:flex;justify-content:space-between;align-items:center;border-radius:32px;width:100%;max-width:340px;box-shadow:var(--shadow-md);}
         .nav-item{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;width:48px;height:48px;background:none;border:none;cursor:pointer;color:var(--text-muted);transition:all 0.22s cubic-bezier(0.4,0,0.2,1);border-radius:50%;}
         .nav-item.active{color:var(--primary);background:rgba(var(--primary-rgb),0.1);transform:translateY(-2px);}
         .nav-avatar-wrapper{width:28px;height:28px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;border:2px solid transparent;transition:all 0.2s;}
@@ -169,6 +169,40 @@
         .toggle-switch.active{background:var(--primary);}
         .toggle-switch.active::after{transform:translateX(18px);}
 
+        /* ── Discover Tab ── */
+        .discover-wrap{display:flex;flex-direction:column;align-items:center;padding:8px 4px 0;position:relative;min-height:calc(100vh - 220px);}
+        .discover-stack{position:relative;width:100%;max-width:380px;height:520px;margin:0 auto;}
+        .discover-card{position:absolute;inset:0;border-radius:28px;overflow:hidden;cursor:grab;touch-action:none;box-shadow:0 20px 60px rgba(0,0,0,0.18),0 8px 24px rgba(0,0,0,0.12);transition:box-shadow 0.2s;will-change:transform;}
+        .discover-card:active{cursor:grabbing;}
+        .discover-card img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none;-webkit-user-drag:none;}
+        .discover-card-gradient{position:absolute;bottom:0;left:0;right:0;height:55%;background:linear-gradient(to top,rgba(0,0,0,0.82) 0%,rgba(0,0,0,0.45) 55%,transparent 100%);}
+        .discover-card-info{position:absolute;bottom:0;left:0;right:0;padding:24px 22px 28px;}
+        .discover-card-name{font-size:26px;font-weight:800;color:white;letter-spacing:-0.5px;text-shadow:0 2px 8px rgba(0,0,0,0.3);}
+        .discover-card-meta{display:flex;align-items:center;gap:8px;margin-top:4px;flex-wrap:wrap;}
+        .discover-card-age{font-size:18px;font-weight:600;color:rgba(255,255,255,0.9);}
+        .discover-card-bio{font-size:13px;color:rgba(255,255,255,0.75);margin-top:6px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+        .discover-card-online{width:10px;height:10px;border-radius:50%;background:#22C55E;border:2px solid white;flex-shrink:0;}
+        .swipe-label{position:absolute;top:28px;padding:7px 18px;border-radius:12px;font-size:18px;font-weight:900;letter-spacing:1px;opacity:0;transition:opacity 0.1s;pointer-events:none;}
+        .swipe-label.like{left:20px;background:rgba(34,197,94,0.18);color:#22C55E;border:3px solid #22C55E;transform:rotate(-15deg);}
+        .swipe-label.nope{right:20px;background:rgba(239,68,68,0.18);color:#EF4444;border:3px solid #EF4444;transform:rotate(15deg);}
+        .discover-actions{display:flex;align-items:center;justify-content:center;gap:20px;margin-top:24px;}
+        .disc-btn{width:58px;height:58px;border-radius:50%;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s cubic-bezier(0.34,1.56,0.64,1);box-shadow:0 4px 16px rgba(0,0,0,0.12);}
+        .disc-btn:active{transform:scale(0.88);}
+        .disc-btn.pass{background:white;color:#EF4444;box-shadow:0 4px 16px rgba(239,68,68,0.2);}
+        .disc-btn.like{background:white;color:#22C55E;box-shadow:0 4px 16px rgba(34,197,94,0.2);}
+        .disc-btn.msg{background:white;color:var(--primary);width:48px;height:48px;box-shadow:0 4px 16px rgba(var(--primary-rgb),0.2);}
+        [data-theme="dark"] .disc-btn.pass,[data-theme="dark"] .disc-btn.like,[data-theme="dark"] .disc-btn.msg{background:var(--surface2);}
+        .discover-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:60px 24px;text-align:center;}
+        .discover-empty-icon{width:80px;height:80px;border-radius:28px;background:rgba(var(--primary-rgb),0.1);display:flex;align-items:center;justify-content:center;}
+        .discover-card-back{background:var(--surface2);display:flex;align-items:center;justify-content:center;}
+        .discover-hint{font-size:12px;color:var(--text-muted);margin-top:14px;display:flex;align-items:center;gap:16px;}
+        .discover-hint span{display:flex;align-items:center;gap:4px;}
+
+        /* ── Profile Bio/Age fields ── */
+        .profile-bio-text{font-size:14px;color:var(--text-secondary);line-height:1.5;text-align:center;max-width:280px;margin:0 auto 18px;min-height:20px;}
+        .profile-age-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(34,197,94,0.1);color:#16A34A;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;margin-bottom:6px;}
+        [data-theme="dark"] .profile-age-badge{color:#4ADE80;background:rgba(74,222,128,0.12);}
+
         /* ── Sheet info rows ── */
         .info-row{display:flex;align-items:center;gap:12px;padding:14px 4px;border-bottom:1px solid var(--border);}
         .info-row:last-child{border-bottom:none;}
@@ -229,6 +263,15 @@
         <div id="chats-list" class="chats-holder"></div>
     </div>
 
+    <!-- ── Discover Tab ── -->
+    <div id="view-discover" class="view-container">
+        <header class="header">
+            <h2>Discover</h2>
+            <div style="font-size:12px;color:var(--text-muted);font-weight:600;" id="discover-counter"></div>
+        </header>
+        <div id="discover-content"></div>
+    </div>
+
     <!-- ── Profile Tab ── -->
     <div id="view-profile" class="view-container">
         <header class="header">
@@ -245,6 +288,9 @@
         <button class="nav-item active" data-nav="chats" id="nav-chats">
             <i data-feather="message-circle" style="width:22px;height:22px;"></i>
             <span class="nav-badge" id="badge-messages"></span>
+        </button>
+        <button class="nav-item" data-nav="discover" id="nav-discover">
+            <i data-feather="compass" style="width:22px;height:22px;"></i>
         </button>
         <button class="nav-item" data-nav="profile" id="nav-profile">
             <div class="nav-avatar-wrapper">
@@ -289,6 +335,23 @@
             <i data-feather="check" style="width:18px;height:18px;"></i> Save
         </button>
         <button class="sheet-btn transparent" id="btn-cancel-editname">Cancel</button>
+    </div>
+</div>
+
+<!-- ── Edit Bio Sheet ── -->
+<div class="bottom-sheet-overlay" id="edit-bio-sheet-overlay">
+    <div class="bottom-sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-title">Edit Profile Info</div>
+        <div class="sheet-section-label">Bio</div>
+        <textarea class="sheet-input" id="edit-bio-input" placeholder="Tell people about yourself..." maxlength="160" rows="3" style="resize:none;line-height:1.5;min-height:88px;"></textarea>
+        <div style="font-size:11px;color:var(--text-muted);text-align:right;margin:-6px 4px 12px;"><span id="bio-char-count">0</span>/160</div>
+        <div class="sheet-section-label">Age</div>
+        <input type="number" class="sheet-input" id="edit-age-input" placeholder="Your age (e.g. 21)" min="13" max="99">
+        <button class="sheet-btn primary" id="btn-save-bio">
+            <i data-feather="check" style="width:18px;height:18px;"></i> Save
+        </button>
+        <button class="sheet-btn transparent" id="btn-cancel-bio">Cancel</button>
     </div>
 </div>
 
@@ -567,13 +630,14 @@ document.addEventListener('contextmenu', e => {
 
 // ── Wire up all static buttons ──
 document.getElementById('nav-chats').addEventListener('click', () => switchTab('chats'));
+document.getElementById('nav-discover').addEventListener('click', () => switchTab('discover'));
 document.getElementById('nav-profile').addEventListener('click', () => switchTab('profile'));
 document.getElementById('new-chat-btn').addEventListener('click', openNewChatSheet);
 document.getElementById('chat-back-btn').addEventListener('click', () => closeChat(false));
 document.getElementById('send-btn').addEventListener('click', sendChatMessage);
 
 // Sheets – backdrop click to dismiss
-['action-sheet-overlay','new-chat-sheet-overlay','edit-name-sheet-overlay',
+['action-sheet-overlay','new-chat-sheet-overlay','edit-name-sheet-overlay','edit-bio-sheet-overlay',
  'privacy-sheet-overlay','storage-sheet-overlay','help-sheet-overlay','about-sheet-overlay'
 ].forEach(id => {
     const el = document.getElementById(id);
@@ -583,11 +647,13 @@ document.getElementById('send-btn').addEventListener('click', sendChatMessage);
 document.getElementById('btn-cancel-action').addEventListener('click',   () => closeSheet('action-sheet-overlay'));
 document.getElementById('btn-cancel-newchat').addEventListener('click',  () => closeSheet('new-chat-sheet-overlay'));
 document.getElementById('btn-cancel-editname').addEventListener('click', () => closeSheet('edit-name-sheet-overlay'));
+document.getElementById('btn-cancel-bio').addEventListener('click',     () => closeSheet('edit-bio-sheet-overlay'));
 document.getElementById('btn-close-privacy').addEventListener('click',   () => closeSheet('privacy-sheet-overlay'));
 document.getElementById('btn-close-storage').addEventListener('click',   () => closeSheet('storage-sheet-overlay'));
 document.getElementById('btn-close-help').addEventListener('click',      () => closeSheet('help-sheet-overlay'));
 document.getElementById('btn-close-about').addEventListener('click',     () => closeSheet('about-sheet-overlay'));
 document.getElementById('btn-save-name').addEventListener('click', saveUsername);
+document.getElementById('btn-save-bio').addEventListener('click', saveBioAge);
 document.getElementById('btn-clear-chat').addEventListener('click', executeClearChat);
 document.getElementById('btn-block-user').addEventListener('click', executeBlockUser);
 document.getElementById('btn-clear-cache').addEventListener('click', () => {
@@ -638,9 +704,11 @@ function closeSheet(id) { document.getElementById(id).classList.remove('active')
 window.switchTab = (tabId) => {
     document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    const viewId = tabId === 'chats' ? 'view-chats' : 'view-profile';
-    document.getElementById(viewId).classList.add('active');
-    document.getElementById(`nav-${tabId === 'chats' ? 'chats' : 'profile'}`).classList.add('active');
+    const viewMap = { chats:'view-chats', discover:'view-discover', profile:'view-profile' };
+    const navMap  = { chats:'nav-chats', discover:'nav-discover', profile:'nav-profile' };
+    document.getElementById(viewMap[tabId])?.classList.add('active');
+    document.getElementById(navMap[tabId])?.classList.add('active');
+    if (tabId === 'discover') renderDiscover();
 };
 
 window.switchChatTab = (tab) => {
@@ -943,7 +1011,7 @@ window.resizeTextarea = (el) => {
 
 // ── popstate ──
 window.addEventListener('popstate', () => {
-    for (const id of ['action-sheet-overlay','new-chat-sheet-overlay','edit-name-sheet-overlay','privacy-sheet-overlay','storage-sheet-overlay','help-sheet-overlay','about-sheet-overlay']) {
+    for (const id of ['action-sheet-overlay','new-chat-sheet-overlay','edit-name-sheet-overlay','edit-bio-sheet-overlay','privacy-sheet-overlay','storage-sheet-overlay','help-sheet-overlay','about-sheet-overlay']) {
         if (document.getElementById(id).classList.contains('active')) { closeSheet(id); return; }
     }
     if (document.getElementById('chat-window').classList.contains('active')) { closeChat(true); }
@@ -990,6 +1058,11 @@ function renderProfile() {
                 </button>
             </div>
             <div class="profile-handle">${escapeHtml(currentUserData.email||'')}</div>
+            ${currentUserData.age ? `<div class="profile-age-badge"><i data-feather="calendar" style="width:12px;height:12px;"></i>${currentUserData.age} yrs</div>` : ''}
+            ${currentUserData.bio ? `<p class="profile-bio-text">${escapeHtml(currentUserData.bio)}</p>` : '<p class="profile-bio-text" style="color:var(--text-muted);font-style:italic;">No bio yet</p>'}
+            <button class="profile-btn" id="edit-bio-btn-inline" style="margin-bottom:8px;">
+                <i data-feather="edit-3" style="width:14px;height:14px;margin-right:6px;vertical-align:middle;"></i>Edit Bio &amp; Age
+            </button>
             <button class="profile-btn logout" id="logout-btn">Sign Out</button>
         </div>
 
@@ -1065,6 +1138,7 @@ function renderProfile() {
 
     // Wire up newly rendered buttons
     document.getElementById('edit-name-btn-inline').addEventListener('click', openEditNameSheet);
+    document.getElementById('edit-bio-btn-inline').addEventListener('click', openEditBioSheet);
     document.getElementById('logout-btn').addEventListener('click', handleLogout);
 
     document.getElementById('dark-mode-item').addEventListener('click', () => {
@@ -1093,6 +1167,21 @@ function openEditNameSheet() {
     setTimeout(() => document.getElementById('edit-name-input').focus(), 300);
 }
 
+function openEditBioSheet() {
+    const bioInput = document.getElementById('edit-bio-input');
+    const ageInput = document.getElementById('edit-age-input');
+    bioInput.value = currentUserData.bio || '';
+    ageInput.value = currentUserData.age || '';
+    document.getElementById('bio-char-count').textContent = bioInput.value.length;
+    openSheet('edit-bio-sheet-overlay');
+    setTimeout(() => bioInput.focus(), 300);
+}
+
+// Char counter for bio
+document.getElementById('edit-bio-input').addEventListener('input', function() {
+    document.getElementById('bio-char-count').textContent = this.value.length;
+});
+
 async function saveUsername() {
     const input   = document.getElementById('edit-name-input');
     const newName = input.value.trim();
@@ -1105,6 +1194,23 @@ async function saveUsername() {
     } catch { showToast('Failed to update name'); }
 }
 
+async function saveBioAge() {
+    const bio = document.getElementById('edit-bio-input').value.trim();
+    const ageRaw = document.getElementById('edit-age-input').value.trim();
+    const age = ageRaw ? parseInt(ageRaw, 10) : null;
+    if (age !== null && (isNaN(age) || age < 13 || age > 99)) {
+        showToast('Please enter a valid age (13–99)'); return;
+    }
+    const updates = { bio: bio || '', age: age || null };
+    try {
+        await update(ref(db, `users/${currentUser.uid}`), updates);
+        currentUserData.bio = bio;
+        currentUserData.age = age;
+        allUsersCache[currentUser.uid] = { ...allUsersCache[currentUser.uid], ...updates };
+        renderProfile(); showToast('Profile updated!'); closeSheet('edit-bio-sheet-overlay');
+    } catch { showToast('Failed to save'); }
+}
+
 function handleLogout() {
     update(ref(db, `users/${currentUser.uid}`), { online:false, lastSeen:serverTimestamp() })
         .finally(() => signOut(auth).then(() => window.location.reload()));
@@ -1115,6 +1221,193 @@ function setupPresence() {
     const r = ref(db, `users/${currentUser.uid}`);
     update(r, { online:true, lastSeen:serverTimestamp() }).catch(() => {});
     window.addEventListener('beforeunload', () => update(r, { online:false, lastSeen:Date.now() }).catch(() => {}));
+}
+
+// ──────────────────────────────────────────────
+// ── Discover (Tinder-style swipe) ──
+// ──────────────────────────────────────────────
+let discoverQueue   = [];   // shuffled user list
+let discoverIndex   = 0;
+let discoverLoaded  = false;
+
+async function renderDiscover() {
+    const container = document.getElementById('discover-content');
+    if (!discoverLoaded) {
+        container.innerHTML = `<div class="discover-wrap"><div style="text-align:center;padding:80px 24px;color:var(--text-muted);font-size:14px;">Loading people…</div></div>`;
+        try {
+            if (!Object.keys(allUsersCache).length) {
+                const snap = await get(ref(db, 'users'));
+                if (snap.exists()) snap.forEach(c => { allUsersCache[c.key] = c.val(); });
+            }
+        } catch { container.innerHTML = `<div class="discover-wrap"><div class="discover-empty"><div class="discover-empty-icon"><i data-feather="wifi-off" style="width:32px;height:32px;color:var(--primary);"></i></div><p style="color:var(--text-muted);font-size:14px;">Couldn't load profiles</p></div></div>`; feather.replace(); return; }
+        discoverLoaded = true;
+    }
+
+    // Rebuild shuffled queue each time tab is visited (excluding self)
+    const users = Object.keys(allUsersCache)
+        .filter(uid => uid !== currentUser.uid)
+        .map(uid => ({ uid, ...allUsersCache[uid] }));
+    // Fisher-Yates shuffle
+    for (let i = users.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [users[i], users[j]] = [users[j], users[i]];
+    }
+    discoverQueue = users;
+    discoverIndex = 0;
+    showDiscoverCard();
+}
+
+function showDiscoverCard() {
+    const container = document.getElementById('discover-content');
+    const counter   = document.getElementById('discover-counter');
+
+    if (!discoverQueue.length) {
+        container.innerHTML = `<div class="discover-wrap"><div class="discover-empty">
+            <div class="discover-empty-icon"><i data-feather="users" style="width:32px;height:32px;color:var(--primary);"></i></div>
+            <p style="font-size:17px;font-weight:700;color:var(--text-primary);">No one here yet</p>
+            <p style="color:var(--text-muted);font-size:14px;">Invite friends to join Vynix!</p>
+        </div></div>`;
+        counter.textContent = '';
+        feather.replace(); return;
+    }
+
+    if (discoverIndex >= discoverQueue.length) {
+        container.innerHTML = `<div class="discover-wrap"><div class="discover-empty">
+            <div class="discover-empty-icon"><i data-feather="refresh-cw" style="width:32px;height:32px;color:var(--primary);"></i></div>
+            <p style="font-size:17px;font-weight:700;color:var(--text-primary);">You've seen everyone!</p>
+            <p style="color:var(--text-muted);font-size:14px;">Come back later for new people</p>
+            <button class="disc-btn like" style="width:auto;border-radius:16px;padding:12px 24px;font-size:14px;font-weight:700;color:var(--primary);margin-top:8px;" onclick="discoverIndex=0;showDiscoverCard();">
+                <i data-feather="refresh-cw" style="width:16px;height:16px;margin-right:8px;"></i>Start Over
+            </button>
+        </div></div>`;
+        counter.textContent = '';
+        feather.replace(); return;
+    }
+
+    const u    = discoverQueue[discoverIndex];
+    const photo = u.photoURL || DEFAULT_AVATAR;
+    const remaining = discoverQueue.length - discoverIndex;
+    counter.textContent = `${remaining} left`;
+
+    // Build next card (peek) behind if exists
+    const nextU = discoverQueue[discoverIndex + 1];
+    const nextCardHTML = nextU ? `
+        <div class="discover-card discover-card-back" style="transform:scale(0.93) translateY(12px);z-index:0;">
+            <img src="${nextU.photoURL || DEFAULT_AVATAR}" loading="lazy" onerror="this.src='${DEFAULT_AVATAR.replace(/'/g,"\\'")}'" style="opacity:0.6;">
+        </div>` : '';
+
+    container.innerHTML = `<div class="discover-wrap">
+        <div class="discover-stack">
+            ${nextCardHTML}
+            <div class="discover-card" id="disc-card" style="z-index:1;">
+                <img src="${photo}" loading="lazy" onerror="this.src='${DEFAULT_AVATAR.replace(/'/g,"\\'")}'" draggable="false">
+                <div class="discover-card-gradient"></div>
+                <div class="swipe-label like" id="lbl-like">CONNECT</div>
+                <div class="swipe-label nope" id="lbl-nope">PASS</div>
+                <div class="discover-card-info">
+                    <div class="discover-card-name">${escapeHtml(u.username || 'User')}${u.age ? `<span style="font-size:20px;font-weight:600;opacity:0.85;margin-left:8px;">${u.age}</span>` : ''}</div>
+                    ${u.bio ? `<p class="discover-card-bio">${escapeHtml(u.bio)}</p>` : ''}
+                    <div class="discover-card-meta">
+                        ${u.online ? `<div class="discover-card-online"></div><span style="font-size:12px;color:rgba(255,255,255,0.75);font-weight:600;">Online now</span>` : ''}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="discover-actions">
+            <button class="disc-btn pass" id="btn-disc-pass" title="Pass">
+                <i data-feather="x" style="width:26px;height:26px;"></i>
+            </button>
+            <button class="disc-btn msg" id="btn-disc-msg" title="Message">
+                <i data-feather="message-circle" style="width:20px;height:20px;"></i>
+            </button>
+            <button class="disc-btn like" id="btn-disc-like" title="Connect">
+                <i data-feather="heart" style="width:26px;height:26px;"></i>
+            </button>
+        </div>
+        <div class="discover-hint">
+            <span><i data-feather="arrow-left" style="width:12px;height:12px;"></i> Pass</span>
+            <span><i data-feather="message-circle" style="width:12px;height:12px;"></i> Message</span>
+            <span>Connect <i data-feather="arrow-right" style="width:12px;height:12px;"></i></span>
+        </div>
+    </div>`;
+
+    feather.replace();
+
+    // Wire action buttons
+    document.getElementById('btn-disc-pass').addEventListener('click', () => animateSwipe('left'));
+    document.getElementById('btn-disc-like').addEventListener('click', () => animateSwipe('right'));
+    document.getElementById('btn-disc-msg').addEventListener('click', () => {
+        closeChat && openChat(u.uid);
+        switchTab('chats');
+    });
+
+    // Touch / mouse drag
+    attachSwipeDrag(document.getElementById('disc-card'), u);
+}
+
+function animateSwipe(dir) {
+    const card = document.getElementById('disc-card');
+    if (!card) return;
+    const x   = dir === 'right' ? 120 : -120;
+    const rot = dir === 'right' ? 25 : -25;
+    card.style.transition = 'transform 0.38s cubic-bezier(0.36,0.07,0.19,0.97), opacity 0.38s';
+    card.style.transform  = `translateX(${x * 3}px) rotate(${rot}deg)`;
+    card.style.opacity    = '0';
+    const u = discoverQueue[discoverIndex];
+    if (dir === 'right') {
+        showToast(`Connected with ${u.username || 'User'}! 🎉`);
+        // Optionally open chat
+    }
+    discoverIndex++;
+    setTimeout(showDiscoverCard, 380);
+}
+
+function attachSwipeDrag(card, u) {
+    let startX = 0, startY = 0, curX = 0, isDragging = false;
+    const SWIPE_THRESHOLD = 80;
+
+    const onStart = (e) => {
+        isDragging = true;
+        startX = (e.touches ? e.touches[0].clientX : e.clientX);
+        startY = (e.touches ? e.touches[0].clientY : e.clientY);
+        card.style.transition = 'none';
+    };
+    const onMove = (e) => {
+        if (!isDragging) return;
+        curX = (e.touches ? e.touches[0].clientX : e.clientX) - startX;
+        const curY = (e.touches ? e.touches[0].clientY : e.clientY) - startY;
+        const rot  = curX * 0.08;
+        card.style.transform = `translateX(${curX}px) translateY(${curY * 0.3}px) rotate(${rot}deg)`;
+        const ratio = Math.abs(curX) / SWIPE_THRESHOLD;
+        const like  = document.getElementById('lbl-like');
+        const nope  = document.getElementById('lbl-nope');
+        if (curX > 20 && like) like.style.opacity = Math.min(ratio, 1);
+        else if (like) like.style.opacity = 0;
+        if (curX < -20 && nope) nope.style.opacity = Math.min(ratio, 1);
+        else if (nope) nope.style.opacity = 0;
+    };
+    const onEnd = () => {
+        if (!isDragging) return;
+        isDragging = false;
+        if (curX > SWIPE_THRESHOLD) animateSwipe('right');
+        else if (curX < -SWIPE_THRESHOLD) animateSwipe('left');
+        else {
+            card.style.transition = 'transform 0.4s cubic-bezier(0.34,1.56,0.64,1)';
+            card.style.transform  = 'translateX(0) rotate(0deg)';
+            const like = document.getElementById('lbl-like');
+            const nope = document.getElementById('lbl-nope');
+            if (like) like.style.opacity = 0;
+            if (nope) nope.style.opacity = 0;
+        }
+    };
+
+    card.addEventListener('mousedown',  onStart);
+    card.addEventListener('mousemove',  onMove);
+    card.addEventListener('mouseup',    onEnd);
+    card.addEventListener('mouseleave', onEnd);
+    card.addEventListener('touchstart', onStart, { passive:true });
+    card.addEventListener('touchmove',  onMove,  { passive:true });
+    card.addEventListener('touchend',   onEnd);
 }
 
 // ── Helpers ──
