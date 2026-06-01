@@ -9,22 +9,6 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <script src="https://unpkg.com/feather-icons"></script>
-    <script>
-    const EMOJI_DATA = {
-      '😀': 'smileys', '😂': 'smileys', '🤣': 'smileys', '😊': 'smileys', '😍': 'smileys',
-      '🥰': 'smileys', '😘': 'smileys', '😎': 'smileys', '🤩': 'smileys', '😜': 'smileys',
-      '😭': 'smileys', '😢': 'smileys', '😡': 'smileys', '🤔': 'smileys', '😴': 'smileys',
-      '👍': 'people', '👎': 'people', '👏': 'people', '🙌': 'people', '🤝': 'people',
-      '🔥': 'smileys', '💯': 'smileys', '✨': 'smileys', '❤️': 'symbols', '💔': 'symbols'
-    };
-    const EMOJI_CATS = [
-      { key:'all',      icon:'🙂', label:'All'       },
-      { key:'smileys',  icon:'😀', label:'Smileys'   },
-      { key:'people',   icon:'👍', label:'People'    },
-      { key:'symbols',  icon:'❤️', label:'Symbols'   }
-    ];
-    const QUICK_REACTIONS = ['❤️','😂','😮','😢','😡','👍'];
-    </script>
     <style>
         :root, [data-theme="light"] {
             --primary: #7C3AED;
@@ -129,16 +113,16 @@
         .post-author { font-weight: 700; font-size: 14px; }
         .post-tag { background: rgba(var(--primary-rgb), 0.1); color: var(--primary); font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 20px; }
         .post-content { font-size: 14px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 12px; }
-        .post-media { width: 100%; height: 180px; border-radius: 14px; object-fit: cover; background: var(--surface2); margin-bottom: 12px; }
         .post-actions { display: flex; gap: 16px; border-top: 1px solid var(--border); padding-top: 12px; }
         .action-btn { background: transparent; border: none; color: var(--text-secondary); display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; cursor: pointer; }
         .action-btn:hover { color: var(--primary); }
 
         /* Twitter-Style Profile Card Setup */
         .profile-card { background: var(--surface); border-radius: 24px; border: 1px solid var(--border); overflow: hidden; box-shadow: var(--shadow-sm); }
-        .profile-banner { height: 120px; background: var(--primary-gradient); position: relative; }
+        .profile-banner { height: 120px; background: var(--primary-gradient); position: relative; cursor: pointer; }
+        .profile-banner img { width: 100%; height: 100%; object-fit: cover; }
         .profile-avatar-row { display: flex; align-items: flex-end; justify-content: space-between; padding: 0 16px; margin-top: -40px; margin-bottom: 12px; }
-        .profile-avatar-big { width: 80px; height: 80px; border-radius: 50%; border: 4px solid var(--surface); object-fit: cover; background: var(--surface2); }
+        .profile-avatar-big { width: 80px; height: 80px; border-radius: 50%; border: 4px solid var(--surface); object-fit: cover; background: var(--surface2); cursor: pointer; }
         .profile-meta { padding: 0 16px 16px; }
         .profile-name { font-size: 22px; font-weight: 800; display: flex; align-items: center; gap: 6px; }
         .profile-handle { font-size: 14px; color: var(--text-muted); }
@@ -148,7 +132,7 @@
         .stat-block strong { color: var(--text-primary); font-weight: 700; }
 
         /* Native Dialogue replacements */
-        .custom-dialog-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 20px; animation: fadeIn 0.2s ease; }
+        .custom-dialog-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); z-index: 10000; display: none; align-items: center; justify-content: center; padding: 20px; animation: fadeIn 0.2s ease; }
         .custom-dialog { background: var(--surface); border-radius: 24px; width: 100%; max-width: 360px; padding: 24px; box-shadow: var(--shadow-md); border: 1px solid var(--border); transform: scale(0.95); animation: zoomIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
         .dialog-title { font-size: 18px; font-weight: 800; margin-bottom: 10px; letter-spacing: -0.3px; }
         .dialog-text { font-size: 14.5px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 20px; }
@@ -178,20 +162,29 @@
 
         /* Configuration Row */
         .config-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; background: var(--surface); border-radius: 14px; border: 1px solid var(--border); margin-top: 10px; cursor: pointer; }
+        
+        /* Loaders & Toasts */
+        .toast { position:fixed; bottom:calc(110px + env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%) translateY(16px); background:var(--text-primary); color:var(--background); padding:13px 22px; border-radius:9999px; font-size:14px; font-weight:600; opacity:0; transition:all 0.28s; z-index:9999; pointer-events:none; white-space:nowrap; box-shadow:0 4px 16px rgba(0,0,0,0.18); }
+        .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+        .global-loader { position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:9999; display:none; align-items:center; justify-content:center; }
+        .global-loader.active { display:flex; }
+        .spinner { width:36px; height:36px; border:4px solid rgba(255,255,255,0.25); border-top-color:#fff; border-radius:50%; animation:spin 0.75s linear infinite; }
+        @keyframes spin { to { transform:rotate(360deg); } }
     </style>
 </head>
 <body>
 
+    <div class="toast" id="toast"></div>
+    <div class="global-loader" id="upload-loader"><div class="spinner"></div></div>
+
     <div class="desktop-layout">
-        
         <div class="sidebar">
             <div class="sidebar-tabs">
-                <button class="sidebar-tab active" onclick="switchView('chats')"><i data-feather="message-square"></i>Chats<div class="nav-badge" id="badge-chats-d">2</div></button>
+                <button class="sidebar-tab active" onclick="switchView('chats')"><i data-feather="message-square"></i>Chats<div class="nav-badge" id="badge-chats-d">0</div></button>
                 <button class="sidebar-tab" onclick="switchView('friends')"><i data-feather="users"></i>Friends</button>
                 <button class="sidebar-tab" onclick="switchView('discover')"><i data-feather="compass"></i>Discover</button>
                 <button class="sidebar-tab" onclick="switchView('profile')"><i data-feather="user"></i>Profile</button>
             </div>
-            
             <div class="sidebar-content" id="sidebar-dynamic-content">
                 </div>
         </div>
@@ -202,7 +195,6 @@
                 <h3>Select a Conversation</h3>
                 <p>Choose an ongoing discussion or check out your friend list to start messaging instantly.</p>
             </div>
-            
             <div id="desktop-chat-container" style="display:none; height:100%;"></div>
         </div>
     </div>
@@ -236,7 +228,7 @@
         <div id="view-discover" class="view-container">
             <div class="header">
                 <h2>Discover</h2>
-                <button class="header-btn" onclick="triggerCustomAlert('Discovery Filter', 'Global community standard lists are up to date.')"><i data-feather="sliders"></i></button>
+                <button class="header-btn" onclick="triggerCustomAlert('Discovery Filter', 'Showing trending users on Vynix.')"><i data-feather="sliders"></i></button>
             </div>
             <div class="discover-grid" id="discover-feed-m"></div>
         </div>
@@ -252,7 +244,7 @@
         <div class="bottom-nav-container">
             <div class="bottom-nav">
                 <button class="nav-item active" id="m-btn-chats" onclick="switchView('chats')">
-                    <i data-feather="message-square"></i><div class="nav-badge" id="badge-chats-m">2</div>
+                    <i data-feather="message-square"></i><div class="nav-badge" id="badge-chats-m">0</div>
                 </button>
                 <button class="nav-item" id="m-btn-friends" onclick="switchView('friends')">
                     <i data-feather="users"></i>
@@ -278,59 +270,206 @@
         </div>
     </div>
 
-    <script>
-    // System Mock Datastores
-    let mockUser = {
-        name: "Katlego",
-        handle: "katlego_vynix",
-        bio: "Building spatial web modules & lightning fast interactive frameworks. ✨ Let's link up!",
-        following: 142,
-        followers: 983
+    <input type="file" id="banner-upload" accept="image/*" style="display:none;">
+    <input type="file" id="profile-upload" accept="image/*" style="display:none;">
+
+    <script type="module">
+    import { getDatabase, ref, onValue, onChildAdded, push, set, get, update, remove, serverTimestamp, off } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+    // --- FIREBASE CONFIGURATION ---
+    const firebaseConfig = {
+        apiKey:"AIzaSyBOyZ3As4GTuNvjemvPF_SpsC6m6vqtNhc",
+        authDomain:"fire-b-a8878.firebaseapp.com",
+        databaseURL:"https://fire-b-a8878.firebaseio.com",
+        projectId:"fire-b-a8878"
     };
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
 
-    let conversations = [
-        { id: "conv_1", name: "Sarah Jenkins", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150", text: "Are we still jumping on the review sync today?", time: "10:24 AM", unread: 2, online: true, messages: [
-            { me: false, text: "Hey! Did you look over the Vynix layout designs?" },
-            { me: true, text: "Yeah, they look absolutely outstanding! Clean components." },
-            { me: false, text: "Are we still jumping on the review sync today?" }
-        ]},
-        { id: "conv_2", name: "David Chen", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150", text: "The production server assets are successfully updated.", time: "Yesterday", unread: 0, online: false, messages: [
-            { me: false, text: "The production server assets are successfully updated." }
-        ]}
-    ];
+    // --- CLOUDINARY CONFIGURATION ---
+    const CLOUDINARY_CLOUD_NAME = 'dqkujefxj';
+    const CLOUDINARY_UPLOAD_PRESET = 'banter_box';
 
-    let friendsList = [
-        { name: "Sarah Jenkins", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150", online: true, status: "Writing documentation..." },
-        { name: "David Chen", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150", online: false, status: "Away from keyboard" },
-        { name: "Amara Okafor", avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150", online: true, status: "Designing live assets 🎨" },
-        { name: "Marcus Sterling", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150", online: true, status: "In a meeting" }
-    ];
+    const DEFAULT_AVATAR = `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52"><rect width="52" height="52" rx="14" fill="#E4E4E7"/><circle cx="26" cy="20" r="9" fill="#A1A1AA"/><path d="M8 46c0-9.941 8.059-18 18-18s18 8.059 18 18" fill="#A1A1AA"/></svg>`)}`;
 
-    let discoverPosts = [
-        { id: "post_1", author: "UI/UX Collective", tag: "Design Trend", content: "Switching back to standard high contrast Light Modes significantly lowers strain when interacting under bright sunlight setups. Modern interfaces use subtle slate tones.", likes: 432, shared: false },
-        { id: "post_2", author: "Tech Node Group", tag: "Frameworks", content: "Native Dialog elements are simple, but custom inline layouts provide perfect UI continuity and fluid transitions. Check out this workspace mock!", likes: 891, shared: true }
-    ];
-
-    let activeConversationId = null;
+    // --- STATE VARIABLES ---
+    let currentUser = null;
+    let currentUserData = null;
+    let allUsersCache = {};
+    let activeConversationId = null; 
+    let activeChatTargetUid = null;
+    let activeChatListener = null;
     let currentActiveTab = "chats";
 
-    // Standard DOM Load Initialization
+    let conversations = [];
+    let friendsList = [];
+    let discoverUsers = [];
+
+    // --- UTILITIES ---
+    window.showToast = (msg) => {
+        const t = document.getElementById('toast');
+        t.textContent = msg; t.classList.add('show');
+        clearTimeout(t._timer); t._timer = setTimeout(() => t.classList.remove('show'), 2800);
+    };
+
+    function formatChatTime(ts) {
+        if (!ts) return '';
+        const d = new Date(ts), now = new Date();
+        if (d.toDateString() === now.toDateString()) return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+        const y = new Date(now); y.setDate(now.getDate()-1);
+        if (d.toDateString() === y.toDateString()) return 'Yesterday';
+        return `${d.getDate()}/${d.getMonth()+1}`;
+    }
+
+    // Initialize Theme
+    const savedTheme = localStorage.getItem('vynix-theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+
     document.addEventListener("DOMContentLoaded", () => {
         feather.replace();
-        renderCompleteApplication();
-        
-        // Listen to window changes to adapt multi-panel layouts seamlessly
         window.addEventListener('resize', renderCompleteApplication);
+        
+        // Attach Cloudinary Upload Handlers
+        document.getElementById('banner-upload').addEventListener('change', handleBannerUpload);
+        document.getElementById('profile-upload').addEventListener('change', handleProfileUpload);
     });
 
-    // Master Render Router
+    // --- AUTHENTICATION & DATA LOADING ---
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) { window.location.href = 'signup.html'; return; }
+        currentUser = user;
+        await loadInitialData();
+        setupRealtimeListeners();
+    });
+
+    async function loadInitialData() {
+        // Load Current User
+        const snap = await get(ref(db, `users/${currentUser.uid}`));
+        if (snap.exists()) {
+            currentUserData = snap.val();
+        } else {
+            currentUserData = { uid: currentUser.uid, email: currentUser.email, username: currentUser.email.split('@')[0], photoURL: '' };
+            await set(ref(db, `users/${currentUser.uid}`), currentUserData);
+        }
+
+        // Load All Users for Cache
+        const usersSnap = await get(ref(db, 'users'));
+        if (usersSnap.exists()) {
+            usersSnap.forEach(c => { allUsersCache[c.key] = c.val(); });
+        }
+
+        // Setup Discover Feed (all users except current)
+        discoverUsers = Object.keys(allUsersCache)
+            .filter(uid => uid !== currentUser.uid)
+            .map(uid => ({ uid, ...allUsersCache[uid] }));
+
+        renderCompleteApplication();
+    }
+
+    function setupRealtimeListeners() {
+        // Listen to Conversations
+        onValue(ref(db, 'conversations'), snap => {
+            let convList = [];
+            if (snap.exists()) {
+                snap.forEach(child => {
+                    const conv = child.val();
+                    const members = Object.keys(conv.members || {});
+                    if (!members.includes(currentUser.uid)) return;
+                    const otherId = members.find(m => m !== currentUser.uid);
+                    if (!otherId) return;
+                    const other = allUsersCache[otherId] || { username: 'User', photoURL: '' };
+                    convList.push({
+                        id: child.key,
+                        otherId: otherId,
+                        name: other.username || 'User',
+                        avatar: other.photoURL || DEFAULT_AVATAR,
+                        text: conv.lastMessage || 'Conversation started',
+                        time: formatChatTime(conv.lastTimestamp),
+                        timestamp: conv.lastTimestamp || 0,
+                        unread: conv.unread?.[currentUser.uid] || 0,
+                        online: other.online
+                    });
+                });
+            }
+            convList.sort((a,b) => b.timestamp - a.timestamp);
+            conversations = convList;
+            updateBadgeCounters();
+            if (currentActiveTab === "chats") renderCompleteApplication();
+        });
+
+        // Listen to Friends (Connections)
+        onValue(ref(db, `connections/${currentUser.uid}/friends`), snap => {
+            let friends = [];
+            if (snap.exists()) {
+                Object.keys(snap.val()).forEach(friendUid => {
+                    const f = allUsersCache[friendUid];
+                    if (f) {
+                        friends.push({
+                            uid: friendUid,
+                            name: f.username || 'User',
+                            avatar: f.photoURL || DEFAULT_AVATAR,
+                            online: f.online,
+                            status: f.bio || 'Available'
+                        });
+                    }
+                });
+            }
+            friendsList = friends;
+            if (currentActiveTab === "friends") renderCompleteApplication();
+        });
+        
+        // Setup User Presence
+        update(ref(db, `users/${currentUser.uid}`), { online: true, lastSeen: serverTimestamp() }).catch(() => {});
+        window.addEventListener('beforeunload', () => update(ref(db, `users/${currentUser.uid}`), { online: false, lastSeen: Date.now() }).catch(() => {}));
+    }
+
+    // --- CLOUDINARY UPLOADS ---
+    async function uploadToCloudinary(file, folder = 'vynix') {
+        const fd = new FormData();
+        fd.append('file', file);
+        fd.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+        fd.append('folder', folder);
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`, { method:'POST', body:fd });
+        if (!res.ok) throw new Error('Upload failed');
+        return (await res.json()).secure_url;
+    }
+
+    async function handleBannerUpload(e) {
+        const file = e.target.files[0]; if (!file) return;
+        document.getElementById('upload-loader').classList.add('active');
+        try {
+            const url = await uploadToCloudinary(file, 'vynix_banners');
+            await update(ref(db, `users/${currentUser.uid}`), { bannerURL: url });
+            currentUserData.bannerURL = url;
+            renderCompleteApplication(); showToast('Banner updated!');
+        } catch { showToast('Upload failed'); }
+        finally { document.getElementById('upload-loader').classList.remove('active'); e.target.value = ''; }
+    }
+
+    async function handleProfileUpload(e) {
+        const file = e.target.files[0]; if (!file) return;
+        document.getElementById('upload-loader').classList.add('active');
+        try {
+            const url = await uploadToCloudinary(file, 'vynix_profiles');
+            await update(ref(db, `users/${currentUser.uid}`), { photoURL:url });
+            currentUserData.photoURL = url;
+            allUsersCache[currentUser.uid] = { ...allUsersCache[currentUser.uid], photoURL:url };
+            renderCompleteApplication(); showToast('Profile picture updated!');
+        } catch { showToast('Upload failed'); }
+        finally { document.getElementById('upload-loader').classList.remove('active'); e.target.value = ''; }
+    }
+
+    // --- UI RENDERING CORE ---
     function renderCompleteApplication() {
         const isDesktop = window.innerWidth >= 900;
         
         if (isDesktop) {
             renderSidebarContent();
             if (activeConversationId) {
-                renderDesktopChatWindow();
+                // Ensure desktop chat container is built but handled by openActiveChatConversation
             } else {
                 document.getElementById('desktop-placeholder').style.display = 'flex';
                 document.getElementById('desktop-chat-container').style.display = 'none';
@@ -341,36 +480,28 @@
         updateBadgeCounters();
     }
 
-    // Tab Switch Controller
-    function switchView(targetTabId) {
+    window.switchView = function(targetTabId) {
         currentActiveTab = targetTabId;
         
-        // Sync desktop sidebar tabs status
-        document.querySelectorAll('.sidebar-tab').forEach(btn => {
-            if(btn.removeAttribute) btn.classList.remove('active');
-        });
+        document.querySelectorAll('.sidebar-tab').forEach(btn => btn.classList.remove('active'));
         const activeSidebarIndex = ['chats','friends','discover','profile'].indexOf(targetTabId);
         if(activeSidebarIndex !== -1) {
             document.querySelectorAll('.sidebar-tab')[activeSidebarIndex].classList.add('active');
         }
 
-        // Sync mobile navigation elements status
         document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
         const mobileTargetBtn = document.getElementById(`m-btn-${targetTabId}`);
         if(mobileTargetBtn) mobileTargetBtn.classList.add('active');
 
-        // Toggle visibility containers for mobile
         document.querySelectorAll('.view-container').forEach(view => view.classList.remove('active'));
         const mobileViewContainer = document.getElementById(`view-${targetTabId}`);
         if(mobileViewContainer) mobileViewContainer.classList.add('active');
 
         renderCompleteApplication();
-    }
+    };
 
-    // Badges Synchronizer
     function updateBadgeCounters() {
         let globalUnread = conversations.reduce((acc, current) => acc + current.unread, 0);
-        
         const mobileBadge = document.getElementById('badge-chats-m');
         const desktopBadge = document.getElementById('badge-chats-d');
         
@@ -383,11 +514,11 @@
         }
     }
 
-    // HTML Markup Generators
+    // --- MARKUP GENERATORS ---
     function generateChatsListMarkup() {
-        if(conversations.length === 0) return `<p style="color:var(--text-muted); text-align:center; margin-top:20px; font-size:14px;">No conversations found</p>`;
+        if(conversations.length === 0) return `<p style="color:var(--text-muted); text-align:center; margin-top:20px; font-size:14px;">No conversations yet.</p>`;
         return conversations.map(c => `
-            <div class="item-card" onclick="openActiveChatConversation('${c.id}')">
+            <div class="item-card" onclick="openActiveChatConversation('${c.id}', '${c.otherId}')">
                 <div class="card-avatar">
                     <img src="${c.avatar}" style="width:100%; height:100%; border-radius:14px; object-fit:cover;">
                     <div class="status-dot ${c.online ? 'online' : ''}"></div>
@@ -407,8 +538,9 @@
     }
 
     function generateFriendsListMarkup() {
+        if(friendsList.length === 0) return `<p style="color:var(--text-muted); text-align:center; margin-top:20px; font-size:14px;">No connections yet.</p>`;
         return friendsList.map(f => `
-            <div class="item-card" onclick="startInstantFriendChat('${f.name}')">
+            <div class="item-card" onclick="startInstantFriendChat('${f.uid}')">
                 <div class="card-avatar">
                     <img src="${f.avatar}" style="width:100%; height:100%; border-radius:14px; object-fit:cover;">
                     <div class="status-dot ${f.online ? 'online' : ''}"></div>
@@ -425,23 +557,22 @@
     }
 
     function generateDiscoverFeedMarkup() {
-        return discoverPosts.map(p => `
+        if(discoverUsers.length === 0) return `<p style="color:var(--text-muted); text-align:center; margin-top:20px; font-size:14px;">No users found.</p>`;
+        return discoverUsers.map(u => `
             <div class="discover-post">
                 <div class="post-header">
-                    <div style="width:36px; height:36px; border-radius:10px; background:var(--primary-gradient); color:white; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:14px;">${p.author[0]}</div>
+                    <img src="${u.photoURL || DEFAULT_AVATAR}" style="width:36px; height:36px; border-radius:10px; object-fit:cover;">
                     <div>
-                        <div class="post-author">${p.author}</div>
-                        <div style="font-size:11px; color:var(--text-muted);">Trending Public Topic</div>
+                        <div class="post-author">${u.username || 'User'}</div>
+                        <div style="font-size:11px; color:var(--text-muted);">${u.age ? u.age + ' yrs · ' : ''}Vynix User</div>
                     </div>
-                    <div style="margin-left:auto;" class="post-tag">${p.tag}</div>
+                    <button class="header-btn" style="margin-left:auto; width:32px; height:32px;" onclick="startInstantFriendChat('${u.uid}')"><i data-feather="message-circle" style="width:14px; color:var(--primary);"></i></button>
                 </div>
-                <div class="post-content">${p.content}</div>
+                <div class="post-content">${u.bio || 'Say hi and connect!'}</div>
+                ${u.bannerURL ? `<img src="${u.bannerURL}" class="post-media">` : ''}
                 <div class="post-actions">
-                    <button class="action-btn" onclick="likeDiscoverPost(${p.id})">
-                        <i data-feather="heart" style="width:16px;"></i> <span>${p.likes}</span>
-                    </button>
-                    <button class="action-btn" onclick="triggerCustomAlert('Shared Link', 'In-app discovery card reference link copied.')">
-                        <i data-feather="share-2" style="width:16px;"></i> Share
+                    <button class="action-btn" onclick="addFriend('${u.uid}', '${u.username}')">
+                        <i data-feather="user-plus" style="width:16px;"></i> Connect
                     </button>
                 </div>
             </div>
@@ -449,20 +580,23 @@
     }
 
     function generateProfileViewMarkup() {
+        if(!currentUserData) return '';
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
         return `
             <div class="profile-card">
-                <div class="profile-banner"></div>
+                <div class="profile-banner" onclick="document.getElementById('banner-upload').click()">
+                    ${currentUserData.bannerURL ? `<img src="${currentUserData.bannerURL}">` : ''}
+                </div>
                 <div class="profile-avatar-row">
-                    <img class="profile-avatar-big" src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150">
+                    <img class="profile-avatar-big" src="${currentUserData.photoURL || DEFAULT_AVATAR}" onclick="document.getElementById('profile-upload').click()">
                     <button class="dialog-btn confirm" style="padding:6px 14px; font-size:12px; border-radius:20px;" onclick="editCurrentProfileBio()">Edit Profile</button>
                 </div>
                 <div class="profile-meta">
-                    <div class="profile-name" id="prof-name-field">${mockUser.name} <i data-feather="check-circle" style="width:16px; color:var(--primary); fill:var(--surface2);"></i></div>
-                    <div class="profile-handle">@${mockUser.handle}</div>
-                    <div class="profile-bio" id="prof-bio-field">${mockUser.bio}</div>
+                    <div class="profile-name">${currentUserData.username || 'User'} <i data-feather="check-circle" style="width:16px; color:var(--primary); fill:var(--surface2);"></i></div>
+                    <div class="profile-handle">@${(currentUserData.username||'user').toLowerCase().replace(/\\s+/g,'_')}</div>
+                    <div class="profile-bio">${currentUserData.bio || 'No bio yet...'}</div>
                     <div class="profile-stats">
-                        <div class="stat-block"><strong>${mockUser.following}</strong> Following</div>
-                        <div class="stat-block"><strong>${mockUser.followers}</strong> Followers</div>
+                        <div class="stat-block"><strong>${friendsList.length}</strong> Connections</div>
                     </div>
                 </div>
             </div>
@@ -471,9 +605,9 @@
                     <i data-feather="moon" style="color:var(--text-secondary);"></i>
                     <span style="font-size:14.5px; font-weight:600;">Dark Theme Mode</span>
                 </div>
-                <div style="color:var(--text-muted); font-size:13px;" id="theme-indicator-txt">Off</div>
+                <div style="color:var(--text-muted); font-size:13px;" id="theme-indicator-txt">${isDark ? 'On' : 'Off'}</div>
             </div>
-            <div class="config-row" style="margin-top:8px; color:var(--danger); border-color:rgba(239,68,68,0.15);" onclick="triggerCustomConfirm('Account Action', 'Are you absolutely sure you want to log out of Vynix?', () => triggerCustomAlert('Logout Success', 'Session safely destroyed.'))">
+            <div class="config-row" style="margin-top:8px; color:var(--danger); border-color:rgba(239,68,68,0.15);" onclick="triggerCustomConfirm('Account Action', 'Are you sure you want to log out of Vynix?', () => logoutUser())">
                 <div style="display:flex; align-items:center; gap:10px;">
                     <i data-feather="log-out" style="color:var(--danger);"></i>
                     <span style="font-size:14.5px; font-weight:600;">Disconnect Session</span>
@@ -482,13 +616,12 @@
         `;
     }
 
-    // Synchronization Builders
     function renderSidebarContent() {
         const holder = document.getElementById('sidebar-dynamic-content');
         if (currentActiveTab === "chats") {
             holder.innerHTML = `<h3 style="font-size:20px; font-weight:800; margin-bottom:12px;">Chats</h3>` + generateChatsListMarkup();
         } else if (currentActiveTab === "friends") {
-            holder.innerHTML = `<div style="display:flex; justify-content:between; align-items:center; margin-bottom:12px;"><h3 style="font-size:20px; font-weight:800;">Friends</h3><button class="header-btn" style="width:32px; height:32px;" onclick="inviteNewFriend()"><i data-feather="user-plus" style="width:14px;"></i></button></div>` + generateFriendsListMarkup();
+            holder.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;"><h3 style="font-size:20px; font-weight:800;">Friends</h3><button class="header-btn" style="width:32px; height:32px;" onclick="inviteNewFriend()"><i data-feather="user-plus" style="width:14px;"></i></button></div>` + generateFriendsListMarkup();
         } else if (currentActiveTab === "discover") {
             holder.innerHTML = `<h3 style="font-size:20px; font-weight:800; margin-bottom:12px;">Discover</h3>` + generateDiscoverFeedMarkup();
         } else if (currentActiveTab === "profile") {
@@ -498,186 +631,159 @@
     }
 
     function renderMobileViewContent() {
-        document.getElementById('chats-list-m').innerHTML = generateChatsListMarkup();
-        document.getElementById('friends-list-m').innerHTML = generateFriendsListMarkup();
-        document.getElementById('discover-feed-m').innerHTML = generateDiscoverFeedMarkup();
-        document.getElementById('profile-container-m').innerHTML = generateProfileViewMarkup();
+        const chatsList = document.getElementById('chats-list-m');
+        const friendsListEl = document.getElementById('friends-list-m');
+        const discoverFeed = document.getElementById('discover-feed-m');
+        const profileContainer = document.getElementById('profile-container-m');
+        
+        if(chatsList) chatsList.innerHTML = generateChatsListMarkup();
+        if(friendsListEl) friendsListEl.innerHTML = generateFriendsListMarkup();
+        if(discoverFeed) discoverFeed.innerHTML = generateDiscoverFeedMarkup();
+        if(profileContainer) profileContainer.innerHTML = generateProfileViewMarkup();
         feather.replace();
     }
 
-    // Chat Conversation Windows Management
-    function openActiveChatConversation(id) {
-        activeConversationId = id;
-        let conversation = conversations.find(c => c.id === id);
-        conversation.unread = 0;
-        updateBadgeCounters();
+    // --- CHAT WINDOW LOGIC ---
+    window.openActiveChatConversation = function(convId, targetUid) {
+        activeConversationId = convId;
+        activeChatTargetUid = targetUid;
+        
+        const otherUser = allUsersCache[targetUid] || { username: 'User', photoURL: '' };
+        
+        const layoutMarkup = `
+            <div class="chat-topbar">
+                <button class="back-btn" onclick="closeActiveChatConversation()"><i data-feather="arrow-left" style="width:18px;"></i></button>
+                <img src="${otherUser.photoURL || DEFAULT_AVATAR}" style="width:38px; height:38px; border-radius:12px; object-fit:cover;">
+                <div>
+                    <div style="font-weight:700; font-size:15px;">${otherUser.username || 'User'}</div>
+                    <div style="font-size:11px; color:var(--text-muted);">${otherUser.online ? 'Active Now' : 'Offline'}</div>
+                </div>
+            </div>
+            <div class="messages-area" id="${window.innerWidth >= 900 ? 'desktop-msg-area' : 'mobile-msg-area'}"></div>
+            <div class="input-bar">
+                <input type="text" class="chat-input" id="active-input-node" placeholder="Type your message..." onkeydown="if(event.key==='Enter') window.submitMessageFromActiveNode()">
+                <button class="send-btn" onclick="window.submitMessageFromActiveNode()"><i data-feather="send" style="width:16px;"></i></button>
+            </div>
+        `;
 
-        const isDesktop = window.innerWidth >= 900;
-        const layoutMarkup = generateChatWindowMarkup(conversation);
-
-        if(isDesktop) {
+        if (window.innerWidth >= 900) {
             const rightPane = document.getElementById('desktop-chat-container');
             document.getElementById('desktop-placeholder').style.display = 'none';
-            rightPane.style.display = 'block';
+            rightPane.style.display = 'flex';
+            rightPane.style.flexDirection = 'column';
             rightPane.innerHTML = layoutMarkup;
-            scrollActiveThreadToBottom('desktop-msg-area');
         } else {
             const over = document.getElementById('mobile-chat-window');
             over.innerHTML = layoutMarkup;
             over.classList.add('active');
-            scrollActiveThreadToBottom('mobile-msg-area');
         }
         feather.replace();
-    }
 
-    function generateChatWindowMarkup(conv) {
-        return `
-            <div class="chat-topbar">
-                <button class="back-btn" onclick="closeActiveChatConversation()"><i data-feather="arrow-left" style="width:18px;"></i></button>
-                <img src="${conv.avatar}" style="width:38px; height:38px; border-radius:12px; object-fit:cover;">
-                <div>
-                    <div style="font-weight:700; font-size:15px;">${conv.name}</div>
-                    <div style="font-size:11px; color:var(--text-muted);">${conv.online ? 'Active Now' : 'Offline'}</div>
-                </div>
-            </div>
-            <div class="messages-area" id="${window.innerWidth >= 900 ? 'desktop-msg-area' : 'mobile-msg-area'}">
-                ${conv.messages.map(m => `
-                    <div class="msg-bubble-wrap ${m.me ? 'me' : 'other'}">
-                        <div class="bubble">${m.text}</div>
-                    </div>
-                `).join('')}
-            </div>
-            <div class="input-bar">
-                <input type="text" class="chat-input" id="active-input-node" placeholder="Type your message..." onkeydown="handleInputSubmissionEvent(event)">
-                <button class="send-btn" onclick="submitMessageFromActiveNode()"><i data-feather="send" style="width:16px;"></i></button>
-            </div>
-        `;
-    }
+        // Clear Unread
+        update(ref(db, `conversations/${convId}/unread`), { [currentUser.uid]: 0 }).catch(() => {});
 
-    function closeActiveChatConversation() {
+        // Load Messages Realtime
+        if (activeChatListener) off(ref(db, `directMessages/${convId}/messages`));
+        const msgsEl = document.getElementById(window.innerWidth >= 900 ? 'desktop-msg-area' : 'mobile-msg-area');
+        
+        activeChatListener = onChildAdded(ref(db, `directMessages/${convId}/messages`), snap => {
+            const msg = snap.val();
+            const isMe = msg.senderId === currentUser.uid;
+            
+            const wrap = document.createElement('div');
+            wrap.className = `msg-bubble-wrap ${isMe ? 'me' : 'other'}`;
+            wrap.innerHTML = `<div class="bubble">${msg.text}</div>`;
+            msgsEl.appendChild(wrap);
+            msgsEl.scrollTop = msgsEl.scrollHeight;
+        });
+    };
+
+    window.closeActiveChatConversation = function() {
+        if (activeChatListener && activeConversationId) off(ref(db, `directMessages/${activeConversationId}/messages`));
         activeConversationId = null;
+        activeChatTargetUid = null;
         document.getElementById('mobile-chat-window').classList.remove('active');
+        if (window.innerWidth >= 900) {
+            document.getElementById('desktop-chat-container').style.display = 'none';
+            document.getElementById('desktop-placeholder').style.display = 'flex';
+        }
         renderCompleteApplication();
-    }
+    };
 
-    function handleInputSubmissionEvent(e) {
-        if(e.key === 'Enter') {
-            submitMessageFromActiveNode();
-        }
-    }
-
-    function submitMessageFromActiveNode() {
+    window.submitMessageFromActiveNode = async function() {
         const input = document.getElementById('active-input-node');
-        if(!input || !input.value.trim()) return;
-
-        let activeConv = conversations.find(c => c.id === activeConversationId);
-        activeConv.messages.push({ me: true, text: input.value.trim() });
-        activeConv.text = input.value.trim();
-        activeConv.time = "Just now";
-
+        const text = input.value.trim();
+        if(!text || !activeConversationId || !activeChatTargetUid) return;
+        
         input.value = "";
-        
-        // Re-render open target frame instantly
-        const areaId = window.innerWidth >= 900 ? 'desktop-msg-area' : 'mobile-msg-area';
-        document.getElementById(areaId).innerHTML = activeConv.messages.map(m => `
-            <div class="msg-bubble-wrap ${m.me ? 'me' : 'other'}">
-                <div class="bubble">${m.text}</div>
-            </div>
-        `).join('');
-        
-        scrollActiveThreadToBottom(areaId);
-        renderSidebarContent();
-    }
+        try {
+            await push(ref(db, `directMessages/${activeConversationId}/messages`), { senderId: currentUser.uid, text, timestamp: serverTimestamp() });
+            const snap = await get(ref(db, `conversations/${activeConversationId}/unread/${activeChatTargetUid}`));
+            const currentUnread = snap.exists() ? snap.val() : 0;
+            await update(ref(db, `conversations/${activeConversationId}`), {
+                members: { [currentUser.uid]: true, [activeChatTargetUid]: true },
+                lastMessage: text,
+                lastTimestamp: Date.now(),
+                [`unread/${activeChatTargetUid}`]: currentUnread + 1
+            });
+        } catch { showToast('Failed to send message'); }
+    };
 
-    function scrollActiveThreadToBottom(id) {
-        setTimeout(() => {
-            const el = document.getElementById(id);
-            if(el) el.scrollTop = el.scrollHeight;
-        }, 30);
-    }
+    // --- ACTIONS ---
+    window.startInstantFriendChat = function(targetUid) {
+        if(targetUid === currentUser.uid) return;
+        const convId = [currentUser.uid, targetUid].sort().join('_');
+        switchView('chats');
+        openActiveChatConversation(convId, targetUid);
+    };
 
-    // Features Logic Interactions
-    function openNewChatWindow() {
-        triggerCustomPrompt("New Chat Thread", "Enter a username to initiate a clean message chain:", (name) => {
+    window.addFriend = function(targetUid, username) {
+        const now = Date.now();
+        update(ref(db, `connections/${currentUser.uid}/friends`), { [targetUid]: now }).catch(() => {});
+        update(ref(db, `connections/${targetUid}/friends`), { [currentUser.uid]: now }).catch(() => {});
+        triggerCustomAlert("Connected", `You are now connected with ${username}!`);
+    };
+
+    window.openNewChatWindow = function() {
+        triggerCustomPrompt("New Chat", "Type a username to start chatting:", async (name) => {
             if(!name) return;
-            let newId = "conv_" + (conversations.length + 1);
-            conversations.unshift({
-                id: newId,
-                name: name,
-                avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150",
-                text: "Conversation thread initialized.",
-                time: "12:00 PM",
-                unread: 0,
-                online: true,
-                messages: [{ me: true, text: "Hey! Let's start typing here." }]
-            });
-            switchView('chats');
-            openActiveChatConversation(newId);
+            const target = Object.keys(allUsersCache).find(uid => allUsersCache[uid].username && allUsersCache[uid].username.toLowerCase() === name.toLowerCase());
+            if (target && target !== currentUser.uid) {
+                startInstantFriendChat(target);
+            } else {
+                showToast("User not found.");
+            }
         });
-    }
+    };
 
-    function inviteNewFriend() {
-        triggerCustomPrompt("Add Connection", "Type Vynix unique user handle registration code:", (handle) => {
-            if(!handle) return;
-            friendsList.push({
-                name: handle,
-                avatar: "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=150",
-                online: true,
-                status: "Fresh connection status!"
-            });
-            triggerCustomAlert("Success", `@${handle} added to your workspace friends list.`);
-            renderCompleteApplication();
+    window.inviteNewFriend = window.openNewChatWindow;
+
+    window.editCurrentProfileBio = function() {
+        triggerCustomPrompt("Update Bio", "Enter your new bio:", async (newBio) => {
+            if(newBio !== null) {
+                await update(ref(db, `users/${currentUser.uid}`), { bio: newBio });
+                currentUserData.bio = newBio;
+                renderCompleteApplication();
+                showToast("Bio updated");
+            }
         });
-    }
+    };
 
-    function startInstantFriendChat(friendName) {
-        let existing = conversations.find(c => c.name === friendName);
-        if(existing) {
-            switchView('chats');
-            openActiveChatConversation(existing.id);
-        } else {
-            let newId = "conv_" + (conversations.length + 1);
-            conversations.unshift({
-                id: newId,
-                name: friendName,
-                avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
-                text: "Direct network handshake established.",
-                time: "Just now",
-                unread: 0,
-                online: true,
-                messages: [{ me: false, text: "Hey there! Realized we're connected now." }]
-            });
-            switchView('chats');
-            openActiveChatConversation(newId);
-        }
-    }
+    window.logoutUser = function() {
+        update(ref(db, `users/${currentUser.uid}`), { online: false, lastSeen: serverTimestamp() })
+            .finally(() => signOut(auth).then(() => window.location.reload()));
+    };
 
-    function editCurrentProfileBio() {
-        triggerCustomPrompt("Update Bio", "Modify your current account text info:", (newBio) => {
-            if(!newBio) return;
-            mockUser.bio = newBio;
-            renderCompleteApplication();
-        });
-    }
-
-    function likeDiscoverPost(postId) {
-        // Increment discovery count instantly
-        triggerCustomAlert("Post Liked", "Your upvote was recorded onto the global community index framework.");
-    }
-
-    function toggleInterfaceTheme() {
+    window.toggleInterfaceTheme = function() {
         const doc = document.documentElement;
         const currentTheme = doc.getAttribute('data-theme') || 'light';
         const targetTheme = currentTheme === 'light' ? 'dark' : 'light';
-        
         doc.setAttribute('data-theme', targetTheme);
-        doc.style.colorScheme = targetTheme;
-        
-        const indicator = document.getElementById('theme-indicator-txt');
-        if(indicator) indicator.innerText = targetTheme === 'dark' ? 'On' : 'Off';
-    }
+        localStorage.setItem('vynix-theme', targetTheme);
+        renderCompleteApplication();
+    };
 
-    function filterList(query, containerId) {
+    window.filterList = function(query, containerId) {
         let lower = query.toLowerCase();
         let parent = document.getElementById(containerId);
         if(!parent) return;
@@ -686,72 +792,66 @@
             let txt = card.innerText.toLowerCase();
             card.style.display = txt.includes(lower) ? 'flex' : 'none';
         }
-    }
+    };
 
-    // ── GORGEOUS REUSABLE NATIVE-REPLACEMENT DIALOGS CONTROLLERS ──
+    // --- CUSTOM DIALOGS CORE ---
     let currentDialogCallback = null;
 
-    function displayOverlayContainer() {
-        const overlay = document.getElementById('dialog-overlay');
-        overlay.style.display = 'flex';
+    window.displayOverlayContainer = function() {
+        document.getElementById('dialog-overlay').style.display = 'flex';
         document.getElementById('dialog-input-field').style.display = 'none';
-    }
+    };
 
-    function closeOverlayContainer() {
+    window.closeOverlayContainer = function() {
         document.getElementById('dialog-overlay').style.display = 'none';
         currentDialogCallback = null;
-    }
+    };
 
-    function triggerCustomAlert(title, text) {
+    window.triggerCustomAlert = function(title, text) {
         displayOverlayContainer();
         document.getElementById('dialog-title').innerText = title;
         document.getElementById('dialog-text').innerText = text;
-        
         document.getElementById('dialog-buttons-container').innerHTML = `
-            <button class="dialog-btn confirm" onclick="closeOverlayContainer()">Acknowledge</button>
+            <button class="dialog-btn confirm" onclick="closeOverlayContainer()">OK</button>
         `;
-    }
+    };
 
-    function triggerCustomConfirm(title, text, confirmSuccessCallback) {
+    window.triggerCustomConfirm = function(title, text, confirmSuccessCallback) {
         displayOverlayContainer();
         document.getElementById('dialog-title').innerText = title;
         document.getElementById('dialog-text').innerText = text;
         currentDialogCallback = confirmSuccessCallback;
-
         document.getElementById('dialog-buttons-container').innerHTML = `
             <button class="dialog-btn cancel" onclick="closeOverlayContainer()">Cancel</button>
             <button class="dialog-btn confirm" onclick="executeDialogCallbackAction()">Proceed</button>
         `;
-    }
+    };
 
-    function triggerCustomPrompt(title, text, promptSubmitCallback) {
+    window.triggerCustomPrompt = function(title, text, promptSubmitCallback) {
         displayOverlayContainer();
         document.getElementById('dialog-title').innerText = title;
         document.getElementById('dialog-text').innerText = text;
-        
         const inputNode = document.getElementById('dialog-input-field');
         inputNode.style.display = 'block';
         inputNode.value = "";
         inputNode.focus();
-
         currentDialogCallback = promptSubmitCallback;
-
         document.getElementById('dialog-buttons-container').innerHTML = `
             <button class="dialog-btn cancel" onclick="closeOverlayContainer()">Cancel</button>
             <button class="dialog-btn confirm" onclick="executePromptCallbackAction()">Submit</button>
         `;
-    }
+    };
 
-    function executeDialogCallbackAction() {
+    window.executeDialogCallbackAction = function() {
         if(currentDialogCallback) currentDialogCallback();
         closeOverlayContainer();
-    }
+    };
 
-    function executePromptCallbackAction() {
+    window.executePromptCallbackAction = function() {
         const val = document.getElementById('dialog-input-field').value;
         if(currentDialogCallback) currentDialogCallback(val);
         closeOverlayContainer();
-    }
+    };
     </script>
 </body>
 </html>
