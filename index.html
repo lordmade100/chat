@@ -482,12 +482,93 @@
         .global-loader.active{display:flex;}
         .spinner{width:36px;height:36px;border:3px solid rgba(255,255,255,0.15);border-top-color:var(--primary);border-radius:50%;animation:spin 0.7s linear infinite;}
         @keyframes spin{to{transform:rotate(360deg);}}
+
+        /* ── Notification Badge ── */
+        .notification-badge {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background: var(--danger);
+            color: white;
+            font-size: 9px;
+            font-weight: 800;
+            border-radius: 10px;
+            min-width: 17px;
+            height: 17px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 0 4px;
+            border: 2px solid var(--background);
+            animation: popBadge 0.3s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        .notification-badge.show { display: flex; }
+        @keyframes popBadge { 0%{transform:scale(0)} 80%{transform:scale(1.2)} 100%{transform:scale(1)} }
+
+        /* ── Notification Dropdown ── */
+        .notification-dropdown {
+            position: fixed;
+            top: 70px;
+            right: 16px;
+            width: 320px;
+            max-width: calc(100vw - 32px);
+            max-height: 70vh;
+            background: var(--surface);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-md);
+            z-index: 400;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            animation: fadeSlide 0.2s ease;
+        }
+        .notification-dropdown.open { display: flex; }
+        @media (min-width: 900px) {
+            .notification-dropdown { top: 58px; left: 10px; right: auto; }
+        }
+        .notification-list { flex: 1; overflow-y: auto; padding: 8px; }
+        .notification-item {
+            display: flex; gap: 12px; padding: 10px 12px; border-radius: 14px;
+            cursor: pointer; transition: background 0.15s; margin-bottom: 4px; align-items: flex-start;
+        }
+        .notification-item:hover { background: var(--surface2); }
+        .notification-item.unread { background: rgba(var(--primary-rgb), 0.06); }
+        .notification-item.unread:hover { background: rgba(var(--primary-rgb), 0.1); }
+        .notification-item img {
+            width: 40px; height: 40px; border-radius: 50%; object-fit: cover;
+            flex-shrink: 0; background: var(--surface2);
+        }
+        .notification-body { flex: 1; min-width: 0; }
+        .notification-title {
+            font-size: 14px; font-weight: 700; color: var(--text-primary);
+            display: flex; justify-content: space-between; align-items: center; gap: 8px;
+        }
+        .notification-text {
+            font-size: 13px; color: var(--text-secondary); margin-top: 2px;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .notification-time { font-size: 11px; color: var(--text-muted); flex-shrink: 0; }
+        .notification-empty { padding: 40px 24px; text-align: center; color: var(--text-muted); font-size: 14px; }
+        .notification-dot {
+            width: 8px; height: 8px; border-radius: 50%; background: var(--primary);
+            flex-shrink: 0; margin-top: 6px;
+        }
     </style>
 </head>
 <body>
 
 <div class="toast" id="toast"></div>
 <div class="global-loader" id="upload-loader"><div class="spinner"></div></div>
+
+<!-- Notification Dropdown -->
+<div class="notification-dropdown" id="notification-dropdown">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border);">
+        <div style="font-size:16px;font-weight:800;">Notifications</div>
+        <button class="profile-x-btn" style="padding:4px 12px;font-size:12px;" id="mark-all-read-btn">Mark all read</button>
+    </div>
+    <div class="notification-list" id="notification-list"></div>
+</div>
 
 <!-- ── WhatsApp-style Desktop / Tablet Layout ── -->
 <div class="desktop-layout" id="desktop-layout" style="display:none;">
@@ -499,6 +580,10 @@
             <span class="sidebar-profile-name" id="desktop-profile-name">Loading…</span>
             <button class="sidebar-icon-btn" id="desktop-new-chat-btn" title="New message">
                 <i data-feather="edit" style="width:16px;height:16px;"></i>
+            </button>
+            <button class="sidebar-icon-btn" id="desktop-notif-btn" title="Notifications" style="position:relative;">
+                <i data-feather="bell" style="width:16px;height:16px;"></i>
+                <span class="notification-badge" id="dsk-notif-badge"></span>
             </button>
             <button class="sidebar-icon-btn" id="desktop-settings-btn" title="Settings" onclick="desktopSwitchPanel('profile')">
                 <i data-feather="settings" style="width:16px;height:16px;"></i>
@@ -595,9 +680,15 @@
     <div id="view-chats" class="view-container active">
         <header class="header">
             <h2>Messages</h2>
-            <button class="header-btn" id="new-chat-btn" title="New chat">
-                <i data-feather="edit" style="width:18px;height:18px;"></i>
-            </button>
+            <div style="display:flex;gap:8px;align-items:center;">
+                <button class="header-btn" id="notif-btn" title="Notifications" style="position:relative;">
+                    <i data-feather="bell" style="width:18px;height:18px;"></i>
+                    <span class="notification-badge" id="notif-badge"></span>
+                </button>
+                <button class="header-btn" id="new-chat-btn" title="New chat">
+                    <i data-feather="edit" style="width:18px;height:18px;"></i>
+                </button>
+            </div>
         </header>
 
         <!-- Pill tab switcher -->
@@ -985,7 +1076,7 @@
 </div>
 
 <script type="module">
-import { getDatabase, ref, onValue, onChildAdded, push, set, get, update, remove, serverTimestamp, off }
+import { getDatabase, ref, onValue, onChildAdded, onChildChanged, push, set, get, update, remove, serverTimestamp, off, query, limitToLast }
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -1007,7 +1098,7 @@ const CLOUDINARY_CLOUD_NAME   = 'dqkujefxj';
 const CLOUDINARY_UPLOAD_PRESET = 'banter_box';
 
 // Inline default avatar – shown immediately before any data loads
-const DEFAULT_AVATAR = `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52"><rect width="52" height="52" rx="14" fill="#E4E4E7"/><circle cx="26" cy="20" r="9" fill="#A1A1AA"/><path d="M8 46c0-9.941 8.059-18 18-18s18 8.059 18 18" fill="#A1A1AA"/></svg>`)}`;
+const DEFAULT_AVATAR = `data:image/svg+xml,${encodeURIComponent(`<<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52"><rect width="52" height="52" rx="14" fill="#E4E4E7"/><circle cx="26" cy="20" r="9" fill="#A1A1AA"/><path d="M8 46c0-9.941 8.059-18 18-18s18 8.059 18 18" fill="#A1A1AA"/></svg>`)}`;
 
 let currentUser     = null;
 let currentUserData = null;
@@ -1022,6 +1113,13 @@ let longPressTimer    = null;
 let selectedConvId    = null;
 let selectedTargetUid = null;
 let longPressTriggered = false;
+
+let prevUnreadState = {};
+let conversationsFirstLoad = true;
+let notificationsCache = [];
+let notifDropdownOpen = false;
+let unsubscribeNotifAdded = null;
+let unsubscribeNotifChanged = null;
 
 // Privacy / storage preferences (persisted in localStorage)
 const PREFS_KEY = 'vynix-prefs';
@@ -1071,6 +1169,15 @@ document.getElementById('nav-profile').addEventListener('click', () => switchTab
 document.getElementById('new-chat-btn').addEventListener('click', openNewChatSheet);
 document.getElementById('chat-back-btn').addEventListener('click', () => closeChat(false));
 document.getElementById('send-btn').addEventListener('click', sendChatMessage);
+
+// Notification buttons
+document.getElementById('notif-btn')?.addEventListener('click', (e) => { e.stopPropagation(); toggleNotificationDropdown(); });
+document.getElementById('desktop-notif-btn')?.addEventListener('click', (e) => { e.stopPropagation(); toggleNotificationDropdown(); });
+document.getElementById('mark-all-read-btn')?.addEventListener('click', (e) => { e.stopPropagation(); markAllNotificationsRead(); });
+document.addEventListener('click', (e) => {
+    const dd = document.getElementById('notification-dropdown');
+    if (dd && notifDropdownOpen && !dd.contains(e.target) && !e.target.closest('#notif-btn') && !e.target.closest('#desktop-notif-btn')) toggleNotificationDropdown(false);
+});
 
 // Sheets – backdrop click to dismiss
 ['action-sheet-overlay','new-chat-sheet-overlay','edit-name-sheet-overlay','edit-bio-sheet-overlay',
@@ -1128,6 +1235,9 @@ onAuthStateChanged(auth, async (user) => {
     if (!user) { window.location.href = 'signup.html'; return; }
     currentUser = user;
     await loadUserData();
+    initNotifications();
+    setupNotificationsListener();
+    cleanupOldNotifications();
     loadChatsTab();
     setupPresence();
 });
@@ -1245,6 +1355,7 @@ function openDskChat(targetUid) {
     onValue(ref(db, `users/${targetUid}/online`), s => {
         document.getElementById('dsk-chat-header-status').textContent = s.val() === true ? '🟢 Active now' : 'Offline';
     });
+    markConvNotificationsRead(dskActiveChatConvId);
 }
 
 async function sendDskMessage() {
@@ -1404,10 +1515,18 @@ async function loadChatsTab() {
                 if (!otherId) return;
                 const other  = allUsersCache[otherId] || { username: 'User', photoURL: '' };
                 const unread = conv.unread?.[currentUser.uid] || 0;
+
+                const prevUnread = prevUnreadState[child.key] || 0;
+                if (!conversationsFirstLoad && unread > prevUnread && child.key !== activeChatConvId && child.key !== dskActiveChatConvId) {
+                    createNotification(otherId, child.key, conv.lastMessage, 'message');
+                }
+                prevUnreadState[child.key] = unread;
+
                 totalUnread += unread;
                 convList.push({ id:child.key, otherId, other, lastMessage:conv.lastMessage||'Conversation started', lastTimestamp:conv.lastTimestamp||0, unread });
             });
         }
+        conversationsFirstLoad = false;
 
         // Update nav badge (desktop too)
         const badge = document.getElementById('badge-messages');
@@ -1655,6 +1774,7 @@ async function openChat(targetUid) {
     onValue(ref(db, `users/${targetUid}/online`), s => {
         document.getElementById('chat-header-status').textContent = s.val() === true ? '🟢 Active now' : 'Offline';
     });
+    markConvNotificationsRead(activeChatConvId);
 }
 
 function closeChat(fromPopState = false) {
@@ -1798,6 +1918,14 @@ function renderProfile() {
           </div>
           <div class="toggle-switch ${prefs['notif'] !== false ? 'active' : ''}" id="notif-toggle"></div>
         </div>
+        <div class="setting-item" id="notif-sound-item">
+            <div class="setting-label">
+                <div class="setting-label-icon" style="background:rgba(236,72,153,0.1);color:#EC4899;">
+                    <i data-feather="volume-2" style="width:16px;height:16px;"></i>
+                </div>Notification Sound
+            </div>
+            <div class="toggle-switch ${prefs['notif_sound'] !== false ? 'active' : ''}" id="notif-sound-toggle"></div>
+        </div>
       </div>
       <div class="settings-section">
         <div class="settings-section-label">Account</div>
@@ -1853,11 +1981,19 @@ function renderProfile() {
         document.documentElement.setAttribute('data-theme', isDk ? 'dark' : 'light');
         localStorage.setItem('vynix-theme', isDk ? 'dark' : 'light');
     });
-    document.getElementById('notif-item').addEventListener('click', () => {
+    document.getElementById('notif-item').addEventListener('click', async () => {
         const tog = document.getElementById('notif-toggle');
+        const willEnable = !tog.classList.contains('active');
+        if (willEnable) { const granted = await requestNotificationPermission(); if (!granted) return; }
         tog.classList.toggle('active');
         savePrefs({ notif: tog.classList.contains('active') });
-        showToast('Notification preference saved');
+        showToast(tog.classList.contains('active') ? 'Notifications enabled' : 'Notifications disabled');
+    });
+    document.getElementById('notif-sound-item').addEventListener('click', () => {
+        const tog = document.getElementById('notif-sound-toggle');
+        tog.classList.toggle('active');
+        savePrefs({ notif_sound: tog.classList.contains('active') });
+        showToast('Sound ' + (tog.classList.contains('active') ? 'enabled' : 'disabled'));
     });
     document.getElementById('privacy-item').addEventListener('click', () => openSheet('privacy-sheet-overlay'));
     document.getElementById('storage-item').addEventListener('click', () => openSheet('storage-sheet-overlay'));
@@ -2422,10 +2558,175 @@ document.getElementById('msg-action-delete').addEventListener('click', async ()=
     try {
         await remove(ref(db,`directMessages/${convId}/messages/${msgKey}`));
         showToast('Message deleted');
+
+        // ── REAL-TIME FRIEND CARD UPDATE ON DELETE ──
+        // Find the new last message and update the conversation preview immediately
+        const lastMsgSnap = await get(query(ref(db, `directMessages/${convId}/messages`), limitToLast(1)));
+        let lastMessage = 'Chat cleared';
+        let lastTimestamp = Date.now();
+        if (lastMsgSnap.exists()) {
+            lastMsgSnap.forEach(child => {
+                const m = child.val();
+                lastMessage = m.text || (m.mediaType ? `[${m.mediaType}]` : 'Message');
+                lastTimestamp = m.timestamp || Date.now();
+            });
+        }
+        await update(ref(db, `conversations/${convId}`), { lastMessage, lastTimestamp });
     } catch(e){
         showToast('Could not delete message');
     }
 });
+
+// ── Notifications ──
+async function requestNotificationPermission() {
+    if (!("Notification" in window)) { showToast("Notifications not supported"); return false; }
+    const perm = await Notification.requestPermission();
+    if (perm === "granted") { showToast("Notifications enabled"); return true; }
+    showToast("Please enable notifications in browser settings"); return false;
+}
+
+function showBrowserNotification(title, body, icon, data) {
+    const prefs = loadPrefs();
+    if (prefs['notif'] === false) return;
+    if (!("Notification" in window) || Notification.permission !== "granted") return;
+    if (document.visibilityState === "visible") return; // only when backgrounded
+    try {
+        const n = new Notification(title, {
+            body, icon: icon || DEFAULT_AVATAR, badge: DEFAULT_AVATAR,
+            tag: data?.convId || 'vynix-msg', data
+        });
+        n.onclick = () => { window.focus(); n.close(); if (data?.senderId) { if (isDesktop()) openDskChat(data.senderId); else openChat(data.senderId); } };
+    } catch(e) {}
+}
+
+function playNotificationSound() {
+    const prefs = loadPrefs();
+    if (prefs['notif_sound'] === false) return;
+    try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.connect(g); g.connect(ctx.destination);
+        o.frequency.value = 880; o.type = 'sine';
+        g.gain.setValueAtTime(0.08, ctx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+        o.start(); o.stop(ctx.currentTime + 0.12);
+    } catch(e) {}
+}
+
+async function createNotification(senderId, convId, text, type = 'message') {
+    const prefs = loadPrefs();
+    if (prefs['notif'] === false) return;
+    const sender = allUsersCache[senderId] || { username: 'User', photoURL: '' };
+    const notifRef = push(ref(db, `notifications/${currentUser.uid}`));
+    const payload = {
+        type, title: sender.username || 'User',
+        body: text ? (text.length > 100 ? text.slice(0,100)+'…' : text) : 'New message',
+        senderId, convId, read: false, timestamp: Date.now()
+    };
+    await set(notifRef, payload);
+    showBrowserNotification(payload.title, payload.body, sender.photoURL, { convId, senderId });
+    playNotificationSound();
+}
+
+async function loadNotifications() {
+    const snap = await get(ref(db, `notifications/${currentUser.uid}`));
+    const list = [];
+    if (snap.exists()) snap.forEach(c => list.push({ id: c.key, ...c.val() }));
+    list.sort((a,b) => b.timestamp - a.timestamp);
+    notificationsCache = list.slice(0, 50);
+    renderNotificationBadge();
+    renderNotificationDropdown();
+}
+
+function renderNotificationBadge() {
+    const unread = notificationsCache.filter(n => !n.read).length;
+    const badge = document.getElementById('notif-badge');
+    const dsk = document.getElementById('dsk-notif-badge');
+    if (badge) { badge.textContent = unread > 99 ? '99+' : unread; badge.classList.toggle('show', unread > 0); }
+    if (dsk) { dsk.textContent = unread > 99 ? '99+' : unread; dsk.classList.toggle('show', unread > 0); }
+}
+
+function renderNotificationDropdown() {
+    const listEl = document.getElementById('notification-list');
+    if (!listEl) return;
+    if (!notificationsCache.length) { listEl.innerHTML = '<div class="notification-empty">No notifications yet</div>'; return; }
+    listEl.innerHTML = notificationsCache.map(n => {
+        const s = allUsersCache[n.senderId] || { username:'User', photoURL:'' };
+        return `<div class="notification-item ${n.read?'':'unread'}" data-nid="${n.id}" data-cid="${n.convId}" data-sid="${n.senderId}">
+            <img src="${s.photoURL||DEFAULT_AVATAR}" onerror="this.src='${DEFAULT_AVATAR.replace(/'/g,"\\'")}'" loading="lazy">
+            <div class="notification-body">
+                <div class="notification-title"><span>${escapeHtml(n.title)}</span><span class="notification-time">${formatChatTime(n.timestamp)}</span></div>
+                <div class="notification-text">${escapeHtml(n.body)}</div>
+            </div>
+            ${n.read?'':'<<div class="notification-dot"></div>'}
+        </div>`;
+    }).join('');
+    listEl.querySelectorAll('.notification-item').forEach(el => el.addEventListener('click', () => {
+        markNotificationRead(el.dataset.nid);
+        toggleNotificationDropdown(false);
+        if (isDesktop()) openDskChat(el.dataset.sid);
+        else openChat(el.dataset.sid);
+    }));
+}
+
+async function markNotificationRead(id) {
+    await update(ref(db, `notifications/${currentUser.uid}/${id}`), { read: true });
+    const n = notificationsCache.find(x => x.id === id);
+    if (n) n.read = true;
+    renderNotificationBadge(); renderNotificationDropdown();
+}
+
+async function markAllNotificationsRead() {
+    const updates = {};
+    notificationsCache.filter(n => !n.read).forEach(n => { updates[`notifications/${currentUser.uid}/${n.id}/read`] = true; n.read = true; });
+    if (Object.keys(updates).length) { await update(ref(db), updates); renderNotificationBadge(); renderNotificationDropdown(); }
+}
+
+async function markConvNotificationsRead(convId) {
+    if (!convId || !currentUser) return;
+    const updates = {};
+    notificationsCache.filter(n => n.convId === convId && !n.read).forEach(n => { updates[`notifications/${currentUser.uid}/${n.id}/read`] = true; n.read = true; });
+    if (Object.keys(updates).length) { await update(ref(db), updates); renderNotificationBadge(); if (notifDropdownOpen) renderNotificationDropdown(); }
+}
+
+function toggleNotificationDropdown(force) {
+    const dd = document.getElementById('notification-dropdown');
+    if (!dd) return;
+    notifDropdownOpen = force !== undefined ? force : !notifDropdownOpen;
+    dd.classList.toggle('open', notifDropdownOpen);
+    if (notifDropdownOpen) renderNotificationDropdown();
+}
+
+function setupNotificationsListener() {
+    if (unsubscribeNotifAdded) unsubscribeNotifAdded();
+    if (unsubscribeNotifChanged) unsubscribeNotifChanged();
+    unsubscribeNotifAdded = onChildAdded(ref(db, `notifications/${currentUser.uid}`), snap => {
+        const n = { id: snap.key, ...snap.val() };
+        if (!notificationsCache.find(x => x.id === n.id)) {
+            notificationsCache.unshift(n);
+            if (notificationsCache.length > 50) notificationsCache.pop();
+            renderNotificationBadge();
+            if (notifDropdownOpen) renderNotificationDropdown();
+        }
+    });
+    unsubscribeNotifChanged = onChildChanged(ref(db, `notifications/${currentUser.uid}`), snap => {
+        const n = notificationsCache.find(x => x.id === snap.key);
+        if (n) { n.read = snap.val().read; renderNotificationBadge(); if (notifDropdownOpen) renderNotificationDropdown(); }
+    });
+}
+
+async function cleanupOldNotifications() {
+    const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    const snap = await get(ref(db, `notifications/${currentUser.uid}`));
+    if (!snap.exists()) return;
+    const updates = {};
+    snap.forEach(c => { if (c.val().timestamp < weekAgo) updates[`notifications/${currentUser.uid}/${c.key}`] = null; });
+    if (Object.keys(updates).length) await update(ref(db), updates);
+}
+
+function initNotifications() {
+    loadNotifications();
+}
 
 switchTab('chats');
 </script>
