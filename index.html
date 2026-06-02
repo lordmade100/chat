@@ -10,7 +10,6 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <script src="https://unpkg.com/feather-icons"></script>
-    <!-- Emoji data (open-source) -->
     <script>
     // Lightweight emoji dataset - grouped categories
     const EMOJI_DATA = {
@@ -561,7 +560,6 @@
 <div class="toast" id="toast"></div>
 <div class="global-loader" id="upload-loader"><div class="spinner"></div></div>
 
-<!-- Notification Dropdown -->
 <div class="notification-dropdown" id="notification-dropdown">
     <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border);">
         <div style="font-size:16px;font-weight:800;">Notifications</div>
@@ -570,11 +568,8 @@
     <div class="notification-list" id="notification-list"></div>
 </div>
 
-<!-- ── WhatsApp-style Desktop / Tablet Layout ── -->
 <div class="desktop-layout" id="desktop-layout" style="display:none;">
-    <!-- Sidebar -->
     <div class="sidebar" id="desktop-sidebar">
-        <!-- Profile bar -->
         <div class="sidebar-profile">
             <img src="" id="desktop-profile-avatar" class="sidebar-profile-avatar" alt="Me" onclick="desktopSwitchPanel('profile')">
             <span class="sidebar-profile-name" id="desktop-profile-name">Loading…</span>
@@ -590,7 +585,6 @@
             </button>
         </div>
 
-        <!-- Nav tabs -->
         <div class="sidebar-tabs">
             <button class="sidebar-tab active" id="dsk-tab-chats" onclick="desktopNavTab('chats')">
                 <i data-feather="message-circle" style="width:18px;height:18px;"></i>
@@ -603,7 +597,6 @@
             </button>
         </div>
 
-        <!-- Chats panel -->
         <div id="dsk-panel-chats" class="sidebar-scroll">
             <div class="sidebar-header">
                 <div class="search-box" style="margin:0;">
@@ -622,7 +615,6 @@
             <div id="dsk-chats-list" class="chats-holder" style="padding:4px 12px 12px;gap:4px;"></div>
         </div>
 
-        <!-- Discover panel (hidden by default) -->
         <div id="dsk-panel-discover" class="sidebar-scroll" style="display:none;">
             <div class="sidebar-header">
                 <h2 style="margin-bottom:0;font-size:18px;">Discover <span style="font-size:12px;font-weight:600;color:var(--text-muted);" id="dsk-discover-counter"></span></h2>
@@ -631,9 +623,7 @@
         </div>
     </div>
 
-    <!-- Main panel -->
     <div class="main-panel" id="desktop-main-panel">
-        <!-- Empty state (default) -->
         <div class="desktop-empty" id="desktop-empty-state">
             <div class="desktop-empty-icon">
                 <i data-feather="message-circle" style="width:36px;height:36px;color:var(--primary);"></i>
@@ -642,7 +632,6 @@
             <p>Select a conversation from the sidebar or start a new one to begin chatting.</p>
         </div>
 
-        <!-- Chat window (inline on desktop) -->
         <div class="chat-window desktop-hidden" id="desktop-chat-window" style="position:relative;transform:none;visibility:visible;flex:1;">
             <div class="chat-topbar">
                 <img src="" id="dsk-chat-header-avatar" class="avatar" style="width:42px;height:42px;border-radius:14px;background:var(--surface2);">
@@ -667,7 +656,6 @@
             </div>
         </div>
 
-        <!-- Profile panel -->
         <div id="desktop-profile-panel" style="display:none;height:100%;overflow-y:auto;padding:24px;max-width:520px;margin:0 auto;width:100%;">
             <div id="dsk-profile-content"></div>
         </div>
@@ -676,7 +664,6 @@
 
 <div class="app-container">
 
-    <!-- ── Messages Tab ── -->
     <div id="view-chats" class="view-container active">
         <header class="header">
             <h2>Messages</h2>
@@ -691,7 +678,6 @@
             </div>
         </header>
 
-        <!-- Pill tab switcher -->
         <div class="tab-switcher">
             <button class="tab-pill active" id="tab-all" onclick="switchChatTab('all')">
                 All
@@ -712,7 +698,6 @@
         <div id="chats-list" class="chats-holder"></div>
     </div>
 
-    <!-- ── Discover Tab ── -->
     <div id="view-discover" class="view-container">
         <header class="header">
             <h2>Discover</h2>
@@ -721,7 +706,6 @@
         <div id="discover-content"></div>
     </div>
 
-    <!-- ── Profile Tab ── -->
     <div id="view-profile" class="view-container">
         <header class="header">
             <h2>Profile</h2>
@@ -731,7 +715,6 @@
 
 </div>
 
-<!-- Bottom Nav -->
 <div class="bottom-nav-container">
     <nav class="bottom-nav">
         <button class="nav-item active" data-nav="chats" id="nav-chats">
@@ -749,7 +732,6 @@
     </nav>
 </div>
 
-<!-- ── Chat Action Sheet (long press) ── -->
 <div class="bottom-sheet-overlay" id="action-sheet-overlay">
     <div class="bottom-sheet">
         <div class="sheet-handle"></div>
@@ -764,7 +746,6 @@
     </div>
 </div>
 
-<!-- ── New Chat Sheet ── -->
 <div class="bottom-sheet-overlay" id="new-chat-sheet-overlay">
     <div class="bottom-sheet">
         <div class="sheet-handle"></div>
@@ -774,7 +755,6 @@
     </div>
 </div>
 
-<!-- ── Edit Name Sheet ── -->
 <div class="bottom-sheet-overlay" id="edit-name-sheet-overlay">
     <div class="bottom-sheet">
         <div class="sheet-handle"></div>
@@ -787,7 +767,6 @@
     </div>
 </div>
 
-<!-- ── Edit Bio Sheet ── -->
 <div class="bottom-sheet-overlay" id="edit-bio-sheet-overlay">
     <div class="bottom-sheet">
         <div class="sheet-handle"></div>
@@ -806,7 +785,6 @@
     </div>
 </div>
 
-<!-- ── Privacy Sheet ── -->
 <div class="bottom-sheet-overlay" id="privacy-sheet-overlay">
     <div class="bottom-sheet">
         <div class="sheet-handle"></div>
@@ -853,7 +831,6 @@
     </div>
 </div>
 
-<!-- ── Data & Storage Sheet ── -->
 <div class="bottom-sheet-overlay" id="storage-sheet-overlay">
     <div class="bottom-sheet">
         <div class="sheet-handle"></div>
@@ -895,7 +872,6 @@
     </div>
 </div>
 
-<!-- ── Help Sheet ── -->
 <div class="bottom-sheet-overlay" id="help-sheet-overlay">
     <div class="bottom-sheet">
         <div class="sheet-handle"></div>
@@ -938,7 +914,6 @@
     </div>
 </div>
 
-<!-- ── About Sheet ── -->
 <div class="bottom-sheet-overlay" id="about-sheet-overlay">
     <div class="bottom-sheet">
         <div class="sheet-handle"></div>
@@ -976,7 +951,15 @@
     </div>
 </div>
 
-<!-- ── Chat Window ── -->
+<div class="bottom-sheet-overlay" id="blocked-users-sheet-overlay">
+    <div class="bottom-sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-title">Blocked Users</div>
+        <div class="sheet-scroll-area" id="blocked-users-list"></div>
+        <button class="sheet-btn transparent" style="margin-top:10px;" id="btn-close-blocked">Close</button>
+    </div>
+</div>
+
 <div class="chat-window" id="chat-window">
     <div class="chat-topbar">
         <button class="back-btn" id="chat-back-btn">
@@ -1004,7 +987,6 @@
     </div>
 </div>
 
-<!-- ── Media Attach Sheet ── -->
 <div class="bottom-sheet-overlay" id="media-sheet-overlay">
     <div class="bottom-sheet">
         <div class="sheet-handle"></div>
@@ -1043,10 +1025,8 @@
     </div>
 </div>
 
-<!-- ── Emoji Picker Backdrop ── -->
 <div class="emoji-picker-backdrop" id="emoji-picker-backdrop"></div>
 
-<!-- ── Message Action Sheet (long press) ── -->
 <div class="msg-action-sheet-overlay" id="msg-action-overlay">
     <div class="msg-action-sheet">
         <div class="sheet-handle" style="width:32px;height:4px;background:var(--surface3);border-radius:999px;margin:0 auto 14px;"></div>
@@ -1069,7 +1049,6 @@
     </div>
 </div>
 
-<!-- ── Image Lightbox ── -->
 <div class="lightbox" id="lightbox" onclick="closeLightbox()">
     <button class="lightbox-close" onclick="closeLightbox()">✕</button>
     <div id="lightbox-content"></div>
@@ -1098,7 +1077,7 @@ const CLOUDINARY_CLOUD_NAME   = 'dqkujefxj';
 const CLOUDINARY_UPLOAD_PRESET = 'banter_box';
 
 // Inline default avatar – shown immediately before any data loads
-const DEFAULT_AVATAR = `data:image/svg+xml,${encodeURIComponent(`<<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52"><rect width="52" height="52" rx="14" fill="#E4E4E7"/><circle cx="26" cy="20" r="9" fill="#A1A1AA"/><path d="M8 46c0-9.941 8.059-18 18-18s18 8.059 18 18" fill="#A1A1AA"/></svg>`)}`;
+const DEFAULT_AVATAR = `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52"><rect width="52" height="52" rx="14" fill="#E4E4E7"/><circle cx="26" cy="20" r="9" fill="#A1A1AA"/><path d="M8 46c0-9.941 8.059-18 18-18s18 8.059 18 18" fill="#A1A1AA"/></svg>`)}`;
 
 let currentUser     = null;
 let currentUserData = null;
@@ -1181,25 +1160,27 @@ document.addEventListener('click', (e) => {
 
 // Sheets – backdrop click to dismiss
 ['action-sheet-overlay','new-chat-sheet-overlay','edit-name-sheet-overlay','edit-bio-sheet-overlay',
- 'privacy-sheet-overlay','storage-sheet-overlay','help-sheet-overlay','about-sheet-overlay','media-sheet-overlay'
+ 'privacy-sheet-overlay','storage-sheet-overlay','help-sheet-overlay','about-sheet-overlay','media-sheet-overlay','blocked-users-sheet-overlay'
 ].forEach(id => {
     const el = document.getElementById(id);
-    el.addEventListener('click', e => { if (e.target === el) closeSheet(id); });
+    if(el) el.addEventListener('click', e => { if (e.target === el) closeSheet(id); });
 });
 
-document.getElementById('btn-cancel-action').addEventListener('click',   () => closeSheet('action-sheet-overlay'));
-document.getElementById('btn-cancel-newchat').addEventListener('click',  () => closeSheet('new-chat-sheet-overlay'));
-document.getElementById('btn-cancel-editname').addEventListener('click', () => closeSheet('edit-name-sheet-overlay'));
-document.getElementById('btn-cancel-bio').addEventListener('click',     () => closeSheet('edit-bio-sheet-overlay'));
-document.getElementById('btn-close-privacy').addEventListener('click',   () => closeSheet('privacy-sheet-overlay'));
-document.getElementById('btn-close-storage').addEventListener('click',   () => closeSheet('storage-sheet-overlay'));
-document.getElementById('btn-close-help').addEventListener('click',      () => closeSheet('help-sheet-overlay'));
-document.getElementById('btn-close-about').addEventListener('click',     () => closeSheet('about-sheet-overlay'));
-document.getElementById('btn-save-name').addEventListener('click', saveUsername);
-document.getElementById('btn-save-bio').addEventListener('click', saveBioAge);
-document.getElementById('btn-clear-chat').addEventListener('click', executeClearChat);
-document.getElementById('btn-block-user').addEventListener('click', executeBlockUser);
-document.getElementById('btn-clear-cache').addEventListener('click', () => {
+document.getElementById('btn-cancel-action')?.addEventListener('click',   () => closeSheet('action-sheet-overlay'));
+document.getElementById('btn-cancel-newchat')?.addEventListener('click',  () => closeSheet('new-chat-sheet-overlay'));
+document.getElementById('btn-cancel-editname')?.addEventListener('click', () => closeSheet('edit-name-sheet-overlay'));
+document.getElementById('btn-cancel-bio')?.addEventListener('click',     () => closeSheet('edit-bio-sheet-overlay'));
+document.getElementById('btn-close-privacy')?.addEventListener('click',   () => closeSheet('privacy-sheet-overlay'));
+document.getElementById('btn-close-storage')?.addEventListener('click',   () => closeSheet('storage-sheet-overlay'));
+document.getElementById('btn-close-help')?.addEventListener('click',      () => closeSheet('help-sheet-overlay'));
+document.getElementById('btn-close-about')?.addEventListener('click',     () => closeSheet('about-sheet-overlay'));
+document.getElementById('btn-close-blocked')?.addEventListener('click',   () => closeSheet('blocked-users-sheet-overlay'));
+
+document.getElementById('btn-save-name')?.addEventListener('click', saveUsername);
+document.getElementById('btn-save-bio')?.addEventListener('click', saveBioAge);
+document.getElementById('btn-clear-chat')?.addEventListener('click', executeClearChat);
+document.getElementById('btn-block-user')?.addEventListener('click', executeBlockUser);
+document.getElementById('btn-clear-cache')?.addEventListener('click', () => {
     localStorage.removeItem('vynix-cache');
     showToast('Cache cleared');
 });
@@ -1209,6 +1190,7 @@ document.getElementById('btn-clear-cache').addEventListener('click', () => {
  'toggle-autodl-sw','toggle-wifionly-sw','toggle-reducedata-sw'
 ].forEach(id => {
     const el = document.getElementById(id);
+    if(!el) return;
     const prefs = loadPrefs();
     // init state from prefs (default: active for first 3, inactive for others)
     const defaults = { 'toggle-receipts-sw':true,'toggle-lastseen-sw':true,'toggle-online-sw':true,'toggle-twostep-sw':false,'toggle-autodl-sw':true,'toggle-wifionly-sw':false,'toggle-reducedata-sw':false };
@@ -1307,6 +1289,10 @@ function rewireProfileButtons(containerId) {
     c.querySelector('#storage-item')?.addEventListener('click', () => openSheet('storage-sheet-overlay'));
     c.querySelector('#help-item')?.addEventListener('click',    () => openSheet('help-sheet-overlay'));
     c.querySelector('#about-item')?.addEventListener('click',   () => openSheet('about-sheet-overlay'));
+    c.querySelector('#blocked-item')?.addEventListener('click', () => {
+        openSheet('blocked-users-sheet-overlay');
+        loadBlockedUsers();
+    });
 }
 
 // Desktop chat state
@@ -1724,8 +1710,44 @@ async function executeBlockUser() {
     closeSheet('action-sheet-overlay');
     if (!confirm('Block this user? The conversation will be removed.')) return;
     await remove(ref(db, `conversations/${selectedConvId}`));
+    await update(ref(db, `blocks/${currentUser.uid}`), { [selectedTargetUid]: true });
     showToast('User blocked');
 }
+
+// ── Blocked Users logic ──
+window.loadBlockedUsers = async function() {
+    const listEl = document.getElementById('blocked-users-list');
+    listEl.innerHTML = '<div style="padding:20px;text-align:center;"><div class="spinner" style="margin:0 auto;border-top-color:var(--danger);"></div></div>';
+    const snap = await get(ref(db, `blocks/${currentUser.uid}`));
+    if (!snap.exists()) {
+        listEl.innerHTML = '<div class="empty-state" style="padding:40px 20px;">No blocked users.</div>';
+        return;
+    }
+    const blockedUids = Object.keys(snap.val()).filter(uid => snap.val()[uid] === true);
+    if (blockedUids.length === 0) {
+        listEl.innerHTML = '<div class="empty-state" style="padding:40px 20px;">No blocked users.</div>';
+        return;
+    }
+    let html = '';
+    for (const uid of blockedUids) {
+        const u = allUsersCache[uid] || { username: 'Unknown', photoURL: DEFAULT_AVATAR };
+        html += `
+        <div class="user-row" style="cursor:default;">
+            <img src="${u.photoURL || DEFAULT_AVATAR}" class="avatar" style="width:40px;height:40px;border-radius:12px;background:var(--surface2);" onerror="this.src='${DEFAULT_AVATAR.replace(/'/g,"\\'")}'">
+            <div style="flex:1;min-width:0;">
+                <div class="chat-name">${escapeHtml(u.username||'User')}</div>
+            </div>
+            <button class="profile-x-btn danger-btn" style="padding:6px 12px;font-size:12px;" onclick="unblockUser('${uid}')">Unblock</button>
+        </div>`;
+    }
+    listEl.innerHTML = html;
+};
+
+window.unblockUser = async function(uid) {
+    await remove(ref(db, `blocks/${currentUser.uid}/${uid}`));
+    showToast('User unblocked');
+    loadBlockedUsers();
+};
 
 // ── Chat Window ──
 async function openChat(targetUid) {
@@ -1810,7 +1832,7 @@ window.resizeTextarea = (el) => {
 
 // ── popstate ──
 window.addEventListener('popstate', () => {
-    for (const id of ['action-sheet-overlay','new-chat-sheet-overlay','edit-name-sheet-overlay','edit-bio-sheet-overlay','privacy-sheet-overlay','storage-sheet-overlay','help-sheet-overlay','about-sheet-overlay','media-sheet-overlay']) {
+    for (const id of ['action-sheet-overlay','new-chat-sheet-overlay','edit-name-sheet-overlay','edit-bio-sheet-overlay','privacy-sheet-overlay','storage-sheet-overlay','help-sheet-overlay','about-sheet-overlay','media-sheet-overlay','blocked-users-sheet-overlay']) {
         if (document.getElementById(id).classList.contains('active')) { closeSheet(id); return; }
     }
     if (document.getElementById('chat-window').classList.contains('active')) { closeChat(true); }
@@ -1843,7 +1865,6 @@ function renderProfile() {
 
     container.innerHTML = `
     <div class="profile-x-card">
-      <!-- Banner -->
       <div class="profile-x-banner" id="banner-click">
         ${banner ? `<img src="${banner}" onerror="this.style.display='none'" loading="lazy">` : ''}
         <div class="profile-x-banner-edit">
@@ -1853,7 +1874,6 @@ function renderProfile() {
       <input type="file" id="banner-upload" accept="image/*" style="display:none;" onchange="handleBannerUpload(event)">
 
       <div class="profile-x-body">
-        <!-- Avatar row -->
         <div class="profile-x-avatar-row">
           <div class="profile-x-avatar-wrap" id="avatar-click">
             <img src="${photo}" class="profile-x-avatar" id="profile-avatar-img"
@@ -1869,7 +1889,6 @@ function renderProfile() {
           </div>
         </div>
 
-        <!-- Name & handle -->
         <div class="profile-x-name">
           ${escapeHtml(currentUserData.username||'User')}
           <span class="profile-x-verified" title="Vynix user">
@@ -1880,18 +1899,15 @@ function renderProfile() {
         </div>
         <div class="profile-x-handle">@${escapeHtml((currentUserData.username||'user').toLowerCase().replace(/\s+/g,'_'))}</div>
 
-        <!-- Bio -->
         <div class="profile-x-bio profile-bio-text">
           ${currentUserData.bio ? escapeHtml(currentUserData.bio) : '<span style="color:var(--text-muted);font-style:italic;">No bio yet — tap Edit profile to add one</span>'}
         </div>
 
-        <!-- Meta: age, email -->
         <div class="profile-x-meta">
           ${currentUserData.age ? `<span class="profile-x-meta-item"><i data-feather="calendar" style="width:13px;height:13px;"></i>${currentUserData.age} yrs</span>` : ''}
           <span class="profile-x-meta-item"><i data-feather="mail" style="width:13px;height:13px;"></i>${escapeHtml(currentUserData.email||'')}</span>
         </div>
 
-        <!-- Stats -->
         <div class="profile-x-stats">
           <div class="profile-x-stat"><span class="profile-x-stat-val">${connCount}</span><span class="profile-x-stat-lbl">Connections</span></div>
           <div class="profile-x-stat"><span class="profile-x-stat-val">${msgCount}</span><span class="profile-x-stat-lbl">Messages</span></div>
@@ -1934,6 +1950,14 @@ function renderProfile() {
             <div class="setting-label-icon" style="background:rgba(16,185,129,0.1);color:#10B981;">
               <i data-feather="shield" style="width:16px;height:16px;"></i>
             </div>Privacy & Security
+          </div>
+          <i data-feather="chevron-right" style="width:16px;height:16px;color:var(--text-muted);flex-shrink:0;"></i>
+        </div>
+        <div class="setting-item" id="blocked-item">
+          <div class="setting-label">
+            <div class="setting-label-icon" style="background:rgba(239,68,68,0.1);color:var(--danger);">
+              <i data-feather="slash" style="width:16px;height:16px;"></i>
+            </div>Blocked Users
           </div>
           <i data-feather="chevron-right" style="width:16px;height:16px;color:var(--text-muted);flex-shrink:0;"></i>
         </div>
@@ -1999,6 +2023,10 @@ function renderProfile() {
     document.getElementById('storage-item').addEventListener('click', () => openSheet('storage-sheet-overlay'));
     document.getElementById('help-item').addEventListener('click',    () => openSheet('help-sheet-overlay'));
     document.getElementById('about-item').addEventListener('click',   () => openSheet('about-sheet-overlay'));
+    document.getElementById('blocked-item').addEventListener('click', () => {
+        openSheet('blocked-users-sheet-overlay');
+        loadBlockedUsers();
+    });
 }
 
 function openEditNameSheet() {
@@ -2464,40 +2492,48 @@ function renderMessageNode(snap, isMe, convId) {
     wrap.dataset.msgKey=msgKey;
 
     let content='';
-    if(msg.mediaType==='image'){
-        content=`<div class="msg-media" onclick="openLightbox('${msg.mediaUrl}','image')"><img src="${msg.mediaUrl}" loading="lazy"></div>`;
-    } else if(msg.mediaType==='video'){
-        content=`<div class="msg-media" style="position:relative;" onclick="openLightbox('${msg.mediaUrl}','video')">
-            <video src="${msg.mediaUrl}" playsinline style="max-width:220px;"></video>
-            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;">
-                <div style="width:44px;height:44px;background:rgba(0,0,0,0.55);border-radius:50%;display:flex;align-items:center;justify-content:center;"><i data-feather="play" style="width:18px;height:18px;color:white;margin-left:3px;"></i></div>
-            </div></div>`;
-    } else if(msg.mediaType==='file'){
-        content=`<div class="msg-file" onclick="window.open('${msg.mediaUrl}','_blank')">
-            <div class="msg-file-icon"><i data-feather="file" style="width:18px;height:18px;"></i></div>
-            <div><div class="msg-file-name">${escapeHtml(msg.fileName||'File')}</div><div class="msg-file-size">${escapeHtml(msg.fileSize||'')}</div></div></div>`;
-    } else {
-        content=`<div class="message-bubble">${escapeHtml(msg.text||'')}</div>`;
-    }
+    let reactHtml='';
 
-    const reactions=msg.reactions||{}, grouped={};
-    Object.entries(reactions).forEach(([uid,em])=>{grouped[em]=grouped[em]||[];grouped[em].push(uid);});
-    const reactHtml=`<div class="msg-reactions">
-        ${Object.entries(grouped).map(([em,uids])=>
-            `<span class="msg-reaction-chip${uids.includes(currentUser.uid)?' mine':''}" data-emoji="${em}" data-key="${msgKey}" data-conv="${convId}">${em}<span class="count">${uids.length}</span></span>`).join('')}
-        <button class="msg-reaction-add" data-key="${msgKey}" data-conv="${convId}">+</button>
-    </div>`;
+    if (msg.isDeleted) {
+        content=`<div class="message-bubble" style="font-style:italic;color:var(--text-muted);background:transparent;border:1px dashed var(--border);box-shadow:none;">🚫 Message deleted</div>`;
+    } else {
+        if(msg.mediaType==='image'){
+            content=`<div class="msg-media" onclick="openLightbox('${msg.mediaUrl}','image')"><img src="${msg.mediaUrl}" loading="lazy"></div>`;
+        } else if(msg.mediaType==='video'){
+            content=`<div class="msg-media" style="position:relative;" onclick="openLightbox('${msg.mediaUrl}','video')">
+                <video src="${msg.mediaUrl}" playsinline style="max-width:220px;"></video>
+                <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;">
+                    <div style="width:44px;height:44px;background:rgba(0,0,0,0.55);border-radius:50%;display:flex;align-items:center;justify-content:center;"><i data-feather="play" style="width:18px;height:18px;color:white;margin-left:3px;"></i></div>
+                </div></div>`;
+        } else if(msg.mediaType==='file'){
+            content=`<div class="msg-file" onclick="window.open('${msg.mediaUrl}','_blank')">
+                <div class="msg-file-icon"><i data-feather="file" style="width:18px;height:18px;"></i></div>
+                <div><div class="msg-file-name">${escapeHtml(msg.fileName||'File')}</div><div class="msg-file-size">${escapeHtml(msg.fileSize||'')}</div></div></div>`;
+        } else {
+            content=`<div class="message-bubble">${escapeHtml(msg.text||'')}</div>`;
+        }
+
+        const reactions=msg.reactions||{}, grouped={};
+        Object.entries(reactions).forEach(([uid,em])=>{grouped[em]=grouped[em]||[];grouped[em].push(uid);});
+        reactHtml=`<div class="msg-reactions">
+            ${Object.entries(grouped).map(([em,uids])=>
+                `<span class="msg-reaction-chip${uids.includes(currentUser.uid)?' mine':''}" data-emoji="${em}" data-key="${msgKey}" data-conv="${convId}">${em}<span class="count">${uids.length}</span></span>`).join('')}
+            <button class="msg-reaction-add" data-key="${msgKey}" data-conv="${convId}">+</button>
+        </div>`;
+    }
 
     wrap.innerHTML = content + `<div class="message-time">${hh}:${mm}</div>` + reactHtml;
 
-    let lp; 
-    wrap.addEventListener('contextmenu',e=>{e.preventDefault();showReactionPicker(msgKey,convId,wrap);});
-    wrap.addEventListener('touchstart',()=>{lp=setTimeout(()=>{if(navigator.vibrate)navigator.vibrate(30);showMsgActionSheet(msgKey,convId,msg,wrap);},600);},{passive:true});
-    wrap.addEventListener('touchend',()=>clearTimeout(lp),{passive:true});
-    wrap.addEventListener('mousedown',()=>{lp=setTimeout(()=>{showMsgActionSheet(msgKey,convId,msg,wrap);},600);});
-    wrap.addEventListener('mouseup',()=>clearTimeout(lp));
-    wrap.querySelectorAll('.msg-reaction-chip').forEach(c=>c.addEventListener('click',()=>addReaction(c.dataset.key,c.dataset.conv,c.dataset.emoji)));
-    wrap.querySelector('.msg-reaction-add')?.addEventListener('click',e=>{e.stopPropagation();showReactionPicker(msgKey,convId,wrap);});
+    if (!msg.isDeleted) {
+        let lp; 
+        wrap.addEventListener('contextmenu',e=>{e.preventDefault();showReactionPicker(msgKey,convId,wrap);});
+        wrap.addEventListener('touchstart',()=>{lp=setTimeout(()=>{if(navigator.vibrate)navigator.vibrate(30);showMsgActionSheet(msgKey,convId,msg,wrap);},600);},{passive:true});
+        wrap.addEventListener('touchend',()=>clearTimeout(lp),{passive:true});
+        wrap.addEventListener('mousedown',()=>{lp=setTimeout(()=>{showMsgActionSheet(msgKey,convId,msg,wrap);},600);});
+        wrap.addEventListener('mouseup',()=>clearTimeout(lp));
+        wrap.querySelectorAll('.msg-reaction-chip').forEach(c=>c.addEventListener('click',()=>addReaction(c.dataset.key,c.dataset.conv,c.dataset.emoji)));
+        wrap.querySelector('.msg-reaction-add')?.addEventListener('click',e=>{e.stopPropagation();showReactionPicker(msgKey,convId,wrap);});
+    }
     feather.replace(wrap);
     return wrap;
 }
@@ -2556,7 +2592,13 @@ document.getElementById('msg-action-delete').addEventListener('click', async ()=
     const {msgKey, convId} = _msgActionData;
     closeMsgActionSheet();
     try {
-        await remove(ref(db,`directMessages/${convId}/messages/${msgKey}`));
+        // Soft delete the message
+        await update(ref(db,`directMessages/${convId}/messages/${msgKey}`), {
+            isDeleted: true,
+            text: '🚫 Message deleted',
+            mediaType: null,
+            mediaUrl: null
+        });
         showToast('Message deleted');
 
         // ── REAL-TIME FRIEND CARD UPDATE ON DELETE ──
@@ -2567,7 +2609,11 @@ document.getElementById('msg-action-delete').addEventListener('click', async ()=
         if (lastMsgSnap.exists()) {
             lastMsgSnap.forEach(child => {
                 const m = child.val();
-                lastMessage = m.text || (m.mediaType ? `[${m.mediaType}]` : 'Message');
+                if (m.isDeleted) {
+                    lastMessage = '🚫 Message deleted';
+                } else {
+                    lastMessage = m.text || (m.mediaType ? `[${m.mediaType}]` : 'Message');
+                }
                 lastTimestamp = m.timestamp || Date.now();
             });
         }
@@ -2658,7 +2704,7 @@ function renderNotificationDropdown() {
                 <div class="notification-title"><span>${escapeHtml(n.title)}</span><span class="notification-time">${formatChatTime(n.timestamp)}</span></div>
                 <div class="notification-text">${escapeHtml(n.body)}</div>
             </div>
-            ${n.read?'':'<<div class="notification-dot"></div>'}
+            ${n.read?'':`<div class="notification-dot"></div>`}
         </div>`;
     }).join('');
     listEl.querySelectorAll('.notification-item').forEach(el => el.addEventListener('click', () => {
