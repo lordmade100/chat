@@ -553,6 +553,80 @@
             width: 8px; height: 8px; border-radius: 50%; background: var(--primary);
             flex-shrink: 0; margin-top: 6px;
         }
+        /* ── Custom Alert & Confirm Modal ── */
+.dialog-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.22s;
+    padding: 24px;
+}
+.dialog-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+.dialog-box {
+    background: var(--surface);
+    width: 100%;
+    max-width: 320px;
+    border-radius: 20px;
+    box-shadow: var(--shadow-md);
+    transform: scale(0.95);
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow: hidden;
+    border: 1px solid var(--border);
+}
+.dialog-overlay.active .dialog-box {
+    transform: scale(1);
+}
+.dialog-content {
+    padding: 24px 20px 20px;
+    text-align: center;
+}
+.dialog-title {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+    letter-spacing: -0.3px;
+}
+.dialog-text {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+.dialog-actions {
+    display: flex;
+    border-top: 1px solid var(--border);
+}
+.dialog-btn {
+    flex: 1;
+    padding: 16px 0;
+    background: transparent;
+    border: none;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s;
+    outline: none;
+}
+.dialog-btn:active {
+    background: var(--surface2);
+}
+.dialog-btn#dialog-cancel-btn {
+    border-right: 1px solid var(--border);
+    color: var(--text-muted);
+}
+.dialog-btn.confirm-btn { color: var(--primary); }
+.dialog-btn.danger-btn { color: var(--danger); }
     </style>
 </head>
 <body>
@@ -560,6 +634,20 @@
 <div class="toast" id="toast"></div>
 <div class="global-loader" id="upload-loader"><div class="spinner"></div></div>
 
+    <div class="dialog-overlay" id="custom-dialog-overlay">
+    <div class="dialog-box">
+        <div class="dialog-content">
+            <div class="dialog-title" id="dialog-title">Title</div>
+            <div class="dialog-text" id="dialog-message">Message</div>
+        </div>
+        <div class="dialog-actions">
+            <button class="dialog-btn" id="dialog-cancel-btn">Cancel</button>
+            <button class="dialog-btn confirm-btn" id="dialog-confirm-btn">OK</button>
+        </div>
+    </div>
+</div>
+
+    
 <div class="notification-dropdown" id="notification-dropdown">
     <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border);">
         <div style="font-size:16px;font-weight:800;">Notifications</div>
@@ -1700,15 +1788,24 @@ async function openNewChatSheet() {
 async function executeClearChat() {
     if (!selectedConvId) return;
     closeSheet('action-sheet-overlay');
-    if (!confirm('Delete all messages in this chat?')) return;
+    
+    // Replace native confirm with custom async confirm
+    const confirmed = await showCustomConfirm('Clear Chat', 'Delete all messages in this chat?', true);
+    if (!confirmed) return;
+    
     await remove(ref(db, `directMessages/${selectedConvId}`));
     await update(ref(db, `conversations/${selectedConvId}`), { lastMessage:'Chat cleared', lastTimestamp:Date.now(), [`unread/${currentUser.uid}`]:0 });
     showToast('Chat cleared');
 }
+
 async function executeBlockUser() {
     if (!selectedTargetUid || !selectedConvId) return;
     closeSheet('action-sheet-overlay');
-    if (!confirm('Block this user? The conversation will be removed.')) return;
+    
+    // Replace native confirm with custom async confirm
+    const confirmed = await showCustomConfirm('Block User', 'Block this user? The conversation will be removed.', true);
+    if (!confirmed) return;
+    
     await remove(ref(db, `conversations/${selectedConvId}`));
     await update(ref(db, `blocks/${currentUser.uid}`), { [selectedTargetUid]: true });
     showToast('User blocked');
@@ -2773,6 +2870,66 @@ async function cleanupOldNotifications() {
 function initNotifications() {
     loadNotifications();
 }
+
+    window.showCustomConfirm = function(title, message, isDanger = false) {
+    return new Promise((resolve) => {
+        const overlay = document.getElementById('custom-dialog-overlay');
+        const titleEl = document.getElementById('dialog-title');
+        const msgEl = document.getElementById('dialog-message');
+        const cancelBtn = document.getElementById('dialog-cancel-btn');
+        const confirmBtn = document.getElementById('dialog-confirm-btn');
+
+        titleEl.textContent = title;
+        msgEl.textContent = message;
+
+        // Styling based on danger status (red vs primary color)
+        confirmBtn.className = 'dialog-btn ' + (isDanger ? 'danger-btn' : 'confirm-btn');
+        cancelBtn.style.display = 'block';
+        confirmBtn.textContent = 'Confirm';
+
+        const cleanup = () => {
+            overlay.classList.remove('active');
+            cancelBtn.removeEventListener('click', onCancel);
+            confirmBtn.removeEventListener('click', onConfirm);
+        };
+
+        const onCancel = () => { cleanup(); resolve(false); };
+        const onConfirm = () => { cleanup(); resolve(true); };
+
+        cancelBtn.addEventListener('click', onCancel);
+        confirmBtn.addEventListener('click', onConfirm);
+
+        overlay.classList.add('active');
+    });
+};
+
+window.showCustomAlert = function(title, message) {
+    return new Promise((resolve) => {
+        const overlay = document.getElementById('custom-dialog-overlay');
+        const titleEl = document.getElementById('dialog-title');
+        const msgEl = document.getElementById('dialog-message');
+        const cancelBtn = document.getElementById('dialog-cancel-btn');
+        const confirmBtn = document.getElementById('dialog-confirm-btn');
+
+        titleEl.textContent = title;
+        msgEl.textContent = message;
+
+        confirmBtn.className = 'dialog-btn confirm-btn';
+        cancelBtn.style.display = 'none'; // Hide cancel button for simple alerts
+        confirmBtn.textContent = 'OK';
+
+        const cleanup = () => {
+            overlay.classList.remove('active');
+            confirmBtn.removeEventListener('click', onConfirm);
+        };
+
+        const onConfirm = () => { cleanup(); resolve(true); };
+
+        confirmBtn.addEventListener('click', onConfirm);
+
+        overlay.classList.add('active');
+    });
+};
 
 switchTab('chats');
 </script>
