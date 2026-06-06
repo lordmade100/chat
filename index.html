@@ -12,224 +12,108 @@
   --accent: #FF4D6D;
   --accent2: #C084FC;
   --gold: #FFD166;
-  --surface: rgba(255,255,255,0.08);
-  --surface-hover: rgba(255,255,255,0.14);
-  --text: #FAFAFA;
   --muted: rgba(255,255,255,0.55);
 }
 
-html, body { height: 100%; overflow: hidden; background: #000; }
+html, body { height: 100%; overflow: hidden; background: #000; color: #FAFAFA; font-family: 'DM Sans', sans-serif; }
 
-body {
-  font-family: 'DM Sans', sans-serif;
-  color: var(--text);
-  position: relative;
-}
-
-/* ── FEED CONTAINER ─────────────────────────── */
+/* ── FEED ── */
 #feed {
-  width: 100vw;
-  height: 100svh;
-  overflow-y: scroll;
-  scroll-snap-type: y mandatory;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
+  width: 100vw; height: 100svh;
+  overflow-y: scroll; scroll-snap-type: y mandatory;
+  -webkit-overflow-scrolling: touch; scrollbar-width: none;
 }
 #feed::-webkit-scrollbar { display: none; }
 
-/* ── POST CARD ──────────────────────────────── */
+/* ── POST ── */
 .post {
-  width: 100vw;
-  height: 100svh;
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  align-items: flex-end;
+  width: 100vw; height: 100svh;
+  scroll-snap-align: start; scroll-snap-stop: always;
+  position: relative; overflow: hidden; display: flex; align-items: flex-end;
 }
-
-.post-bg {
-  position: absolute; inset: 0;
-  background: #111;
-  display: flex; align-items: center; justify-content: center;
-}
-
-.post-bg img {
-  width: 100%; height: 100%;
-  object-fit: cover;
-  display: block;
-  transition: transform 8s ease;
-}
-
+.post-bg { position: absolute; inset: 0; background: #111; display: flex; align-items: center; justify-content: center; }
+.post-bg img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 8s ease; }
 .post:not(.loading) .post-bg img { transform: scale(1.06); }
-
-/* gradient overlay */
 .post::after {
-  content: '';
-  position: absolute; inset: 0;
-  background: linear-gradient(
-    to bottom,
-    rgba(0,0,0,0.15) 0%,
-    transparent 30%,
-    transparent 50%,
-    rgba(0,0,0,0.75) 100%
-  );
-  pointer-events: none;
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, transparent 30%, transparent 45%, rgba(0,0,0,0.85) 100%);
 }
 
-/* ── LOADING STATE ──────────────────────────── */
-.post.loading .post-bg {
-  background: #0a0a0a;
-}
+/* ── LOADING ── */
+.post.loading .post-bg { background: #0a0a0a; }
 .shimmer-wrap {
-  position: absolute; inset: 0;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  gap: 16px;
-  z-index: 2;
+  position: absolute; inset: 0; z-index: 2;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
 }
-.ona-spinner {
-  width: 52px; height: 52px;
-  position: relative;
-}
+.ona-spinner { width: 52px; height: 52px; position: relative; }
 .ona-spinner::before, .ona-spinner::after {
-  content: '';
-  position: absolute; inset: 0;
-  border-radius: 50%;
-  border: 2px solid transparent;
+  content: ''; position: absolute; inset: 0; border-radius: 50%; border: 2px solid transparent;
 }
-.ona-spinner::before {
-  border-top-color: var(--accent);
-  border-right-color: var(--accent2);
-  animation: spin 1s linear infinite;
-}
-.ona-spinner::after {
-  border-bottom-color: var(--gold);
-  border-left-color: transparent;
-  animation: spin 1.6s linear infinite reverse;
-  inset: 6px;
-}
+.ona-spinner::before { border-top-color: var(--accent); border-right-color: var(--accent2); animation: spin 1s linear infinite; }
+.ona-spinner::after { border-bottom-color: var(--gold); inset: 6px; animation: spin 1.6s linear infinite reverse; }
 @keyframes spin { to { transform: rotate(360deg); } }
-
 .shimmer-label {
-  font-family: 'Syne', sans-serif;
-  font-size: 0.8rem;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--muted);
-  animation: fade 1.4s ease-in-out infinite alternate;
+  font-family: 'Syne', sans-serif; font-size: 0.8rem; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--muted);
+  animation: fadepulse 1.4s ease-in-out infinite alternate;
 }
-@keyframes fade { from { opacity: 0.4; } to { opacity: 1; } }
+@keyframes fadepulse { from { opacity: 0.4; } to { opacity: 1; } }
 
-/* ── CONTENT OVERLAY ────────────────────────── */
+/* ── POST CONTENT OVERLAY ── */
 .post-content {
-  position: relative; z-index: 5;
-  width: 100%;
+  position: relative; z-index: 5; width: 100%;
   padding: 0 72px 40px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  display: flex; flex-direction: column; gap: 8px;
 }
-
-.post-topic {
-  font-family: 'Syne', sans-serif;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: var(--gold);
-  opacity: 0.85;
+.post-author {
+  font-family: 'Syne', sans-serif; font-size: 0.78rem; font-weight: 700;
+  letter-spacing: 1px; color: var(--gold); opacity: 0.9;
 }
-
 .post-caption {
-  font-family: 'DM Sans', sans-serif;
-  font-size: 1rem;
-  font-weight: 400;
-  line-height: 1.5;
-  color: #fff;
-  text-shadow: 0 1px 8px rgba(0,0,0,0.6);
-  max-width: 320px;
-  display: -webkit-box;
-  -webkit-line-clamp: 4;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  font-size: 0.95rem; line-height: 1.5; color: #fff;
+  text-shadow: 0 1px 8px rgba(0,0,0,0.7); max-width: 300px;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
 }
-
 .post-caption.expanded { -webkit-line-clamp: unset; }
-
 .read-more {
   background: none; border: none; color: var(--gold);
-  font-family: 'DM Sans', sans-serif;
-  font-size: 0.85rem; font-weight: 500;
+  font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 500;
   cursor: pointer; padding: 0; align-self: flex-start;
 }
-
-.post-meta {
-  display: flex; align-items: center; gap: 8px;
-}
-
 .ona-badge {
-  background: rgba(255,255,255,0.12);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255,255,255,0.2);
-  border-radius: 20px;
-  padding: 4px 10px;
-  font-size: 0.72rem;
-  font-family: 'Syne', sans-serif;
-  font-weight: 700;
-  letter-spacing: 1px;
-  display: flex; align-items: center; gap: 5px;
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(255,255,255,0.1); backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
+  padding: 4px 10px; font-size: 0.7rem; font-family: 'Syne', sans-serif;
+  font-weight: 700; letter-spacing: 1px; width: fit-content;
 }
+.ona-badge svg { width: 11px; height: 11px; }
 
-.ona-badge svg { width: 12px; height: 12px; flex-shrink: 0; }
-
-/* ── RIGHT ACTION BAR ───────────────────────── */
+/* ── ACTION BAR ── */
 .action-bar {
-  position: absolute;
-  right: 12px; bottom: 100px;
-  z-index: 10;
-  display: flex; flex-direction: column;
-  align-items: center; gap: 20px;
+  position: absolute; right: 12px; bottom: 100px; z-index: 10;
+  display: flex; flex-direction: column; align-items: center; gap: 20px;
 }
-
 .action-btn {
-  display: flex; flex-direction: column;
-  align-items: center; gap: 4px;
-  background: none; border: none;
-  color: var(--text); cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  background: none; border: none; color: #FAFAFA; cursor: pointer;
 }
-
 .action-icon {
-  width: 48px; height: 48px;
-  background: rgba(255,255,255,0.12);
-  backdrop-filter: blur(12px);
+  width: 48px; height: 48px; border-radius: 50%;
+  background: rgba(255,255,255,0.12); backdrop-filter: blur(12px);
   border: 1px solid rgba(255,255,255,0.18);
-  border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   transition: transform 0.15s, background 0.2s;
 }
-
 .action-btn:active .action-icon { transform: scale(0.88); }
 .action-btn.liked .action-icon { background: var(--accent); border-color: var(--accent); }
 .action-btn.liked svg { stroke: white; fill: white; }
+.action-count { font-family: 'Syne', sans-serif; font-size: 0.72rem; font-weight: 700; color: rgba(255,255,255,0.85); }
 
-.action-count {
-  font-family: 'Syne', sans-serif;
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: rgba(255,255,255,0.85);
-}
-
-/* ── HEART BURST ────────────────────────────── */
+/* ── HEART BURST ── */
 .heart-burst {
-  position: absolute;
-  font-size: 70px;
-  left: 50%; top: 50%;
-  transform: translate(-50%, -50%) scale(0);
-  z-index: 20;
-  pointer-events: none;
+  position: absolute; font-size: 70px; left: 50%; top: 50%;
+  transform: translate(-50%,-50%) scale(0); z-index: 20; pointer-events: none;
   animation: burst 0.6s ease forwards;
 }
 @keyframes burst {
@@ -238,167 +122,277 @@ body {
   100%{ transform: translate(-50%,-50%) scale(1.1); opacity: 0; }
 }
 
-/* ── COMMENT SHEET ──────────────────────────── */
-.comment-sheet {
-  position: fixed; bottom: 0; left: 0; right: 0;
-  z-index: 100;
-  background: #111;
-  border-radius: 24px 24px 0 0;
+/* ── TOP NAV ── */
+.top-nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px; padding-top: max(16px, env(safe-area-inset-top));
+}
+.nav-logo { font-family: 'Syne', sans-serif; font-size: 1.3rem; font-weight: 800; letter-spacing: 1px; }
+.nav-logo span { color: var(--accent); }
+.nav-create-btn {
+  background: var(--accent); border: none; color: white;
+  font-family: 'Syne', sans-serif; font-size: 0.75rem; font-weight: 700; letter-spacing: 1px;
+  padding: 8px 16px; border-radius: 20px; cursor: pointer;
+  display: flex; align-items: center; gap: 6px; transition: transform 0.15s, opacity 0.2s;
+}
+.nav-create-btn:active { transform: scale(0.95); }
+
+/* ── EMPTY FEED ── */
+.empty-feed {
+  width: 100vw; height: 100svh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 16px;
+  text-align: center; padding: 40px;
+}
+.empty-feed .big-icon { font-size: 56px; }
+.empty-feed h2 { font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 800; }
+.empty-feed p { color: var(--muted); font-size: 0.9rem; max-width: 260px; line-height: 1.5; }
+.empty-cta {
+  background: var(--accent); border: none; color: white;
+  font-family: 'Syne', sans-serif; font-size: 0.85rem; font-weight: 700; letter-spacing: 1px;
+  padding: 12px 28px; border-radius: 24px; cursor: pointer; margin-top: 8px;
+}
+
+/* ── CREATE SHEET ── */
+.create-sheet {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+  background: #0f0f0f; border-radius: 28px 28px 0 0;
   border-top: 1px solid rgba(255,255,255,0.1);
   transform: translateY(100%);
-  transition: transform 0.35s cubic-bezier(0.32,0.72,0,1);
-  max-height: 70svh;
+  transition: transform 0.38s cubic-bezier(0.32,0.72,0,1);
   display: flex; flex-direction: column;
+  max-height: 92svh;
+  padding-bottom: max(20px, env(safe-area-inset-bottom));
 }
+.create-sheet.open { transform: translateY(0); }
 
-.comment-sheet.open { transform: translateY(0); }
-
-.sheet-handle {
-  width: 36px; height: 4px;
-  background: rgba(255,255,255,0.2); border-radius: 2px;
-  margin: 14px auto 0;
-  flex-shrink: 0;
-}
+.sheet-handle { width: 36px; height: 4px; background: rgba(255,255,255,0.18); border-radius: 2px; margin: 14px auto 0; flex-shrink: 0; }
 
 .sheet-header {
-  padding: 12px 20px;
-  font-family: 'Syne', sans-serif;
-  font-size: 1rem; font-weight: 700;
+  padding: 14px 20px 10px;
+  font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700;
   border-bottom: 1px solid rgba(255,255,255,0.08);
+  flex-shrink: 0; display: flex; justify-content: space-between; align-items: center;
+}
+.sheet-close { background: none; border: none; color: var(--muted); cursor: pointer; display: flex; align-items: center; padding: 4px; }
+
+/* chat messages inside create sheet */
+.chat-messages {
+  flex: 1; overflow-y: auto; padding: 16px 20px;
+  display: flex; flex-direction: column; gap: 14px;
+  min-height: 200px;
+}
+.chat-messages::-webkit-scrollbar { display: none; }
+
+.msg-row { display: flex; flex-direction: column; }
+.msg-row.user { align-items: flex-end; }
+.msg-row.ai { align-items: flex-start; }
+
+.msg-bubble {
+  max-width: 85%; padding: 12px 16px; border-radius: 18px;
+  font-size: 0.92rem; line-height: 1.5;
+}
+.msg-bubble.user { background: var(--accent); color: white; border-radius: 18px 18px 4px 18px; }
+.msg-bubble.ai { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); border-radius: 18px 18px 18px 4px; }
+
+/* generated image preview inside chat */
+.img-preview {
+  max-width: 85%; margin-top: 4px;
+  border-radius: 16px; overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.12);
+  position: relative; cursor: zoom-in;
+}
+.img-preview img { width: 100%; display: block; }
+.img-watermark {
+  position: absolute; bottom: 8px; right: 8px;
+  background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+  border-radius: 20px; padding: 4px 10px;
+  font-size: 0.7rem; font-family: 'Syne', sans-serif; font-weight: 700;
+  display: flex; align-items: center; gap: 4px; pointer-events: none;
+}
+
+.post-to-feed-btn {
+  background: var(--accent); border: none; color: white;
+  font-family: 'Syne', sans-serif; font-size: 0.8rem; font-weight: 700; letter-spacing: 1px;
+  padding: 8px 18px; border-radius: 20px; cursor: pointer;
+  display: flex; align-items: center; gap: 6px; margin-top: 8px;
+  transition: transform 0.15s;
+}
+.post-to-feed-btn:active { transform: scale(0.95); }
+
+/* typing dots */
+.typing-dots { display: flex; gap: 4px; padding: 14px 16px; background: rgba(255,255,255,0.08); border-radius: 18px 18px 18px 4px; width: fit-content; }
+.typing-dots span { width: 6px; height: 6px; background: rgba(255,255,255,0.5); border-radius: 50%; animation: tdot 1.2s infinite; }
+.typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+.typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes tdot { 0%,100%{opacity:0.3;transform:translateY(0)} 50%{opacity:1;transform:translateY(-3px)} }
+
+/* input row */
+.chat-input-row {
+  display: flex; gap: 10px; padding: 12px 16px 0;
   flex-shrink: 0;
+}
+.chat-input {
+  flex: 1; background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15); border-radius: 24px;
+  padding: 11px 18px; color: white; font-family: 'DM Sans', sans-serif;
+  font-size: 0.92rem; outline: none;
+}
+.chat-input::placeholder { color: var(--muted); }
+.send-btn {
+  width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0;
+  background: var(--accent); border: none; color: white;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: transform 0.15s;
+}
+.send-btn:active { transform: scale(0.9); }
+
+/* ── COMMENT SHEET ── */
+.comment-sheet {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 150;
+  background: #111; border-radius: 24px 24px 0 0;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.32,0.72,0,1);
+  max-height: 70svh; display: flex; flex-direction: column;
+}
+.comment-sheet.open { transform: translateY(0); }
+.c-handle { width: 36px; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; margin: 14px auto 0; flex-shrink: 0; }
+.c-header {
+  padding: 12px 20px; font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700;
+  border-bottom: 1px solid rgba(255,255,255,0.08); flex-shrink: 0;
   display: flex; justify-content: space-between; align-items: center;
 }
-
-.sheet-close {
-  background: none; border: none; color: var(--muted);
-  cursor: pointer; display: flex; align-items: center;
-}
-
+.c-close { background: none; border: none; color: var(--muted); cursor: pointer; display: flex; }
 .comments-list { flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 16px; }
 .comments-list::-webkit-scrollbar { display: none; }
-
 .comment-item { display: flex; gap: 10px; }
-
-.comment-avatar {
+.c-avatar {
   width: 32px; height: 32px; border-radius: 50%;
   background: linear-gradient(135deg, var(--accent), var(--accent2));
   flex-shrink: 0; display: flex; align-items: center; justify-content: center;
-  font-family: 'Syne', sans-serif; font-size: 0.75rem; font-weight: 800;
-  color: white;
+  font-family: 'Syne', sans-serif; font-size: 0.75rem; font-weight: 800; color: white;
 }
-
-.comment-body { flex: 1; }
-.comment-name { font-size: 0.8rem; font-weight: 600; color: rgba(255,255,255,0.7); margin-bottom: 3px; }
-.comment-text { font-size: 0.9rem; color: var(--text); line-height: 1.4; }
-
-.comment-input-row {
-  display: flex; gap: 10px;
-  padding: 12px 16px;
-  border-top: 1px solid rgba(255,255,255,0.08);
-  flex-shrink: 0;
+.c-body { flex: 1; }
+.c-name { font-size: 0.78rem; font-weight: 600; color: rgba(255,255,255,0.65); margin-bottom: 3px; }
+.c-text { font-size: 0.9rem; line-height: 1.4; }
+.c-input-row {
+  display: flex; gap: 10px; padding: 12px 16px;
+  border-top: 1px solid rgba(255,255,255,0.08); flex-shrink: 0;
   padding-bottom: max(16px, env(safe-area-inset-bottom));
 }
-
-.comment-input {
+.c-input {
   flex: 1; background: rgba(255,255,255,0.08);
   border: 1px solid rgba(255,255,255,0.15); border-radius: 24px;
-  padding: 10px 16px; color: white; font-family: 'DM Sans', sans-serif;
-  font-size: 0.9rem; outline: none;
+  padding: 10px 16px; color: white; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; outline: none;
 }
-.comment-input::placeholder { color: var(--muted); }
-
-.post-comment-btn {
+.c-input::placeholder { color: var(--muted); }
+.c-send {
   background: var(--accent); border: none; color: white;
   width: 42px; height: 42px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  cursor: pointer; flex-shrink: 0;
-  transition: transform 0.15s;
+  cursor: pointer; flex-shrink: 0; transition: transform 0.15s;
 }
-.post-comment-btn:active { transform: scale(0.9); }
+.c-send:active { transform: scale(0.9); }
 
-/* ── BACKDROP ───────────────────────────────── */
-#backdrop {
-  position: fixed; inset: 0; z-index: 99;
-  background: rgba(0,0,0,0.5);
-  display: none;
+/* ── BACKDROP ── */
+#backdrop { position: fixed; inset: 0; z-index: 99; background: rgba(0,0,0,0.6); display: none; }
+
+/* ── IMAGE VIEWER ── */
+.img-viewer {
+  position: fixed; inset: 0; z-index: 300;
+  background: rgba(0,0,0,0.95); backdrop-filter: blur(6px);
+  display: none; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 0.25s;
 }
-
-/* ── TOP NAV ─────────────────────────────────── */
-.top-nav {
-  position: fixed; top: 0; left: 0; right: 0;
-  z-index: 50;
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 16px 20px;
-  padding-top: max(16px, env(safe-area-inset-top));
-}
-
-.nav-logo {
-  font-family: 'Syne', sans-serif;
-  font-size: 1.3rem; font-weight: 800;
-  letter-spacing: 1px;
+.img-viewer.open { display: flex; }
+.img-viewer.visible { opacity: 1; }
+.img-viewer img { max-width: 95%; max-height: 90%; border-radius: 8px; object-fit: contain; }
+.iv-close {
+  position: absolute; top: 24px; right: 24px;
+  background: rgba(255,255,255,0.15); border: none; color: white;
+  width: 44px; height: 44px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
 }
 
-.nav-logo span { color: var(--accent); }
-
-/* ── TOAST ───────────────────────────────────── */
+/* ── TOAST ── */
 .toast {
   position: fixed; bottom: 90px; left: 50%;
-  transform: translateX(-50%) translateY(20px);
-  background: rgba(255,255,255,0.12);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.2);
-  border-radius: 24px; padding: 10px 20px;
-  font-family: 'DM Sans', sans-serif; font-size: 0.85rem;
-  color: white; white-space: nowrap;
-  opacity: 0; pointer-events: none;
-  transition: opacity 0.25s, transform 0.25s;
-  z-index: 200;
+  transform: translateX(-50%) translateY(16px);
+  background: rgba(255,255,255,0.12); backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.2); border-radius: 24px;
+  padding: 10px 20px; font-size: 0.85rem; color: white;
+  white-space: nowrap; opacity: 0; pointer-events: none;
+  transition: opacity 0.25s, transform 0.25s; z-index: 400;
 }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-/* ── REGEN BTN ───────────────────────────────── */
-.regen-btn {
-  background: rgba(255,255,255,0.12);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255,255,255,0.2);
-  border-radius: 20px; padding: 4px 10px;
-  font-size: 0.72rem; font-family: 'Syne', sans-serif;
-  font-weight: 700; letter-spacing: 1px;
-  color: var(--muted); cursor: pointer;
-  display: flex; align-items: center; gap: 5px;
-  transition: 0.2s;
-}
-.regen-btn:active { background: rgba(255,255,255,0.2); }
 </style>
 </head>
 <body>
 
 <nav class="top-nav">
   <div class="nav-logo">Ona <span>AI</span></div>
-  <button onclick="generateNewPost()" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.18);border-radius:20px;padding:6px 14px;color:white;font-family:'Syne',sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:1px;cursor:pointer;">
-    + GENERATE
+  <button class="nav-create-btn" onclick="openCreate()">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    CREATE
   </button>
 </nav>
 
-<div id="feed"></div>
+<!-- FEED -->
+<div id="feed">
+  <div class="empty-feed" id="emptyFeed">
+    <div class="big-icon">✨</div>
+    <h2>No visions yet</h2>
+    <p>Be the first to generate and share an AI-powered image with the community.</p>
+    <button class="empty-cta" onclick="openCreate()">Create with Ona AI</button>
+  </div>
+</div>
 
-<div id="backdrop" onclick="closeComments()"></div>
+<!-- BACKDROP -->
+<div id="backdrop" onclick="closeAll()"></div>
 
-<div id="commentSheet" class="comment-sheet">
+<!-- CREATE / CHAT SHEET -->
+<div class="create-sheet" id="createSheet">
   <div class="sheet-handle"></div>
   <div class="sheet-header">
+    <span>Create with Ona AI</span>
+    <button class="sheet-close" onclick="closeCreate()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="chat-messages" id="chatMessages"></div>
+  <div class="chat-input-row">
+    <input class="chat-input" id="chatInput" placeholder="Describe your vision…" autocomplete="off"/>
+    <button class="send-btn" onclick="sendChat()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- COMMENT SHEET -->
+<div class="comment-sheet" id="commentSheet">
+  <div class="c-handle"></div>
+  <div class="c-header">
     Comments
-    <button class="sheet-close" onclick="closeComments()">
+    <button class="c-close" onclick="closeComments()">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
     </button>
   </div>
   <div class="comments-list" id="commentsList"></div>
-  <div class="comment-input-row">
-    <input class="comment-input" id="commentInput" placeholder="Add a comment..." />
-    <button class="post-comment-btn" onclick="postComment()">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+  <div class="c-input-row">
+    <input class="c-input" id="commentInput" placeholder="Add a comment…"/>
+    <button class="c-send" onclick="postComment()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
     </button>
   </div>
+</div>
+
+<!-- IMAGE VIEWER -->
+<div class="img-viewer" id="imgViewer" onclick="closeViewer()">
+  <button class="iv-close">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+  <img id="viewerImg" src="" alt=""/>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -406,6 +400,7 @@ body {
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 import { getRemoteConfig, fetchAndActivate, getValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-remote-config.js";
 
 const firebaseConfig = {
@@ -418,436 +413,345 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const remoteConfig = getRemoteConfig(app);
-remoteConfig.settings.minimumFetchIntervalMillis = 0;
+const db = getDatabase(app);
+const rc = getRemoteConfig(app);
+rc.settings.minimumFetchIntervalMillis = 0;
 
-// ─── TOPICS ────────────────────────────────────────────────────────────────
-const TOPICS = [
-  { label: "AFROFUTURISM", prompts: [
-    "Afrofuturist city with towering baobab skyscrapers and neon-lit markets, cinematic concept art, 8k",
-    "African warrior queen in chrome armor standing on a terraformed Mars, dramatic lighting",
-    "Futuristic Lagos skyline with flying vehicles and ancient Yoruba symbols integrated into architecture"
-  ]},
-  { label: "ANCESTRAL", prompts: [
-    "Powerful Zulu elder in traditional beadwork, golden hour bokeh, portrait photography",
-    "Ancient African stone city ruins at dusk, archaeological masterpiece, ultra-detailed",
-    "Ceremonial African masks floating in cosmic space surrounded by glowing constellations"
-  ]},
-  { label: "WILD AFRICA", prompts: [
-    "Majestic lion silhouette against a blood-orange African sunset, dramatic shadows, wildlife photography",
-    "Elephant herd crossing a luminous river at twilight, aerial view, cinematic color grade",
-    "Leopard draped over an acacia tree at golden hour, National Geographic style"
-  ]},
-  { label: "FASHION", prompts: [
-    "High fashion African model in bold Ankara print ensemble on a rooftop, editorial photography",
-    "Contemporary African street fashion, Johannesburg CBD, vibrant colors, candid portrait",
-    "Luxury African design fusion: kente cloth meets haute couture, studio photography"
-  ]},
-  { label: "SPIRITUALITY", prompts: [
-    "Sangoma diviner surrounded by sacred herbs and bones, low-key dramatic lighting, mystical",
-    "Ancient African rock art glowing with supernatural energy, otherworldly atmosphere",
-    "Ubuntu spirit visualization: interconnected human figures forming a luminous tree of life"
-  ]}
-];
-
-const CAPTION_SYSTEM = `You are Ona AI, a creative content AI for an African visual platform. 
-Given an image prompt, write a short, evocative caption (2-3 sentences max). 
-Be poetic, culturally resonant, and inspiring. No hashtags. No emojis. Just pure lyrical prose.
-Return only the caption text, nothing else.`;
-
-const SAMPLE_COMMENTS = [
-  ["Amara K.", "This hits different. The ancestors are watching 🙏"],
-  ["Tunde_art", "Can't stop staring at this. Ona AI is something else."],
-  ["SiyandaB", "The future is African and it's GLORIOUS"],
-  ["KhoiKhoi_", "The colour palette here is sending me 😭"],
-  ["Zinhle.M", "This belongs in a gallery. No debate."],
-];
-
-// ─── STATE ──────────────────────────────────────────────────────────────────
+const API_BASE = "https://api.x.ai/v1";
+let XAI_KEY = "";
+let currentUser = null;
+let currentUserName = "You";
 let posts = [];
 let activeCommentPostId = null;
-let xaiKey = '';
-let topicIndex = 0;
-let promptIndex = 0;
+let chatHistory = [];
+let lastGeneratedImg = null; // track last image URL from chat
 
-// ─── LOAD KEY ───────────────────────────────────────────────────────────────
+// ── AUTH & KEY LOAD ──────────────────────────────────────────────────────────
+onAuthStateChanged(auth, async (user) => {
+  if (!user) { window.location.href = 'signup.html'; return; }
+  currentUser = user;
+  try {
+    const snap = await get(ref(db, `users/${user.uid}`));
+    if (snap.exists()) currentUserName = snap.val().displayName || snap.val().username || "You";
+  } catch(e) {}
+});
+
 async function loadKey() {
   try {
-    await fetchAndActivate(remoteConfig);
-    xaiKey = getValue(remoteConfig, 'xai_api_key').asString();
-  } catch(e) {
-    console.error("Remote Config key load error:", e);
-  }
+    await fetchAndActivate(rc);
+    XAI_KEY = getValue(rc, 'xai_api_key').asString();
+  } catch(e) { console.error("Remote Config error:", e); }
 }
 
-// ─── GENERATE IMAGE (xAI) ──────────────────────────────────────────────────
-async function generateImage(prompt) {
-  const res = await fetch('https://api.x.ai/v1/images/generations', {
-    method: 'POST',
-    headers: { 'Authorization': `Bearer ${xaiKey}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model: 'grok-2-image-1212', prompt })
-  });
-  if (!res.ok) throw new Error(await res.text());
-  const data = await res.json();
-  return data.data[0].url;
+// ── HELPERS ──────────────────────────────────────────────────────────────────
+function escHtml(t) {
+  return t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+function scrollChatBottom() {
+  const el = document.getElementById('chatMessages');
+  el.scrollTop = el.scrollHeight;
 }
 
-// ─── GENERATE CAPTION (Claude) ─────────────────────────────────────────────
-async function generateCaption(prompt) {
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1000,
-      system: CAPTION_SYSTEM,
-      messages: [{ role: 'user', content: `Image prompt: "${prompt}"` }]
-    })
-  });
-  if (!res.ok) throw new Error('Caption generation failed');
-  const data = await res.json();
-  return data.content[0].text.trim();
-}
+const SPARK_SVG = `<svg style="width:11px;height:11px" viewBox="0 0 24 24" fill="url(#sg)" stroke="none"><defs><linearGradient id="sg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#FF4D6D"/><stop offset="100%" stop-color="#C084FC"/></linearGradient></defs><path d="M11.5 2C11.5 7.25 7.25 11.5 2 11.5C7.25 11.5 11.5 15.75 11.5 21C11.5 15.75 15.75 11.5 21 11.5C15.75 11.5 11.5 7.25 11.5 2Z"/></svg>`;
 
-// ─── NEXT PROMPT ───────────────────────────────────────────────────────────
-function nextPrompt() {
-  const topic = TOPICS[topicIndex];
-  const prompt = topic.prompts[promptIndex];
-  const label = topic.label;
+// ── CREATE SHEET ─────────────────────────────────────────────────────────────
+window.openCreate = function() {
+  // Reset chat session
+  chatHistory = [
+    { role: "system", content: "You are Ona AI, a creative assistant for an African visual platform. Help users craft vivid image prompts and generate images. When a user describes what they want, reply with a short enthusiastic message (1-2 sentences) and then say exactly: 'Generating your image now...' on a new line. Always be concise and culturally resonant." }
+  ];
+  lastGeneratedImg = null;
+  const msgs = document.getElementById('chatMessages');
+  msgs.innerHTML = '';
+  appendAiMsg("Hey! Describe the vision you want to bring to life. I'll generate the image for you ✨");
+  document.getElementById('createSheet').classList.add('open');
+  document.getElementById('backdrop').style.display = 'block';
+  setTimeout(() => document.getElementById('chatInput').focus(), 400);
+};
 
-  promptIndex++;
-  if (promptIndex >= topic.prompts.length) {
-    promptIndex = 0;
-    topicIndex = (topicIndex + 1) % TOPICS.length;
-  }
+window.closeCreate = function() {
+  document.getElementById('createSheet').classList.remove('open');
+  document.getElementById('backdrop').style.display = 'none';
+};
 
-  return { prompt, label };
-}
-
-// ─── CREATE LOADING POST ───────────────────────────────────────────────────
-function createLoadingPost(id, label) {
+function appendUserMsg(text) {
+  const msgs = document.getElementById('chatMessages');
   const div = document.createElement('div');
-  div.className = 'post loading';
-  div.id = `post-${id}`;
-  div.innerHTML = `
-    <div class="post-bg">
-      <div class="shimmer-wrap">
-        <div class="ona-spinner"></div>
-        <div class="shimmer-label">Generating ${label}</div>
-      </div>
-    </div>
-    <div class="post-content">
-      <div class="post-topic">${label}</div>
-      <div class="post-caption" style="color:rgba(255,255,255,0.3)">Crafting vision…</div>
-    </div>
-    <div class="action-bar">
-      <button class="action-btn" disabled>
-        <div class="action-icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
-        </div>
-        <span class="action-count">—</span>
-      </button>
-      <button class="action-btn" disabled>
-        <div class="action-icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-        </div>
-        <span class="action-count">—</span>
-      </button>
-    </div>
-  `;
+  div.className = 'msg-row user';
+  div.innerHTML = `<div class="msg-bubble user">${escHtml(text)}</div>`;
+  msgs.appendChild(div);
+  scrollChatBottom();
+}
+
+function appendAiMsg(text) {
+  const msgs = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = 'msg-row ai';
+  div.innerHTML = `<div class="msg-bubble ai">${escHtml(text)}</div>`;
+  msgs.appendChild(div);
+  scrollChatBottom();
   return div;
 }
 
-// ─── POPULATE POST ─────────────────────────────────────────────────────────
-function populatePost(id, imgUrl, caption, label, likes, comments) {
-  const div = document.getElementById(`post-${id}`);
-  if (!div) return;
+function appendTyping() {
+  const msgs = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = 'msg-row ai';
+  div.id = 'typingIndicator';
+  div.innerHTML = `<div class="typing-dots"><span></span><span></span><span></span></div>`;
+  msgs.appendChild(div);
+  scrollChatBottom();
+}
 
-  div.classList.remove('loading');
+function removeTyping() {
+  document.getElementById('typingIndicator')?.remove();
+}
+
+function appendImagePreview(url, prompt) {
+  const msgs = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = 'msg-row ai';
+  div.innerHTML = `
+    <div class="img-preview" onclick="openViewer('${url}')">
+      <img src="${url}" alt="Generated image"/>
+      <div class="img-watermark">${SPARK_SVG} Ona AI</div>
+    </div>
+    <button class="post-to-feed-btn" onclick="postToFeed('${url}', '${encodeURIComponent(prompt)}')">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      POST TO FEED
+    </button>
+  `;
+  msgs.appendChild(div);
+  scrollChatBottom();
+}
+
+// ── SEND CHAT MESSAGE ────────────────────────────────────────────────────────
+window.sendChat = async function() {
+  const input = document.getElementById('chatInput');
+  const userText = input.value.trim();
+  if (!userText || !XAI_KEY) return;
+  input.value = '';
+
+  appendUserMsg(userText);
+  chatHistory.push({ role: "user", content: userText });
+  appendTyping();
+
+  try {
+    // Step 1: Get Grok text response
+    const chatRes = await fetch(`${API_BASE}/chat/completions`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${XAI_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: "grok-3-fast", messages: chatHistory, max_tokens: 200 })
+    });
+    if (!chatRes.ok) throw new Error(await chatRes.text());
+    const chatData = await chatRes.json();
+    const aiText = chatData.choices[0].message.content;
+    chatHistory.push({ role: "assistant", content: aiText });
+
+    removeTyping();
+    appendAiMsg(aiText);
+
+    // Step 2: If Grok says it's generating, generate the image
+    if (aiText.toLowerCase().includes('generating your image')) {
+      appendTyping();
+      const imgRes = await fetch(`${API_BASE}/images/generations`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${XAI_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: "grok-2-image-1212", prompt: userText })
+      });
+      if (!imgRes.ok) throw new Error(await imgRes.text());
+      const imgData = await imgRes.json();
+      const imgUrl = imgData.data[0].url;
+      lastGeneratedImg = imgUrl;
+      removeTyping();
+      appendImagePreview(imgUrl, userText);
+    }
+
+  } catch(err) {
+    removeTyping();
+    appendAiMsg("Something went wrong: " + err.message);
+  }
+};
+
+// ── POST TO FEED ─────────────────────────────────────────────────────────────
+window.postToFeed = function(imgUrl, encodedPrompt) {
+  const prompt = decodeURIComponent(encodedPrompt);
+  const id = Date.now().toString();
+  const post = {
+    id,
+    imgUrl,
+    caption: prompt,
+    author: currentUserName,
+    likes: 0,
+    liked: false,
+    comments: []
+  };
+  posts.unshift(post);
+  renderPost(post, true);
+  closeCreate();
+  showToast("Posted to feed ✓");
+};
+
+// ── RENDER POST ───────────────────────────────────────────────────────────────
+function renderPost(post, scrollTo = false) {
+  const feed = document.getElementById('feed');
+  document.getElementById('emptyFeed')?.remove();
+
+  const div = document.createElement('div');
+  div.className = 'post';
+  div.id = `post-${post.id}`;
   div.innerHTML = `
     <div class="post-bg">
-      <img src="${imgUrl}" alt="${label}" loading="lazy" />
+      <img src="${post.imgUrl}" alt=""/>
     </div>
     <div class="post-content">
-      <div class="post-topic">${label}</div>
-      <div class="post-caption" id="caption-${id}">${caption}</div>
-      <div style="display:flex; gap:8px; align-items:center;">
-        <div class="ona-badge">
-          <svg viewBox="0 0 24 24" fill="url(#og)" stroke="none">
-            <defs>
-              <linearGradient id="og" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#FF4D6D"/>
-                <stop offset="100%" stop-color="#C084FC"/>
-              </linearGradient>
-            </defs>
-            <path d="M11.5 2C11.5 7.25 7.25 11.5 2 11.5C7.25 11.5 11.5 15.75 11.5 21C11.5 15.75 15.75 11.5 21 11.5C15.75 11.5 11.5 7.25 11.5 2Z"/>
-          </svg>
-          ONA AI
-        </div>
-        <button class="regen-btn" onclick="regenPost('${id}')">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-          REGEN
-        </button>
-      </div>
+      <div class="post-author">@${escHtml(post.author)}</div>
+      <div class="post-caption" id="caption-${post.id}">${escHtml(post.caption)}</div>
+      <button class="read-more" onclick="toggleCaption('${post.id}')">more</button>
+      <div class="ona-badge">${SPARK_SVG} ONA AI</div>
     </div>
     <div class="action-bar">
-      <button class="action-btn" id="like-btn-${id}" onclick="toggleLike('${id}', event)">
+      <button class="action-btn" id="like-btn-${post.id}" onclick="toggleLike('${post.id}')">
         <div class="action-icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
         </div>
-        <span class="action-count" id="like-count-${id}">${likes}</span>
+        <span class="action-count" id="like-count-${post.id}">${post.likes}</span>
       </button>
-      <button class="action-btn" onclick="openComments('${id}')">
+      <button class="action-btn" onclick="openComments('${post.id}')">
         <div class="action-icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
         </div>
-        <span class="action-count" id="comment-count-${id}">${comments.length}</span>
+        <span class="action-count" id="comment-count-${post.id}">${post.comments.length}</span>
       </button>
-      <button class="action-btn" onclick="sharePost('${id}')">
+      <button class="action-btn" onclick="sharePost('${post.id}')">
         <div class="action-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
         </div>
         <span class="action-count">Share</span>
       </button>
     </div>
   `;
+
+  // Insert at top of feed
+  feed.insertBefore(div, feed.firstChild);
+  if (scrollTo) div.scrollIntoView({ behavior: 'smooth' });
 }
 
-// ─── GENERATE & ADD POST ───────────────────────────────────────────────────
-async function generateNewPost() {
-  const id = Date.now().toString();
-  const { prompt, label } = nextPrompt();
+// ── TOGGLE CAPTION ────────────────────────────────────────────────────────────
+window.toggleCaption = function(id) {
+  const cap = document.getElementById(`caption-${id}`);
+  const btn = cap?.nextElementSibling;
+  if (!cap) return;
+  cap.classList.toggle('expanded');
+  if (btn) btn.textContent = cap.classList.contains('expanded') ? 'less' : 'more';
+};
 
-  const post = {
-    id, prompt, label,
-    imgUrl: null,
-    caption: null,
-    likes: Math.floor(Math.random() * 800) + 200,
-    liked: false,
-    comments: SAMPLE_COMMENTS.slice(0, Math.floor(Math.random() * 3) + 1)
-      .map(([name, text]) => ({ name, text }))
-  };
-
-  posts.push(post);
-  const el = createLoadingPost(id, label);
-  document.getElementById('feed').appendChild(el);
-
-  // Scroll to new post
-  el.scrollIntoView({ behavior: 'smooth' });
-
-  try {
-    // Run in parallel
-    const [imgUrl, caption] = await Promise.all([
-      generateImage(prompt),
-      generateCaption(prompt)
-    ]);
-
-    post.imgUrl = imgUrl;
-    post.caption = caption;
-    populatePost(id, imgUrl, caption, label, post.likes, post.comments);
-  } catch(err) {
-    // Show error state
-    const div = document.getElementById(`post-${id}`);
-    if (div) {
-      div.querySelector('.shimmer-label').textContent = 'Generation failed — tap to retry';
-      div.querySelector('.shimmer-wrap').onclick = () => retryPost(id, prompt, label, post);
-    }
-    console.error(err);
-  }
-}
-
-async function retryPost(id, prompt, label, post) {
-  const div = document.getElementById(`post-${id}`);
-  if (div) {
-    div.querySelector('.shimmer-label').textContent = `Generating ${label}`;
-    div.querySelector('.shimmer-wrap').onclick = null;
-  }
-  try {
-    const [imgUrl, caption] = await Promise.all([generateImage(prompt), generateCaption(prompt)]);
-    post.imgUrl = imgUrl;
-    post.caption = caption;
-    populatePost(id, imgUrl, caption, label, post.likes, post.comments);
-  } catch(e) {
-    if (div) div.querySelector('.shimmer-label').textContent = 'Failed again — tap to retry';
-  }
-}
-
-async function regenPost(id) {
+// ── LIKE ─────────────────────────────────────────────────────────────────────
+window.toggleLike = function(id) {
   const post = posts.find(p => p.id === id);
   if (!post) return;
-  const div = document.getElementById(`post-${id}`);
-  if (!div) return;
-
-  div.classList.add('loading');
-  div.innerHTML = `
-    <div class="post-bg">
-      <div class="shimmer-wrap">
-        <div class="ona-spinner"></div>
-        <div class="shimmer-label">Regenerating ${post.label}</div>
-      </div>
-    </div>
-    <div class="post-content"><div class="post-topic">${post.label}</div></div>
-    <div class="action-bar"></div>
-  `;
-
-  try {
-    const [imgUrl, caption] = await Promise.all([generateImage(post.prompt), generateCaption(post.prompt)]);
-    post.imgUrl = imgUrl;
-    post.caption = caption;
-    populatePost(id, imgUrl, caption, post.label, post.likes, post.comments);
-  } catch(e) {
-    div.querySelector('.shimmer-label').textContent = 'Failed — tap to retry';
-    div.querySelector('.shimmer-wrap').onclick = () => regenPost(id);
-  }
-}
-
-// ─── LIKE ──────────────────────────────────────────────────────────────────
-function toggleLike(id, e) {
-  const post = posts.find(p => p.id === id);
-  if (!post) return;
-
   post.liked = !post.liked;
   post.likes += post.liked ? 1 : -1;
-
   const btn = document.getElementById(`like-btn-${id}`);
   const count = document.getElementById(`like-count-${id}`);
   if (!btn || !count) return;
-
   btn.classList.toggle('liked', post.liked);
   count.textContent = post.likes;
-
   if (post.liked) {
     const burst = document.createElement('div');
     burst.className = 'heart-burst';
     burst.textContent = '❤️';
-    const postEl = document.getElementById(`post-${id}`);
-    postEl.appendChild(burst);
+    document.getElementById(`post-${id}`).appendChild(burst);
     setTimeout(() => burst.remove(), 700);
   }
-}
+};
 
-// ─── COMMENTS ──────────────────────────────────────────────────────────────
-function openComments(id) {
+// ── COMMENTS ─────────────────────────────────────────────────────────────────
+window.openComments = function(id) {
   activeCommentPostId = id;
   const post = posts.find(p => p.id === id);
   const list = document.getElementById('commentsList');
-
   list.innerHTML = '';
-  if (!post || !post.comments.length) {
-    list.innerHTML = '<p style="color:var(--muted);font-size:0.9rem;text-align:center;padding:20px;">No comments yet. Be the first!</p>';
+  if (!post?.comments.length) {
+    list.innerHTML = '<p style="color:var(--muted);font-size:0.9rem;text-align:center;padding:24px">No comments yet.</p>';
   } else {
     post.comments.forEach(c => {
-      const item = document.createElement('div');
-      item.className = 'comment-item';
-      item.innerHTML = `
-        <div class="comment-avatar">${c.name[0]}</div>
-        <div class="comment-body">
-          <div class="comment-name">${c.name}</div>
-          <div class="comment-text">${c.text}</div>
-        </div>
-      `;
-      list.appendChild(item);
+      const el = document.createElement('div');
+      el.className = 'comment-item';
+      el.innerHTML = `<div class="c-avatar">${c.name[0]}</div><div class="c-body"><div class="c-name">${escHtml(c.name)}</div><div class="c-text">${escHtml(c.text)}</div></div>`;
+      list.appendChild(el);
     });
   }
-
   document.getElementById('commentSheet').classList.add('open');
   document.getElementById('backdrop').style.display = 'block';
   document.getElementById('commentInput').focus();
-}
+};
 
-function closeComments() {
+window.closeComments = function() {
   document.getElementById('commentSheet').classList.remove('open');
   document.getElementById('backdrop').style.display = 'none';
   activeCommentPostId = null;
-}
+};
 
-function postComment() {
+window.postComment = function() {
   const input = document.getElementById('commentInput');
   const text = input.value.trim();
   if (!text || !activeCommentPostId) return;
-
   const post = posts.find(p => p.id === activeCommentPostId);
   if (!post) return;
-
-  const comment = { name: 'You', text };
-  post.comments.push(comment);
-
-  const item = document.createElement('div');
-  item.className = 'comment-item';
-  item.innerHTML = `
-    <div class="comment-avatar" style="background:var(--accent)">Y</div>
-    <div class="comment-body">
-      <div class="comment-name" style="color:var(--accent)">You</div>
-      <div class="comment-text">${text}</div>
-    </div>
-  `;
+  post.comments.push({ name: currentUserName, text });
+  const el = document.createElement('div');
+  el.className = 'comment-item';
+  el.innerHTML = `<div class="c-avatar" style="background:var(--accent)">${currentUserName[0]}</div><div class="c-body"><div class="c-name" style="color:var(--accent)">${escHtml(currentUserName)}</div><div class="c-text">${escHtml(text)}</div></div>`;
   const list = document.getElementById('commentsList');
   list.querySelector('p')?.remove();
-  list.appendChild(item);
+  list.appendChild(el);
   list.scrollTop = list.scrollHeight;
-
   const countEl = document.getElementById(`comment-count-${activeCommentPostId}`);
   if (countEl) countEl.textContent = post.comments.length;
-
   input.value = '';
   showToast('Comment posted ✓');
-}
+};
 
-// ─── SHARE ─────────────────────────────────────────────────────────────────
-function sharePost(id) {
+// ── SHARE ─────────────────────────────────────────────────────────────────────
+window.sharePost = function(id) {
   if (navigator.share) {
     navigator.share({ title: 'Ona AI Vision', text: 'Check out this AI-generated vision!', url: window.location.href });
   } else {
     navigator.clipboard.writeText(window.location.href).then(() => showToast('Link copied!'));
   }
-}
+};
 
-// ─── TOAST ─────────────────────────────────────────────────────────────────
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2200);
-}
+// ── VIEWER ───────────────────────────────────────────────────────────────────
+window.openViewer = function(url) {
+  const v = document.getElementById('imgViewer');
+  document.getElementById('viewerImg').src = url;
+  v.classList.add('open');
+  setTimeout(() => v.classList.add('visible'), 10);
+};
+window.closeViewer = function() {
+  const v = document.getElementById('imgViewer');
+  v.classList.remove('visible');
+  setTimeout(() => { v.classList.remove('open'); document.getElementById('viewerImg').src = ''; }, 280);
+};
 
-// ─── INIT ──────────────────────────────────────────────────────────────────
-async function init() {
-  await loadKey();
+// ── CLOSE ALL ─────────────────────────────────────────────────────────────────
+window.closeAll = function() {
+  closeCreate();
+  closeComments();
+};
 
-  onAuthStateChanged(auth, (user) => {
-    if (!user) { window.location.href = 'signup.html'; }
-  });
+// ── KEYBOARD ─────────────────────────────────────────────────────────────────
+document.getElementById('chatInput').addEventListener('keypress', e => { if (e.key === 'Enter') sendChat(); });
+document.getElementById('commentInput').addEventListener('keypress', e => { if (e.key === 'Enter') postComment(); });
 
-  // Pre-generate first 3 posts
-  generateNewPost();
-  setTimeout(() => generateNewPost(), 600);
-  setTimeout(() => generateNewPost(), 1200);
-
-  // Auto-generate more as user scrolls near bottom
-  const feed = document.getElementById('feed');
-  feed.addEventListener('scroll', () => {
-    const nearBottom = feed.scrollTop + feed.clientHeight > feed.scrollHeight - feed.clientHeight * 1.5;
-    if (nearBottom && !document.querySelector('.post.loading')) {
-      generateNewPost();
-    }
-  });
-}
-
-// ─── EXPOSE GLOBALS (must be set before any onclick fires) ─────────────────
-window.generateNewPost = generateNewPost;
-window.toggleLike = toggleLike;
-window.openComments = openComments;
-window.closeComments = closeComments;
-window.postComment = postComment;
-window.sharePost = sharePost;
-window.regenPost = regenPost;
-
-// Enter key for comments
-document.getElementById('commentInput').addEventListener('keypress', e => {
-  if (e.key === 'Enter') postComment();
-});
-
-init();
+// ── INIT ──────────────────────────────────────────────────────────────────────
+await loadKey();
 </script>
 </body>
 </html>
