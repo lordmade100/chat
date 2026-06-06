@@ -496,15 +496,16 @@ async function uploadToCloudinary(imageUrl) {
 // ── FIREBASE: SAVE POST ───────────────────────────────────────────────────────
 async function savePostToFirebase(post) {
   const postsRef = ref(db, 'posts');
-  const newRef = await push(postsRef, {
+  // NOTE: Firebase ignores empty arrays — omit comments entirely on creation
+  const payload = {
     imgUrl:    post.imgUrl,
     caption:   post.caption,
     author:    post.author,
-    uid:       currentUser?.uid || '',
+    uid:       currentUser ? currentUser.uid : '',
     likes:     0,
-    timestamp: Date.now(),
-    comments:  []
-  });
+    timestamp: Date.now()
+  };
+  const newRef = await push(postsRef, payload);
   return newRef.key;
 }
 
@@ -513,28 +514,29 @@ function loadFeed() {
   const postsRef = ref(db, 'posts');
   onValue(postsRef, (snapshot) => {
     const data = snapshot.val();
+    if (!data) return; // nothing saved yet, leave empty state visible
 
     // Build sorted array (newest first)
-    const incoming = data
-      ? Object.entries(data)
-          .map(([key, val]) => ({ id: key, ...val,
-            liked: false,
-            comments: val.comments ? Object.values(val.comments) : []
-          }))
-          .sort((a, b) => b.timestamp - a.timestamp)
-      : [];
+    const incoming = Object.entries(data)
+      .map(([key, val]) => ({
+        id:       key,
+        imgUrl:   val.imgUrl   || '',
+        caption:  val.caption  || '',
+        author:   val.author   || 'Unknown',
+        likes:    val.likes    || 0,
+        liked:    false,
+        timestamp: val.timestamp || 0,
+        comments: val.comments ? Object.values(val.comments) : []
+      }))
+      .sort((a, b) => b.timestamp - a.timestamp);
 
-    // Only render posts we don't already have rendered
+    // Only render posts not already in local list
     const existingIds = new Set(posts.map(p => p.id));
     const newPosts = incoming.filter(p => !existingIds.has(p.id));
 
-    if (newPosts.length === 0 && posts.length === 0) return; // still empty
-
-    // Remove empty state
-    document.getElementById('emptyFeed')?.remove();
-
     newPosts.forEach(post => {
-      posts.unshift(post);
+      posts.push(post); // push (not unshift) — already sorted above
+      document.getElementById('emptyFeed')?.remove();
       renderPost(post);
     });
   });
@@ -706,6 +708,16 @@ window.postToFeed = async function(imgUrl, encodedPrompt) {
   const btn = document.getElementById('postFeedBtn');
   if (btn) { btn.disabled = true; btn.textContent = 'Posting…'; }
 
+  // Auth guard — wait up to 3s for Firebase auth to resolve
+  if (!currentUser) {
+    await new Promise(resolve => setTimeout(resolve, 3000));
+  }
+  if (!currentUser) {
+    showToast('Not signed in — please reload');
+    if (btn) { btn.disabled = false; btn.textContent = 'POST TO FEED'; }
+    return;
+  }
+
   const post = {
     imgUrl,
     caption:  prompt,
@@ -718,14 +730,14 @@ window.postToFeed = async function(imgUrl, encodedPrompt) {
   try {
     const fbId = await savePostToFirebase(post);
     post.id = fbId;
-    // Feed will update via onValue listener, but also add locally for instant feel
-    // (onValue will skip it since existingIds already has it after local push)
+    // Add to local list so onValue dedup skips it
     posts.unshift(post);
     document.getElementById('emptyFeed')?.remove();
     renderPost(post, true);
     closeCreate();
     showToast("Posted to feed ✓");
   } catch(err) {
+    console.error('postToFeed error:', err);
     if (btn) { btn.disabled = false; btn.textContent = 'POST TO FEED'; }
     showToast('Post failed: ' + err.message);
   }
