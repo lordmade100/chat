@@ -485,13 +485,11 @@ async function generateImage(prompt) {
   const res = await fetch('https://api.x.ai/v1/images/generations', {
     method: 'POST',
     headers: { 'Authorization': `Bearer ${xaiKey}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model: 'aurora', prompt })
+    body: JSON.stringify({ model: 'grok-2-image-1212', prompt })
   });
-  if (!res.ok) throw new Error('Image generation failed');
+  if (!res.ok) throw new Error(await res.text());
   const data = await res.json();
-  return data.data[0].url || data.data[0].b64_json
-    ? ('data:image/png;base64,' + data.data[0].b64_json)
-    : data.data[0].url;
+  return data.data[0].url;
 }
 
 // ─── GENERATE CAPTION (Claude) ─────────────────────────────────────────────
