@@ -487,10 +487,11 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getDatabase(app);
-    const rc = getRemoteConfig(app);
-    rc.settings.minimumFetchIntervalMillis = 0;
+    const remoteConfig = getRemoteConfig(app);
+    remoteConfig.settings.minimumFetchIntervalMillis = 0;
 
-    let XAI_KEY = "";
+    const API_BASE = "https://api.x.ai/v1";
+    let XAI_API_KEY = "";
     let currentUser = null;
     let currentUsername = "you";
     let activePostId = null; // for comments
@@ -498,8 +499,8 @@
     // ── LOAD API KEY ──
     async function loadKey() {
       try {
-        await fetchAndActivate(rc);
-        XAI_KEY = getValue(rc, 'xai_api_key').asString();
+        await fetchAndActivate(remoteConfig);
+        XAI_API_KEY = getValue(remoteConfig, 'xai_api_key').asString();
       } catch(e) { console.error("RC key error", e); }
     }
 
@@ -759,15 +760,15 @@
 
     // ── IMAGE GENERATION ──
     async function generateImage(prompt) {
-      if (!XAI_KEY) { alert("API key not loaded yet. Try again."); return; }
+      if (!XAI_API_KEY) { alert("API key not loaded yet. Try again."); return; }
 
       const spinner = document.getElementById('spinnerOverlay');
       spinner.classList.add('open');
 
       try {
-        const res = await fetch('https://api.x.ai/v1/images/generations', {
+        const res = await fetch(`${API_BASE}/images/generations`, {
           method: 'POST',
-          headers: { 'Authorization': `Bearer ${XAI_KEY}`, 'Content-Type': 'application/json' },
+          headers: { 'Authorization': `Bearer ${XAI_API_KEY}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({ model: "grok-imagine-image", prompt })
         });
 
