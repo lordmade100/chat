@@ -562,7 +562,7 @@ window.sendChat = async function() {
       const imgRes = await fetch(`${API_BASE}/images/generations`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${XAI_KEY}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: "grok-2-image-1212", prompt: userText })
+        body: JSON.stringify({ model: "grok-imagine-image-quality", prompt: userText })
       });
       if (!imgRes.ok) throw new Error(await imgRes.text());
       const imgData = await imgRes.json();
