@@ -220,6 +220,7 @@ html, body { height: 100%; overflow: hidden; background: #000; color: #FAFAFA; f
   transition: transform 0.15s;
 }
 .post-to-feed-btn:active { transform: scale(0.95); }
+.post-to-feed-btn:disabled { opacity: 0.5; pointer-events: none; }
 
 /* typing dots */
 .typing-dots { display: flex; gap: 4px; padding: 14px 16px; background: rgba(255,255,255,0.08); border-radius: 18px 18px 18px 4px; width: fit-content; }
@@ -227,6 +228,16 @@ html, body { height: 100%; overflow: hidden; background: #000; color: #FAFAFA; f
 .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
 .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
 @keyframes tdot { 0%,100%{opacity:0.3;transform:translateY(0)} 50%{opacity:1;transform:translateY(-3px)} }
+
+/* upload status label */
+.upload-status {
+  font-size: 0.78rem; color: var(--muted); font-family: 'Syne', sans-serif;
+  letter-spacing: 0.5px; margin-top: 4px; display: flex; align-items: center; gap: 6px;
+}
+.upload-status .dot {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--gold);
+  animation: fadepulse 1s ease-in-out infinite alternate;
+}
 
 /* input row */
 .chat-input-row {
@@ -398,11 +409,12 @@ html, body { height: 100%; overflow: hidden; background: #000; color: #FAFAFA; f
 <div class="toast" id="toast"></div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { initializeApp }        from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, push, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 import { getRemoteConfig, fetchAndActivate, getValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-remote-config.js";
 
+// ── CONFIG ───────────────────────────────────────────────────────────────────
 const firebaseConfig = {
   apiKey: "AIzaSyBOyZ3As4GTuNvjemvPF_SpsC6m6vqtNhc",
   authDomain: "fire-b-a8878.firebaseapp.com",
@@ -411,31 +423,36 @@ const firebaseConfig = {
   appId: "1:658673187627:web:6e4c29af661785f0afa36e"
 };
 
-const app = initializeApp(firebaseConfig);
+const CLOUDINARY_URL  = "https://api.cloudinary.com/v1_1/dqkujefxj/upload";
+const UPLOAD_PRESET   = "banter_box";
+const API_BASE        = "https://api.x.ai/v1";
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+const app  = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getDatabase(app);
-const rc = getRemoteConfig(app);
+const db   = getDatabase(app);
+const rc   = getRemoteConfig(app);
 rc.settings.minimumFetchIntervalMillis = 0;
 
-const API_BASE = "https://api.x.ai/v1";
-let XAI_KEY = "";
-let currentUser = null;
+let XAI_KEY         = "";
+let currentUser     = null;
 let currentUserName = "You";
-let posts = [];
+let posts           = [];            // local mirror of Firebase posts
 let activeCommentPostId = null;
-let chatHistory = [];
-let lastGeneratedImg = null; // track last image URL from chat
+let chatHistory     = [];
 
-// ── AUTH & KEY LOAD ──────────────────────────────────────────────────────────
+// ── AUTH ─────────────────────────────────────────────────────────────────────
 onAuthStateChanged(auth, async (user) => {
   if (!user) { window.location.href = 'signup.html'; return; }
   currentUser = user;
   try {
+    const { getDatabase: gd, ref: r, get } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
     const snap = await get(ref(db, `users/${user.uid}`));
     if (snap.exists()) currentUserName = snap.val().displayName || snap.val().username || "You";
   } catch(e) {}
 });
 
+// ── REMOTE KEY ────────────────────────────────────────────────────────────────
 async function loadKey() {
   try {
     await fetchAndActivate(rc);
@@ -444,8 +461,8 @@ async function loadKey() {
 }
 
 // ── HELPERS ──────────────────────────────────────────────────────────────────
-function escHtml(t) {
-  return t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+function escHtml(t = '') {
+  return String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
 }
 function showToast(msg) {
   const t = document.getElementById('toast');
@@ -459,13 +476,89 @@ function scrollChatBottom() {
 
 const SPARK_SVG = `<svg style="width:11px;height:11px" viewBox="0 0 24 24" fill="url(#sg)" stroke="none"><defs><linearGradient id="sg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#FF4D6D"/><stop offset="100%" stop-color="#C084FC"/></linearGradient></defs><path d="M11.5 2C11.5 7.25 7.25 11.5 2 11.5C7.25 11.5 11.5 15.75 11.5 21C11.5 15.75 15.75 11.5 21 11.5C15.75 11.5 11.5 7.25 11.5 2Z"/></svg>`;
 
-// ── CREATE SHEET ─────────────────────────────────────────────────────────────
+// ── CLOUDINARY UPLOAD ────────────────────────────────────────────────────────
+// Accepts a remote URL (from xAI) and re-hosts it on Cloudinary.
+// Returns the permanent secure_url.
+async function uploadToCloudinary(imageUrl) {
+  const form = new FormData();
+  form.append('file', imageUrl);
+  form.append('upload_preset', UPLOAD_PRESET);
+
+  const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: form });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Cloudinary error: ${err}`);
+  }
+  const data = await res.json();
+  return data.secure_url;
+}
+
+// ── FIREBASE: SAVE POST ───────────────────────────────────────────────────────
+async function savePostToFirebase(post) {
+  const postsRef = ref(db, 'posts');
+  const newRef = await push(postsRef, {
+    imgUrl:    post.imgUrl,
+    caption:   post.caption,
+    author:    post.author,
+    uid:       currentUser?.uid || '',
+    likes:     0,
+    timestamp: Date.now(),
+    comments:  []
+  });
+  return newRef.key;
+}
+
+// ── FIREBASE: LOAD FEED ───────────────────────────────────────────────────────
+function loadFeed() {
+  const postsRef = ref(db, 'posts');
+  onValue(postsRef, (snapshot) => {
+    const data = snapshot.val();
+
+    // Build sorted array (newest first)
+    const incoming = data
+      ? Object.entries(data)
+          .map(([key, val]) => ({ id: key, ...val,
+            liked: false,
+            comments: val.comments ? Object.values(val.comments) : []
+          }))
+          .sort((a, b) => b.timestamp - a.timestamp)
+      : [];
+
+    // Only render posts we don't already have rendered
+    const existingIds = new Set(posts.map(p => p.id));
+    const newPosts = incoming.filter(p => !existingIds.has(p.id));
+
+    if (newPosts.length === 0 && posts.length === 0) return; // still empty
+
+    // Remove empty state
+    document.getElementById('emptyFeed')?.remove();
+
+    newPosts.forEach(post => {
+      posts.unshift(post);
+      renderPost(post);
+    });
+  });
+}
+
+// ── FIREBASE: UPDATE LIKES ────────────────────────────────────────────────────
+async function syncLike(postId, newCount) {
+  try {
+    await update(ref(db, `posts/${postId}`), { likes: newCount });
+  } catch(e) { console.error('Like sync failed', e); }
+}
+
+// ── FIREBASE: SAVE COMMENT ────────────────────────────────────────────────────
+async function saveComment(postId, comment) {
+  try {
+    await push(ref(db, `posts/${postId}/comments`), comment);
+  } catch(e) { console.error('Comment save failed', e); }
+}
+
+// ── CREATE SHEET ──────────────────────────────────────────────────────────────
 window.openCreate = function() {
-  // Reset chat session
   chatHistory = [
     { role: "system", content: "You are Ona AI, a creative assistant for an African visual platform. Help users craft vivid image prompts and generate images. When a user describes what they want, reply with a short enthusiastic message (1-2 sentences) and then say exactly: 'Generating your image now...' on a new line. Always be concise and culturally resonant." }
   ];
-  lastGeneratedImg = null;
   const msgs = document.getElementById('chatMessages');
   msgs.innerHTML = '';
   appendAiMsg("Hey! Describe the vision you want to bring to life. I'll generate the image for you ✨");
@@ -498,30 +591,42 @@ function appendAiMsg(text) {
   return div;
 }
 
-function appendTyping() {
+function appendTyping(id = 'typingIndicator') {
   const msgs = document.getElementById('chatMessages');
   const div = document.createElement('div');
   div.className = 'msg-row ai';
-  div.id = 'typingIndicator';
+  div.id = id;
   div.innerHTML = `<div class="typing-dots"><span></span><span></span><span></span></div>`;
   msgs.appendChild(div);
   scrollChatBottom();
 }
 
-function removeTyping() {
-  document.getElementById('typingIndicator')?.remove();
+function removeTyping(id = 'typingIndicator') {
+  document.getElementById(id)?.remove();
+}
+
+function appendStatusMsg(text, id) {
+  const msgs = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = 'msg-row ai';
+  if (id) div.id = id;
+  div.innerHTML = `<div class="upload-status"><span class="dot"></span>${escHtml(text)}</div>`;
+  msgs.appendChild(div);
+  scrollChatBottom();
+  return div;
 }
 
 function appendImagePreview(url, prompt) {
   const msgs = document.getElementById('chatMessages');
   const div = document.createElement('div');
   div.className = 'msg-row ai';
+  div.id = 'imgPreviewRow';
   div.innerHTML = `
     <div class="img-preview" onclick="openViewer('${url}')">
       <img src="${url}" alt="Generated image"/>
       <div class="img-watermark">${SPARK_SVG} Ona AI</div>
     </div>
-    <button class="post-to-feed-btn" onclick="postToFeed('${url}', '${encodeURIComponent(prompt)}')">
+    <button class="post-to-feed-btn" id="postFeedBtn" onclick="postToFeed('${url}', '${encodeURIComponent(prompt)}')">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
       POST TO FEED
     </button>
@@ -530,7 +635,7 @@ function appendImagePreview(url, prompt) {
   scrollChatBottom();
 }
 
-// ── SEND CHAT MESSAGE ────────────────────────────────────────────────────────
+// ── SEND CHAT ─────────────────────────────────────────────────────────────────
 window.sendChat = async function() {
   const input = document.getElementById('chatInput');
   const userText = input.value.trim();
@@ -542,7 +647,7 @@ window.sendChat = async function() {
   appendTyping();
 
   try {
-    // Step 1: Get Grok text response
+    // Step 1: Grok chat response
     const chatRes = await fetch(`${API_BASE}/chat/completions`, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${XAI_KEY}`, 'Content-Type': 'application/json' },
@@ -556,9 +661,10 @@ window.sendChat = async function() {
     removeTyping();
     appendAiMsg(aiText);
 
-    // Step 2: If Grok says it's generating, generate the image
+    // Step 2: If generating, call image API
     if (aiText.toLowerCase().includes('generating your image')) {
-      appendTyping();
+      appendTyping('imgTyping');
+
       const imgRes = await fetch(`${API_BASE}/images/generations`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${XAI_KEY}`, 'Content-Type': 'application/json' },
@@ -566,39 +672,70 @@ window.sendChat = async function() {
       });
       if (!imgRes.ok) throw new Error(await imgRes.text());
       const imgData = await imgRes.json();
-      const imgUrl = imgData.data[0].url;
-      lastGeneratedImg = imgUrl;
-      removeTyping();
-      appendImagePreview(imgUrl, userText);
+      const xaiUrl = imgData.data[0].url;
+
+      removeTyping('imgTyping');
+
+      // Step 3: Upload to Cloudinary
+      appendStatusMsg('Saving to Cloudinary…', 'cloudinaryStatus');
+      let cloudUrl;
+      try {
+        cloudUrl = await uploadToCloudinary(xaiUrl);
+        removeTyping('cloudinaryStatus');
+        document.getElementById('cloudinaryStatus')?.remove();
+      } catch(uploadErr) {
+        document.getElementById('cloudinaryStatus')?.remove();
+        appendAiMsg('⚠️ Could not save image permanently: ' + uploadErr.message);
+        cloudUrl = xaiUrl; // fallback to xAI URL
+      }
+
+      appendImagePreview(cloudUrl, userText);
     }
 
   } catch(err) {
     removeTyping();
+    removeTyping('imgTyping');
+    document.getElementById('cloudinaryStatus')?.remove();
     appendAiMsg("Something went wrong: " + err.message);
   }
 };
 
-// ── POST TO FEED ─────────────────────────────────────────────────────────────
-window.postToFeed = function(imgUrl, encodedPrompt) {
+// ── POST TO FEED ──────────────────────────────────────────────────────────────
+window.postToFeed = async function(imgUrl, encodedPrompt) {
   const prompt = decodeURIComponent(encodedPrompt);
-  const id = Date.now().toString();
+  const btn = document.getElementById('postFeedBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Posting…'; }
+
   const post = {
-    id,
     imgUrl,
-    caption: prompt,
-    author: currentUserName,
-    likes: 0,
-    liked: false,
+    caption:  prompt,
+    author:   currentUserName,
+    likes:    0,
+    liked:    false,
     comments: []
   };
-  posts.unshift(post);
-  renderPost(post, true);
-  closeCreate();
-  showToast("Posted to feed ✓");
+
+  try {
+    const fbId = await savePostToFirebase(post);
+    post.id = fbId;
+    // Feed will update via onValue listener, but also add locally for instant feel
+    // (onValue will skip it since existingIds already has it after local push)
+    posts.unshift(post);
+    document.getElementById('emptyFeed')?.remove();
+    renderPost(post, true);
+    closeCreate();
+    showToast("Posted to feed ✓");
+  } catch(err) {
+    if (btn) { btn.disabled = false; btn.textContent = 'POST TO FEED'; }
+    showToast('Post failed: ' + err.message);
+  }
 };
 
 // ── RENDER POST ───────────────────────────────────────────────────────────────
 function renderPost(post, scrollTo = false) {
+  // Don't double-render
+  if (document.getElementById(`post-${post.id}`)) return;
+
   const feed = document.getElementById('feed');
   document.getElementById('emptyFeed')?.remove();
 
@@ -607,7 +744,7 @@ function renderPost(post, scrollTo = false) {
   div.id = `post-${post.id}`;
   div.innerHTML = `
     <div class="post-bg">
-      <img src="${post.imgUrl}" alt=""/>
+      <img src="${escHtml(post.imgUrl)}" alt="" loading="lazy"/>
     </div>
     <div class="post-content">
       <div class="post-author">@${escHtml(post.author)}</div>
@@ -620,13 +757,13 @@ function renderPost(post, scrollTo = false) {
         <div class="action-icon">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
         </div>
-        <span class="action-count" id="like-count-${post.id}">${post.likes}</span>
+        <span class="action-count" id="like-count-${post.id}">${post.likes || 0}</span>
       </button>
       <button class="action-btn" onclick="openComments('${post.id}')">
         <div class="action-icon">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
         </div>
-        <span class="action-count" id="comment-count-${post.id}">${post.comments.length}</span>
+        <span class="action-count" id="comment-count-${post.id}">${(post.comments || []).length}</span>
       </button>
       <button class="action-btn" onclick="sharePost('${post.id}')">
         <div class="action-icon">
@@ -637,7 +774,6 @@ function renderPost(post, scrollTo = false) {
     </div>
   `;
 
-  // Insert at top of feed
   feed.insertBefore(div, feed.firstChild);
   if (scrollTo) div.scrollIntoView({ behavior: 'smooth' });
 }
@@ -651,17 +787,18 @@ window.toggleCaption = function(id) {
   if (btn) btn.textContent = cap.classList.contains('expanded') ? 'less' : 'more';
 };
 
-// ── LIKE ─────────────────────────────────────────────────────────────────────
+// ── LIKE ──────────────────────────────────────────────────────────────────────
 window.toggleLike = function(id) {
   const post = posts.find(p => p.id === id);
   if (!post) return;
   post.liked = !post.liked;
-  post.likes += post.liked ? 1 : -1;
-  const btn = document.getElementById(`like-btn-${id}`);
+  post.likes = (post.likes || 0) + (post.liked ? 1 : -1);
+  const btn   = document.getElementById(`like-btn-${id}`);
   const count = document.getElementById(`like-count-${id}`);
   if (!btn || !count) return;
   btn.classList.toggle('liked', post.liked);
   count.textContent = post.likes;
+  syncLike(id, post.likes); // persist to Firebase
   if (post.liked) {
     const burst = document.createElement('div');
     burst.className = 'heart-burst';
@@ -677,13 +814,13 @@ window.openComments = function(id) {
   const post = posts.find(p => p.id === id);
   const list = document.getElementById('commentsList');
   list.innerHTML = '';
-  if (!post?.comments.length) {
+  if (!post?.comments?.length) {
     list.innerHTML = '<p style="color:var(--muted);font-size:0.9rem;text-align:center;padding:24px">No comments yet.</p>';
   } else {
     post.comments.forEach(c => {
       const el = document.createElement('div');
       el.className = 'comment-item';
-      el.innerHTML = `<div class="c-avatar">${c.name[0]}</div><div class="c-body"><div class="c-name">${escHtml(c.name)}</div><div class="c-text">${escHtml(c.text)}</div></div>`;
+      el.innerHTML = `<div class="c-avatar">${escHtml(c.name[0])}</div><div class="c-body"><div class="c-name">${escHtml(c.name)}</div><div class="c-text">${escHtml(c.text)}</div></div>`;
       list.appendChild(el);
     });
   }
@@ -700,20 +837,30 @@ window.closeComments = function() {
 
 window.postComment = function() {
   const input = document.getElementById('commentInput');
-  const text = input.value.trim();
+  const text  = input.value.trim();
   if (!text || !activeCommentPostId) return;
   const post = posts.find(p => p.id === activeCommentPostId);
   if (!post) return;
-  post.comments.push({ name: currentUserName, text });
+
+  const comment = { name: currentUserName, text };
+  if (!post.comments) post.comments = [];
+  post.comments.push(comment);
+
+  // Save to Firebase
+  saveComment(activeCommentPostId, comment);
+
+  // Update UI
   const el = document.createElement('div');
   el.className = 'comment-item';
-  el.innerHTML = `<div class="c-avatar" style="background:var(--accent)">${currentUserName[0]}</div><div class="c-body"><div class="c-name" style="color:var(--accent)">${escHtml(currentUserName)}</div><div class="c-text">${escHtml(text)}</div></div>`;
+  el.innerHTML = `<div class="c-avatar" style="background:var(--accent)">${escHtml(currentUserName[0])}</div><div class="c-body"><div class="c-name" style="color:var(--accent)">${escHtml(currentUserName)}</div><div class="c-text">${escHtml(text)}</div></div>`;
   const list = document.getElementById('commentsList');
   list.querySelector('p')?.remove();
   list.appendChild(el);
   list.scrollTop = list.scrollHeight;
+
   const countEl = document.getElementById(`comment-count-${activeCommentPostId}`);
   if (countEl) countEl.textContent = post.comments.length;
+
   input.value = '';
   showToast('Comment posted ✓');
 };
@@ -727,7 +874,7 @@ window.sharePost = function(id) {
   }
 };
 
-// ── VIEWER ───────────────────────────────────────────────────────────────────
+// ── VIEWER ────────────────────────────────────────────────────────────────────
 window.openViewer = function(url) {
   const v = document.getElementById('imgViewer');
   document.getElementById('viewerImg').src = url;
@@ -741,17 +888,15 @@ window.closeViewer = function() {
 };
 
 // ── CLOSE ALL ─────────────────────────────────────────────────────────────────
-window.closeAll = function() {
-  closeCreate();
-  closeComments();
-};
+window.closeAll = function() { closeCreate(); closeComments(); };
 
 // ── KEYBOARD ─────────────────────────────────────────────────────────────────
 document.getElementById('chatInput').addEventListener('keypress', e => { if (e.key === 'Enter') sendChat(); });
 document.getElementById('commentInput').addEventListener('keypress', e => { if (e.key === 'Enter') postComment(); });
 
-// ── INIT ──────────────────────────────────────────────────────────────────────
+// ── BOOT ──────────────────────────────────────────────────────────────────────
 await loadKey();
+loadFeed();
 </script>
 </body>
 </html>
