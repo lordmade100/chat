@@ -466,7 +466,7 @@ const SAMPLE_COMMENTS = [
 // ─── STATE ──────────────────────────────────────────────────────────────────
 let posts = [];
 let activeCommentPostId = null;
-let xaiKey = API_KEY_PARAM;
+let xaiKey = '';
 let topicIndex = 0;
 let promptIndex = 0;
 
@@ -835,12 +835,7 @@ async function init() {
   });
 }
 
-// Enter key for comments
-document.getElementById('commentInput').addEventListener('keypress', e => {
-  if (e.key === 'Enter') postComment();
-});
-
-// Expose globals for inline onclick handlers
+// ─── EXPOSE GLOBALS (must be set before any onclick fires) ─────────────────
 window.generateNewPost = generateNewPost;
 window.toggleLike = toggleLike;
 window.openComments = openComments;
@@ -848,6 +843,11 @@ window.closeComments = closeComments;
 window.postComment = postComment;
 window.sharePost = sharePost;
 window.regenPost = regenPost;
+
+// Enter key for comments
+document.getElementById('commentInput').addEventListener('keypress', e => {
+  if (e.key === 'Enter') postComment();
+});
 
 init();
 </script>
