@@ -1,863 +1,556 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Ona AI · Vynix</title>
-    <script src="https://unpkg.com/feather-icons"></script>
-    <style>
-        :root,[data-theme="light"]{--primary:#0095F6;--primary-rgb:0,149,246;--background:#FFFFFF;--surface:#FFFFFF;--surface2:#EFEFEF;--border:#DBDBDB;--text-primary:#000000;--text-secondary:#737373;--text-muted:#A8A8A8;}
-        [data-theme="dark"]{--primary:#0095F6;--primary-rgb:0,149,246;--background:#000000;--surface:#000000;--surface2:#262626;--border:#363636;--text-primary:#F5F5F5;--text-secondary:#A8A8A8;--text-muted:#737373;}
-        [data-theme="midnight"]{--primary:#C084FC;--background:#09090B;--surface:#09090B;--surface2:#27272A;--border:#3F3F46;--text-primary:#FAFAFA;--text-secondary:#A1A1AA;--text-muted:#71717A;}
-        [data-theme="ocean"]{--primary:#06B6D4;--background:#F0F9FF;--surface:#F0F9FF;--surface2:#E0F2FE;--border:#BAE6FD;--text-primary:#0C4A6E;--text-secondary:#0369A1;--text-muted:#7DD3FC;}
-        [data-theme="rose"]{--primary:#E11D48;--background:#FFF1F2;--surface:#FFF1F2;--surface2:#FFE4E6;--border:#FECDD3;--text-primary:#881337;--text-secondary:#9F1239;--text-muted:#FDA4AF;}
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>Ona - Vision Feed</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+:root { --accent:#FF4D6D; --accent2:#C084FC; --gold:#FFD166; --muted:rgba(255,255,255,0.55); }
+html,body { height:100%; overflow:hidden; background:#000; color:#FAFAFA; font-family:'DM Sans',sans-serif; }
 
-        *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-        body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--background);color:var(--text-primary);-webkit-font-smoothing:antialiased;overflow-x:hidden;padding-bottom:calc(80px + env(safe-area-inset-bottom));transition:background 0.3s,color 0.3s;}
+#feed { width:100vw; height:100svh; overflow-y:scroll; scroll-snap-type:y mandatory; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+#feed::-webkit-scrollbar { display:none; }
 
-        @keyframes spin{to{transform:rotate(360deg);}}
-        @keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
-        @keyframes fadeInUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
-        @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.5;}}
-        @keyframes shimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
-        @keyframes popIn{from{opacity:0;transform:scale(0.92);}to{opacity:1;transform:scale(1);}}
+.post { width:100vw; height:100svh; scroll-snap-align:start; scroll-snap-stop:always; position:relative; overflow:hidden; display:flex; align-items:flex-end; }
+.post-bg { position:absolute; inset:0; background:#111; display:flex; align-items:center; justify-content:center; }
+.post-bg img { width:100%; height:100%; object-fit:cover; display:block; transition:transform 8s ease; }
+.post:not(.loading) .post-bg img { transform:scale(1.06); }
+.post::after { content:''; position:absolute; inset:0; pointer-events:none; background:linear-gradient(to bottom,rgba(0,0,0,0.2) 0%,transparent 30%,transparent 45%,rgba(0,0,0,0.85) 100%); }
 
-        /* ── HEADER ── */
-        .header{position:sticky;top:0;z-index:50;background:var(--background);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;}
-        .header-left{display:flex;align-items:center;gap:10px;}
-        .back-btn{background:none;border:none;cursor:pointer;color:var(--text-primary);display:flex;align-items:center;justify-content:center;padding:4px;}
-        .ona-logo{display:flex;align-items:center;gap:8px;}
-        .ona-icon{width:32px;height:32px;flex-shrink:0;}
-        .ona-title{font-size:18px;font-weight:700;color:var(--text-primary);}
-        .ona-subtitle{font-size:11px;color:var(--text-secondary);font-weight:400;}
+.post-content { position:relative; z-index:5; width:100%; padding:0 72px 40px 20px; display:flex; flex-direction:column; gap:8px; }
+.post-author { font-family:'Syne',sans-serif; font-size:0.78rem; font-weight:700; letter-spacing:1px; color:var(--gold); opacity:0.9; }
+.post-caption { font-size:0.95rem; line-height:1.5; color:#fff; text-shadow:0 1px 8px rgba(0,0,0,0.7); max-width:300px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+.post-caption.expanded { -webkit-line-clamp:unset; }
+.read-more { background:none; border:none; color:var(--gold); font-family:'DM Sans',sans-serif; font-size:0.82rem; font-weight:500; cursor:pointer; padding:0; align-self:flex-start; }
 
-        /* ── MAIN LAYOUT ── */
-        .app-container{max-width:600px;margin:0 auto;}
-        @media(min-width:1024px){.app-container{border-left:1px solid var(--border);border-right:1px solid var(--border);}}
+.action-bar { position:absolute; right:12px; bottom:100px; z-index:10; display:flex; flex-direction:column; align-items:center; gap:20px; }
+.action-btn { display:flex; flex-direction:column; align-items:center; gap:4px; background:none; border:none; color:#FAFAFA; cursor:pointer; }
+.action-icon { width:48px; height:48px; border-radius:50%; background:rgba(255,255,255,0.12); backdrop-filter:blur(12px); border:1px solid rgba(255,255,255,0.18); display:flex; align-items:center; justify-content:center; transition:transform 0.15s,background 0.2s; }
+.action-btn:active .action-icon { transform:scale(0.88); }
+.action-btn.liked .action-icon { background:var(--accent); border-color:var(--accent); }
+.action-btn.liked svg { stroke:white; fill:white; }
+.action-count { font-family:'Syne',sans-serif; font-size:0.72rem; font-weight:700; color:rgba(255,255,255,0.85); }
 
-        /* ── CHAT AREA ── */
-        .chat-area{padding:16px;display:flex;flex-direction:column;gap:16px;min-height:calc(100vh - 130px);}
+.heart-burst { position:absolute; font-size:70px; left:50%; top:50%; transform:translate(-50%,-50%) scale(0); z-index:20; pointer-events:none; animation:burst 0.6s ease forwards; }
+@keyframes burst { 0%{transform:translate(-50%,-50%) scale(0);opacity:1} 50%{transform:translate(-50%,-50%) scale(1.4);opacity:1} 100%{transform:translate(-50%,-50%) scale(1.1);opacity:0} }
 
-        .welcome-card{background:var(--surface2);border-radius:20px;padding:20px;animation:fadeIn 0.4s ease-out;}
-        .welcome-card h2{font-size:20px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px;}
-        .welcome-card p{font-size:14px;color:var(--text-secondary);line-height:1.5;}
-        .capability-pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
-        .capability-pill{background:var(--background);border:1px solid var(--border);color:var(--text-primary);padding:6px 12px;border-radius:9999px;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:5px;}
-        .capability-pill:active{background:var(--primary);color:white;border-color:var(--primary);}
+.top-nav { position:fixed; top:0; left:0; right:0; z-index:50; display:flex; align-items:center; justify-content:space-between; padding:16px 20px; padding-top:max(16px,env(safe-area-inset-top)); }
+.nav-logo { font-family:'Syne',sans-serif; font-size:1.3rem; font-weight:800; letter-spacing:1px; }
+.nav-logo span { color:var(--accent); }
+.nav-create-btn { background:var(--accent); border:none; color:white; font-family:'Syne',sans-serif; font-size:0.75rem; font-weight:700; letter-spacing:1px; padding:8px 16px; border-radius:20px; cursor:pointer; display:flex; align-items:center; gap:6px; transition:transform 0.15s; }
+.nav-create-btn:active { transform:scale(0.95); }
 
-        /* ── MESSAGE BUBBLES ── */
-        .message{display:flex;gap:8px;animation:fadeInUp 0.3s ease-out;}
-        .message.user-msg{flex-direction:row-reverse;}
-        .msg-avatar{width:30px;height:30px;border-radius:50%;flex-shrink:0;object-fit:cover;border:1px solid var(--border);}
-        .msg-avatar.ona{display:flex;align-items:center;justify-content:center;background:var(--surface2);}
-        .bubble{max-width:78%;padding:10px 14px;border-radius:18px;font-size:14px;line-height:1.5;word-wrap:break-word;white-space:pre-wrap;}
-        .bubble.user{background:var(--primary);color:white;border-bottom-right-radius:4px;}
-        .bubble.ona{background:var(--surface2);color:var(--text-primary);border-bottom-left-radius:4px;}
-        .bubble.ona.loading{min-width:60px;}
+.empty-feed { width:100vw; height:100svh; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; text-align:center; padding:40px; }
+.empty-feed .big-icon { font-size:56px; }
+.empty-feed h2 { font-family:'Syne',sans-serif; font-size:1.4rem; font-weight:800; }
+.empty-feed p { color:var(--muted); font-size:0.9rem; max-width:260px; line-height:1.5; }
+.empty-cta { background:var(--accent); border:none; color:white; font-family:'Syne',sans-serif; font-size:0.85rem; font-weight:700; letter-spacing:1px; padding:12px 28px; border-radius:24px; cursor:pointer; margin-top:8px; }
 
-        /* media preview inside bubble */
-        .bubble-media{border-radius:12px;overflow:hidden;margin-bottom:8px;}
-        .bubble-media img,.bubble-media video{width:100%;max-height:300px;object-fit:cover;display:block;}
-        .bubble-media-grid{display:grid;grid-template-columns:1fr 1fr;gap:3px;border-radius:12px;overflow:hidden;margin-bottom:8px;}
-        .bubble-media-grid img{width:100%;aspect-ratio:1;object-fit:cover;display:block;}
+/* ── CREATE SHEET ── */
+.create-sheet { position:fixed; bottom:0; left:0; right:0; z-index:200; background:#0f0f0f; border-radius:28px 28px 0 0; border-top:1px solid rgba(255,255,255,0.1); transform:translateY(100%); transition:transform 0.38s cubic-bezier(0.32,0.72,0,1); display:flex; flex-direction:column; max-height:92svh; padding-bottom:max(20px,env(safe-area-inset-bottom)); }
+.create-sheet.open { transform:translateY(0); }
+.sheet-handle { width:36px; height:4px; background:rgba(255,255,255,0.18); border-radius:2px; margin:14px auto 0; flex-shrink:0; }
+.sheet-header { padding:14px 20px 10px; font-family:'Syne',sans-serif; font-size:1rem; font-weight:700; border-bottom:1px solid rgba(255,255,255,0.08); flex-shrink:0; display:flex; justify-content:space-between; align-items:center; }
+.sheet-close { background:none; border:none; color:var(--muted); cursor:pointer; display:flex; align-items:center; padding:4px; }
 
-        .typing-dots{display:flex;gap:4px;padding:4px 0;}
-        .typing-dots span{width:7px;height:7px;border-radius:50%;background:var(--text-muted);animation:pulse 1.2s ease-in-out infinite;}
-        .typing-dots span:nth-child(2){animation-delay:0.2s;}
-        .typing-dots span:nth-child(3){animation-delay:0.4s;}
+.upload-body { flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:16px; }
+.upload-body::-webkit-scrollbar { display:none; }
 
-        /* action chips on response */
-        .action-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
-        .action-chip{background:var(--background);border:1px solid var(--border);color:var(--primary);padding:5px 11px;border-radius:9999px;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:4px;}
-        .action-chip:active{background:var(--primary);color:white;border-color:var(--primary);}
+/* Image pick area */
+.pick-area { width:100%; aspect-ratio:4/3; border-radius:20px; border:2px dashed rgba(255,255,255,0.18); background:rgba(255,255,255,0.04); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; cursor:pointer; overflow:hidden; position:relative; transition:border-color 0.2s; }
+.pick-area:active { border-color:var(--accent); }
+.pick-area.has-image { border-style:solid; border-color:rgba(255,255,255,0.22); }
+.pick-area img { width:100%; height:100%; object-fit:cover; position:absolute; inset:0; border-radius:18px; }
+.pick-label { font-family:'Syne',sans-serif; font-size:0.78rem; font-weight:700; letter-spacing:1px; color:var(--muted); z-index:1; }
+.pick-icon { width:44px; height:44px; border-radius:50%; background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; z-index:1; }
+.pick-change { position:absolute; bottom:10px; right:10px; z-index:2; background:rgba(0,0,0,0.65); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.2); border-radius:20px; padding:5px 12px; font-family:'Syne',sans-serif; font-size:0.7rem; font-weight:700; letter-spacing:1px; color:white; display:none; }
+.pick-area.has-image .pick-icon,
+.pick-area.has-image .pick-label { display:none; }
+.pick-area.has-image .pick-change { display:block; }
 
-        /* copy result */
-        .copy-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;padding:8px 12px;background:var(--background);border:1px solid var(--border);border-radius:10px;cursor:pointer;transition:background 0.15s;}
-        .copy-bar:active{background:var(--surface2);}
-        .copy-bar span{font-size:12px;color:var(--text-secondary);font-weight:500;}
-        .copy-bar svg{flex-shrink:0;color:var(--primary);}
+/* Caption input */
+.caption-field { background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.14); border-radius:16px; padding:14px 16px; color:white; font-family:'DM Sans',sans-serif; font-size:0.95rem; outline:none; resize:none; min-height:90px; line-height:1.5; }
+.caption-field::placeholder { color:var(--muted); }
 
-        /* ── BOTTOM INPUT BAR ── */
-        .input-bar{position:fixed;bottom:0;left:0;right:0;background:var(--background);border-top:1px solid var(--border);padding:8px 12px calc(12px + env(safe-area-inset-bottom));z-index:100;}
-        .input-bar-inner{max-width:600px;margin:0 auto;display:flex;align-items:flex-end;gap:8px;}
+/* Post button */
+.post-btn { background:var(--accent); border:none; color:white; font-family:'Syne',sans-serif; font-size:0.85rem; font-weight:700; letter-spacing:1px; padding:15px; border-radius:20px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:transform 0.15s,opacity 0.2s; }
+.post-btn:active { transform:scale(0.97); }
+.post-btn:disabled { opacity:0.45; pointer-events:none; }
 
-        /* media thumbnails strip above input */
-        .media-strip{max-width:600px;margin:0 auto;display:flex;gap:8px;padding:0 4px 8px;overflow-x:auto;scrollbar-width:none;}
-        .media-strip::-webkit-scrollbar{display:none;}
-        .media-strip-wrap{max-width:600px;margin:0 auto;display:none;}
-        .media-strip-wrap.show{display:block;}
-        .strip-thumb{position:relative;width:64px;height:64px;border-radius:10px;overflow:hidden;flex-shrink:0;border:1px solid var(--border);background:var(--surface2);}
-        .strip-thumb img,.strip-thumb video{width:100%;height:100%;object-fit:cover;display:block;}
-        .strip-remove{position:absolute;top:3px;right:3px;background:rgba(0,0,0,0.6);color:white;border:none;width:18px;height:18px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;}
-        .strip-add{width:64px;height:64px;border-radius:10px;border:1px dashed var(--border);background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;color:var(--text-secondary);font-size:10px;font-weight:600;flex-shrink:0;}
+/* Progress bar */
+.upload-progress { height:3px; background:rgba(255,255,255,0.1); border-radius:2px; overflow:hidden; display:none; }
+.upload-progress.active { display:block; }
+.upload-progress-bar { height:100%; background:linear-gradient(90deg,var(--accent),var(--accent2)); width:0%; transition:width 0.3s ease; border-radius:2px; }
 
-        .input-field-wrap{flex:1;background:var(--surface2);border-radius:22px;display:flex;align-items:flex-end;padding:8px 12px;gap:8px;min-height:44px;}
-        .attach-btn{background:none;border:none;color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;flex-shrink:0;}
-        .input-textarea{flex:1;border:none;background:transparent;outline:none;font-size:15px;color:var(--text-primary);font-family:inherit;resize:none;max-height:120px;min-height:22px;line-height:1.4;}
-        .input-textarea::placeholder{color:var(--text-muted);}
-        .send-btn{width:36px;height:36px;background:var(--primary);border:none;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform 0.15s,opacity 0.15s;opacity:0.4;}
-        .send-btn.ready{opacity:1;}
-        .send-btn:active{transform:scale(0.9);}
+/* Comment sheet */
+.comment-sheet { position:fixed; bottom:0; left:0; right:0; z-index:150; background:#111; border-radius:24px 24px 0 0; border-top:1px solid rgba(255,255,255,0.1); transform:translateY(100%); transition:transform 0.35s cubic-bezier(0.32,0.72,0,1); max-height:70svh; display:flex; flex-direction:column; }
+.comment-sheet.open { transform:translateY(0); }
+.c-handle { width:36px; height:4px; background:rgba(255,255,255,0.2); border-radius:2px; margin:14px auto 0; flex-shrink:0; }
+.c-header { padding:12px 20px; font-family:'Syne',sans-serif; font-size:1rem; font-weight:700; border-bottom:1px solid rgba(255,255,255,0.08); flex-shrink:0; display:flex; justify-content:space-between; align-items:center; }
+.c-close { background:none; border:none; color:var(--muted); cursor:pointer; display:flex; }
+.comments-list { flex:1; overflow-y:auto; padding:16px 20px; display:flex; flex-direction:column; gap:16px; }
+.comments-list::-webkit-scrollbar { display:none; }
+.comment-item { display:flex; gap:10px; }
+.c-avatar { width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,var(--accent),var(--accent2)); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-family:'Syne',sans-serif; font-size:0.75rem; font-weight:800; color:white; }
+.c-body { flex:1; }
+.c-name { font-size:0.78rem; font-weight:600; color:rgba(255,255,255,0.65); margin-bottom:3px; }
+.c-text { font-size:0.9rem; line-height:1.4; }
+.c-input-row { display:flex; gap:10px; padding:12px 16px; border-top:1px solid rgba(255,255,255,0.08); flex-shrink:0; padding-bottom:max(16px,env(safe-area-inset-bottom)); }
+.c-input { flex:1; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); border-radius:24px; padding:10px 16px; color:white; font-family:'DM Sans',sans-serif; font-size:0.9rem; outline:none; }
+.c-input::placeholder { color:var(--muted); }
+.c-send { background:var(--accent); border:none; color:white; width:42px; height:42px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; transition:transform 0.15s; }
+.c-send:active { transform:scale(0.9); }
 
-        /* ── BOTTOM SHEET ── */
-        .sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:200;opacity:0;pointer-events:none;transition:opacity 0.3s;}
-        .sheet-overlay.active{opacity:1;pointer-events:auto;}
-        .bottom-sheet{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-radius:20px 20px 0 0;padding:20px;padding-bottom:calc(20px + env(safe-area-inset-bottom));transform:translateY(100%);transition:transform 0.32s cubic-bezier(0.4,0,0.2,1);z-index:201;max-height:80vh;overflow-y:auto;}
-        .sheet-overlay.active + .bottom-sheet{transform:translateY(0);}
-        .sheet-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px;}
-        .sheet-title{font-size:16px;font-weight:700;margin-bottom:16px;color:var(--text-primary);}
+#backdrop { position:fixed; inset:0; z-index:99; background:rgba(0,0,0,0.6); display:none; }
 
-        .sheet-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
-        .sheet-option{display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px 10px;border-radius:14px;background:var(--surface2);cursor:pointer;border:none;transition:background 0.15s;font-family:inherit;}
-        .sheet-option:active{background:rgba(var(--primary-rgb),0.15);}
-        .sheet-option-icon{width:48px;height:48px;background:var(--background);border-radius:12px;display:flex;align-items:center;justify-content:center;color:var(--primary);}
-        .sheet-option span{font-size:12px;font-weight:600;color:var(--text-primary);text-align:center;}
+.img-viewer { position:fixed; inset:0; z-index:300; background:rgba(0,0,0,0.95); backdrop-filter:blur(6px); display:none; align-items:center; justify-content:center; opacity:0; transition:opacity 0.25s; }
+.img-viewer.open { display:flex; }
+.img-viewer.visible { opacity:1; }
+.img-viewer img { max-width:95%; max-height:90%; border-radius:8px; object-fit:contain; }
+.iv-close { position:absolute; top:24px; right:24px; background:rgba(255,255,255,0.15); border:none; color:white; width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; }
 
-        /* selected media grid in sheet */
-        .sheet-media-preview{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px;}
-        .sheet-media-thumb{border-radius:10px;overflow:hidden;aspect-ratio:1;position:relative;background:var(--surface2);}
-        .sheet-media-thumb img,.sheet-media-thumb video{width:100%;height:100%;object-fit:cover;display:block;}
-        .sheet-media-thumb .rm{position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.6);color:white;border:none;width:22px;height:22px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;}
-        .sheet-add-more{border-radius:10px;border:1.5px dashed var(--border);aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:var(--text-secondary);font-size:11px;font-weight:600;background:transparent;}
-
-        .sheet-ai-section{margin-top:20px;border-top:1px solid var(--border);padding-top:16px;}
-        .sheet-ai-label{font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:10px;}
-        .sheet-ai-chips{display:flex;flex-wrap:wrap;gap:8px;}
-        .sheet-ai-chip{padding:7px 14px;background:var(--surface2);border:none;border-radius:9999px;font-size:13px;font-weight:600;color:var(--text-primary);cursor:pointer;font-family:inherit;transition:all 0.15s;display:flex;align-items:center;gap:5px;}
-        .sheet-ai-chip:active,.sheet-ai-chip.selected{background:var(--primary);color:white;}
-
-        .sheet-upload-btn{width:100%;margin-top:16px;padding:14px;background:var(--primary);color:white;border:none;border-radius:9999px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;transition:opacity 0.2s;opacity:0.4;}
-        .sheet-upload-btn.ready{opacity:1;}
-        .sheet-upload-btn:active{opacity:0.85;}
-
-        .upload-progress-wrap{margin-top:12px;display:none;}
-        .upload-progress-wrap.show{display:block;}
-        .upload-progress-bar{height:3px;background:var(--surface2);border-radius:2px;overflow:hidden;}
-        .upload-progress-fill{height:100%;background:var(--primary);width:0%;transition:width 0.3s;}
-        .upload-progress-label{font-size:12px;color:var(--text-secondary);margin-top:4px;text-align:center;}
-
-        /* context banner (from vynix post nav) */
-        .context-banner{background:var(--surface2);border-radius:12px;padding:10px 14px;display:flex;align-items:center;gap:10px;margin-bottom:4px;animation:fadeIn 0.3s;}
-        .context-banner img{width:40px;height:40px;border-radius:8px;object-fit:cover;flex-shrink:0;border:1px solid var(--border);}
-        .context-banner-text{flex:1;min-width:0;}
-        .context-banner-label{font-size:11px;font-weight:600;color:var(--primary);margin-bottom:2px;}
-        .context-banner-snippet{font-size:13px;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-        .context-banner-close{background:none;border:none;color:var(--text-secondary);cursor:pointer;padding:4px;}
-
-        .toast{position:fixed;bottom:calc(90px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(100px);background:var(--text-primary);color:var(--background);padding:12px 20px;border-radius:9999px;font-size:14px;font-weight:500;opacity:0;transition:all 0.3s;z-index:9999;pointer-events:none;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,0.15);}
-        .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
-
-        .shimmer{background:linear-gradient(90deg,var(--surface2) 25%,var(--border) 50%,var(--surface2) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;}
-    </style>
+.toast { position:fixed; bottom:90px; left:50%; transform:translateX(-50%) translateY(16px); background:rgba(255,255,255,0.12); backdrop-filter:blur(12px); border:1px solid rgba(255,255,255,0.2); border-radius:24px; padding:10px 20px; font-size:0.85rem; color:white; white-space:nowrap; opacity:0; pointer-events:none; transition:opacity 0.25s,transform 0.25s; z-index:400; }
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+</style>
 </head>
 <body>
 
-<div class="app-container">
+<nav class="top-nav">
+  <div class="nav-logo">Ona</div>
+  <button class="nav-create-btn" onclick="openCreate()">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    POST
+  </button>
+</nav>
 
-    <header class="header">
-        <div class="header-left">
-            <button class="back-btn" onclick="history.back()">
-                <i data-feather="arrow-left" style="width:22px;height:22px;"></i>
-            </button>
-            <div class="ona-logo">
-                <svg class="ona-icon" viewBox="0 0 32 32" fill="none">
-                    <defs>
-                        <linearGradient id="og" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stop-color="#4A90E2"/>
-                            <stop offset="50%" stop-color="#9013FE"/>
-                            <stop offset="100%" stop-color="#FF7A59"/>
-                        </linearGradient>
-                    </defs>
-                    <circle cx="16" cy="16" r="14" stroke="url(#og)" stroke-width="2.5" fill="none"/>
-                    <circle cx="16" cy="16" r="5" fill="url(#og)"/>
-                </svg>
-                <div>
-                    <div class="ona-title">Ona <span style="font-weight:400;font-size:14px;color:var(--text-secondary);">ai</span></div>
-                </div>
-            </div>
-        </div>
-        <button onclick="clearConversation()" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;padding:6px 10px;border-radius:8px;transition:background 0.15s;" onmouseenter="this.style.background='var(--surface2)'" onmouseleave="this.style.background='none'">New chat</button>
-    </header>
-
-    <div class="chat-area" id="chat-area">
-
-        <div class="welcome-card" id="welcome-card">
-            <h2>
-                <svg width="22" height="22" viewBox="0 0 32 32" fill="none">
-                    <defs><linearGradient id="og2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4A90E2"/><stop offset="50%" stop-color="#9013FE"/><stop offset="100%" stop-color="#FF7A59"/></linearGradient></defs>
-                    <circle cx="16" cy="16" r="14" stroke="url(#og2)" stroke-width="2.5" fill="none"/><circle cx="16" cy="16" r="5" fill="url(#og2)"/>
-                </svg>
-                Hey, I'm Ona
-            </h2>
-            <p>Upload photos or videos and I'll help you write captions, translate content, or answer questions about your media.</p>
-            <div class="capability-pills">
-                <div class="capability-pill" onclick="setPrompt('Write a caption for this')">✍️ Write captions</div>
-                <div class="capability-pill" onclick="setPrompt('Translate this caption to Zulu')">🌍 Translate</div>
-                <div class="capability-pill" onclick="setPrompt('Suggest hashtags for this post')">🏷️ Hashtags</div>
-                <div class="capability-pill" onclick="setPrompt('Write a funny caption')">😄 Funny caption</div>
-                <div class="capability-pill" onclick="setPrompt('Describe what you see in this image')">👁️ Describe image</div>
-            </div>
-        </div>
-
-        <!-- context banner from Vynix post (injected by JS if coming from a post) -->
-        <div id="context-banner-wrap"></div>
-
-    </div>
+<div id="feed">
+  <div class="empty-feed" id="emptyFeed">
+    <div class="big-icon">📸</div>
+    <h2>No posts yet</h2>
+    <p>Be the first to share a photo with the community.</p>
+    <button class="empty-cta" onclick="openCreate()">Share a photo</button>
+  </div>
 </div>
 
-<!-- INPUT BAR -->
-<div class="input-bar" id="input-bar">
-    <div class="media-strip-wrap" id="media-strip-wrap">
-        <div class="media-strip" id="media-strip"></div>
+<div id="backdrop" onclick="closeAll()"></div>
+
+<!-- CREATE / UPLOAD SHEET -->
+<div class="create-sheet" id="createSheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <span>New Post</span>
+    <button class="sheet-close" onclick="closeCreate()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="upload-body">
+    <!-- Image picker -->
+    <div class="pick-area" id="pickArea" onclick="document.getElementById('fileInput').click()">
+      <div class="pick-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      </div>
+      <span class="pick-label">TAP TO CHOOSE PHOTO</span>
+      <span class="pick-change">CHANGE</span>
+      <img id="previewImg" src="" alt="" style="display:none"/>
     </div>
-    <div class="input-bar-inner">
-        <div class="input-field-wrap">
-            <button class="attach-btn" onclick="openUploadSheet()" aria-label="Attach media">
-                <i data-feather="image" style="width:20px;height:20px;"></i>
-            </button>
-            <textarea class="input-textarea" id="chat-input" placeholder="Ask Ona anything…" rows="1"
-                oninput="autoResize(this);updateSendBtn()" onkeydown="handleInputKey(event)"></textarea>
-        </div>
-        <button class="send-btn" id="send-btn" onclick="sendMessage()">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-        </button>
+
+    <!-- Caption -->
+    <textarea class="caption-field" id="captionInput" placeholder="Write a caption..." rows="3" maxlength="300"></textarea>
+
+    <!-- Progress -->
+    <div class="upload-progress" id="uploadProgress">
+      <div class="upload-progress-bar" id="progressBar"></div>
     </div>
+
+    <!-- Post button -->
+    <button class="post-btn" id="postBtn" onclick="submitPost()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      POST TO FEED
+    </button>
+  </div>
 </div>
 
-<!-- UPLOAD BOTTOM SHEET -->
-<div class="sheet-overlay" id="sheet-overlay" onclick="closeUploadSheet()"></div>
-<div class="bottom-sheet" id="upload-sheet">
-    <div class="sheet-handle"></div>
-    <div class="sheet-title">Upload Media</div>
+<!-- COMMENTS SHEET -->
+<div class="comment-sheet" id="commentSheet">
+  <div class="c-handle"></div>
+  <div class="c-header">
+    Comments
+    <button class="c-close" onclick="closeComments()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="comments-list" id="commentsList"></div>
+  <div class="c-input-row">
+    <input class="c-input" id="commentInput" placeholder="Add a comment..."/>
+    <button class="c-send" onclick="postComment()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    </button>
+  </div>
+</div>
 
-    <!-- step 1: choose source -->
-    <div id="sheet-step-source">
-        <div class="sheet-grid">
-            <button class="sheet-option" onclick="triggerInput('image/*', false)">
-                <div class="sheet-option-icon"><i data-feather="image" style="width:22px;height:22px;"></i></div>
-                <span>Photo</span>
-            </button>
-            <button class="sheet-option" onclick="triggerInput('video/*', false)">
-                <div class="sheet-option-icon"><i data-feather="video" style="width:22px;height:22px;"></i></div>
-                <span>Video</span>
-            </button>
-            <button class="sheet-option" onclick="triggerInput('image/*,video/*', true)">
-                <div class="sheet-option-icon"><i data-feather="grid" style="width:22px;height:22px;"></i></div>
-                <span>Multiple</span>
-            </button>
-        </div>
-
-        <!-- selected previews -->
-        <div id="sheet-media-preview-grid" class="sheet-media-preview" style="display:none;"></div>
-
-        <!-- AI action chooser -->
-        <div class="sheet-ai-section" id="sheet-ai-section" style="display:none;">
-            <div class="sheet-ai-label">What should Ona do?</div>
-            <div class="sheet-ai-chips" id="sheet-ai-chips">
-                <button class="sheet-ai-chip" onclick="selectAiAction(this, 'Write a caption for this media')">✍️ Caption</button>
-                <button class="sheet-ai-chip" onclick="selectAiAction(this, 'Translate this caption to Zulu')">🌍 Translate</button>
-                <button class="sheet-ai-chip" onclick="selectAiAction(this, 'Suggest relevant hashtags for this media')">🏷️ Hashtags</button>
-                <button class="sheet-ai-chip" onclick="selectAiAction(this, 'Write a funny caption for this')">😄 Funny</button>
-                <button class="sheet-ai-chip" onclick="selectAiAction(this, 'Describe what is in this media')">👁️ Describe</button>
-            </div>
-        </div>
-
-        <!-- upload progress -->
-        <div class="upload-progress-wrap" id="upload-progress-wrap">
-            <div class="upload-progress-bar"><div class="upload-progress-fill" id="upload-progress-fill"></div></div>
-            <div class="upload-progress-label" id="upload-progress-label">Uploading…</div>
-        </div>
-
-        <button class="sheet-upload-btn" id="sheet-upload-btn" onclick="uploadAndSend()">Upload & Ask Ona</button>
-    </div>
+<!-- IMAGE VIEWER -->
+<div class="img-viewer" id="imgViewer" onclick="closeViewer()">
+  <button class="iv-close">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+  <img id="viewerImg" src="" alt=""/>
 </div>
 
 <!-- Hidden file input -->
-<input type="file" id="media-file-input" style="display:none;" onchange="handleFileSelect(event)">
+<input type="file" id="fileInput" accept="image/*" style="display:none"/>
 
 <div class="toast" id="toast"></div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { initializeApp }               from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, onAuthStateChanged }  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getDatabase, ref, get, push, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
+// ── CONFIG ──────────────────────────────────────────────────────────────────
 const firebaseConfig = {
-    apiKey: "AIzaSyBOyZ3As4GTuNvjemvPF_SpsC6m6vqtNhc",
-    authDomain: "fire-b-a8878.firebaseapp.com",
-    databaseURL: "https://fire-b-a8878.firebaseio.com",
-    projectId: "fire-b-a8878",
-    storageBucket: "fire-b-a8878.appspot.com",
-    messagingSenderId: "658673187627",
-    appId: "1:658673187627:web:6e4c29af661785f0afa36e"
+  apiKey:      "AIzaSyBOyZ3As4GTuNvjemvPF_SpsC6m6vqtNhc",
+  authDomain:  "fire-b-a8878.firebaseapp.com",
+  projectId:   "fire-b-a8878",
+  databaseURL: "https://fire-b-a8878-default-rtdb.firebaseio.com",
+  appId:       "1:658673187627:web:6e4c29af661785f0afa36e"
 };
+const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dqkujefxj/upload";
+const UPLOAD_PRESET  = "banter_box";
 
+// ── INIT ────────────────────────────────────────────────────────────────────
 const app  = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db   = getDatabase(app);
 
-const DEFAULT_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23A8A8A8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' style='background-color:%23EFEFEF'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3C/svg%3E";
+let currentUser         = null;
+let currentUserName     = "You";
+let posts               = [];
+let activeCommentPostId = null;
+let selectedFile        = null; // file chosen from device
 
-const CLOUDINARY_CLOUD_NAME    = 'dqkujefxj';
-const CLOUDINARY_UPLOAD_PRESET = 'banter_box';
-
-// apply saved theme
-const savedTheme = localStorage.getItem('vynix_theme') || 'light';
-document.documentElement.setAttribute('data-theme', savedTheme);
-
-let currentUser     = null;
-let currentUserData = null;
-let selectedFiles   = [];       // {file, url, type}
-let selectedAiAction = '';
-let conversationHistory = [];   // [{role, content}]
-let pendingCloudinaryUrls = []; // uploaded media for current turn
-
-// ── AUTH ──
-onAuthStateChanged(auth, async user => {
-    if (!user) { window.location.href = 'signup.html'; return; }
-    currentUser = user;
-    try {
-        const snap = await get(ref(db, `users/${user.uid}`));
-        currentUserData = snap.exists() ? snap.val() : { photoURL: user.photoURL || DEFAULT_AVATAR, username: user.email.split('@')[0] };
-    } catch { currentUserData = { photoURL: DEFAULT_AVATAR, username: 'me' }; }
-
-    // set user avatar in compose bar
-    document.getElementById('user-avatar-bar').src = currentUserData.photoURL || DEFAULT_AVATAR;
-
-    // load vynix post context if navigated from a post
-    loadPostContext();
+// ── AUTH ────────────────────────────────────────────────────────────────────
+onAuthStateChanged(auth, async (user) => {
+  if (!user) { window.location.href = 'signup.html'; return; }
+  currentUser = user;
+  try {
+    const snap = await get(ref(db, `users/${user.uid}`));
+    if (snap.exists()) currentUserName = snap.val().displayName || snap.val().username || "You";
+  } catch(e) {}
 });
 
-// ── POST CONTEXT (from sessionStorage, set by index.html) ──
-function loadPostContext() {
-    try {
-        const raw = sessionStorage.getItem('vynix_ai_context');
-        if (!raw) return;
-        const ctx = JSON.parse(raw);
-        sessionStorage.removeItem('vynix_ai_context');
-
-        const wrap = document.getElementById('context-banner-wrap');
-        const imgSrc = ctx.mediaUrl && ctx.mediaType !== 'video'
-            ? ctx.mediaUrl
-            : (currentUserData?.photoURL || DEFAULT_AVATAR);
-
-        wrap.innerHTML = `
-            <div class="context-banner" id="ctx-banner">
-                <img src="${escHtml(imgSrc)}" onerror="this.src='${DEFAULT_AVATAR}'" alt="">
-                <div class="context-banner-text">
-                    <div class="context-banner-label">Post context from @${escHtml(ctx.author || 'user')}</div>
-                    <div class="context-banner-snippet">${escHtml((ctx.text || 'View post').slice(0, 80))}</div>
-                </div>
-                <button class="context-banner-close" onclick="clearContext()">
-                    <i data-feather="x" style="width:16px;height:16px;"></i>
-                </button>
-            </div>`;
-        feather.replace();
-
-        // pre-populate a system context message
-        conversationHistory.push({
-            role: 'user',
-            content: `Here is context about a Vynix post I want to discuss:\nAuthor: @${ctx.author}\nCaption: "${ctx.text || '(no caption)'}"\n${ctx.mediaUrl ? `Media URL: ${ctx.mediaUrl}` : ''}\nI may ask you questions about it.`
-        });
-        conversationHistory.push({
-            role: 'assistant',
-            content: `Got it! I can see the post by @${ctx.author}. What would you like to know or do with it?`
-        });
-    } catch {}
+// ── HELPERS ─────────────────────────────────────────────────────────────────
+function escHtml(t = '') {
+  return String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2400);
 }
 
-window.clearContext = () => {
-    document.getElementById('context-banner-wrap').innerHTML = '';
-};
+// ── FILE PICKER ──────────────────────────────────────────────────────────────
+document.getElementById('fileInput').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  selectedFile = file;
 
-// ── UPLOAD SHEET ──
-window.openUploadSheet = () => {
-    document.getElementById('sheet-overlay').classList.add('active');
-    feather.replace();
-};
-window.closeUploadSheet = () => {
-    document.getElementById('sheet-overlay').classList.remove('active');
-};
-
-window.triggerInput = (accept, multiple) => {
-    const inp = document.getElementById('media-file-input');
-    inp.accept  = accept;
-    inp.multiple = multiple;
-    inp.click();
-};
-
-window.handleFileSelect = e => {
-    const files = Array.from(e.target.files);
-    if (!files.length) return;
-    const remaining = 10 - selectedFiles.length;
-    files.slice(0, remaining).forEach(f => {
-        selectedFiles.push({ file: f, url: URL.createObjectURL(f), type: f.type.startsWith('video/') ? 'video' : 'image' });
-    });
-    if (files.length > remaining) showToast(`Max 10 files. ${remaining} added.`);
-    e.target.value = '';
-    renderSheetPreviews();
-    updateSheetUploadBtn();
-};
-
-function renderSheetPreviews() {
-    const grid = document.getElementById('sheet-media-preview-grid');
-    const aiSection = document.getElementById('sheet-ai-section');
-    if (!selectedFiles.length) { grid.style.display = 'none'; aiSection.style.display = 'none'; return; }
-    grid.style.display = 'grid';
-    aiSection.style.display = 'block';
-    grid.innerHTML = selectedFiles.map((m, i) =>
-        `<div class="sheet-media-thumb">
-            ${m.type === 'video'
-                ? `<video src="${m.url}" muted playsinline style="pointer-events:none;"></video>`
-                : `<img src="${m.url}" alt="">`}
-            <button class="rm" onclick="removeSheetFile(${i})">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            </button>
-        </div>`
-    ).join('') + (selectedFiles.length < 10
-        ? `<button class="sheet-add-more" onclick="triggerInput('image/*,video/*',true)">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                Add more
-           </button>` : '');
-    feather.replace();
-}
-
-window.removeSheetFile = i => {
-    URL.revokeObjectURL(selectedFiles[i].url);
-    selectedFiles.splice(i, 1);
-    renderSheetPreviews();
-    updateSheetUploadBtn();
-    renderMediaStrip();
-};
-
-window.selectAiAction = (el, action) => {
-    document.querySelectorAll('.sheet-ai-chip').forEach(c => c.classList.remove('selected'));
-    el.classList.add('selected');
-    selectedAiAction = action;
-    updateSheetUploadBtn();
-};
-
-function updateSheetUploadBtn() {
-    const btn = document.getElementById('sheet-upload-btn');
-    const ready = selectedFiles.length > 0;
-    btn.classList.toggle('ready', ready);
-}
-
-window.uploadAndSend = async () => {
-    if (!selectedFiles.length) return;
-
-    const btn = document.getElementById('sheet-upload-btn');
-    const progWrap = document.getElementById('upload-progress-wrap');
-    const progFill = document.getElementById('upload-progress-fill');
-    const progLabel = document.getElementById('upload-progress-label');
-
-    btn.disabled = true;
-    btn.textContent = 'Uploading…';
-    progWrap.classList.add('show');
-
-    const uploaded = [];
-    try {
-        for (let i = 0; i < selectedFiles.length; i++) {
-            const pct = Math.round((i / selectedFiles.length) * 100);
-            progFill.style.width = pct + '%';
-            progLabel.textContent = `Uploading ${i + 1} of ${selectedFiles.length}…`;
-
-            const fd = new FormData();
-            fd.append('file', selectedFiles[i].file);
-            fd.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-            fd.append('folder', 'ona_ai');
-            const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/upload`, { method: 'POST', body: fd });
-            if (!res.ok) throw new Error('Upload failed');
-            const data = await res.json();
-            uploaded.push({ url: data.secure_url, type: data.resource_type, original: selectedFiles[i] });
-        }
-        progFill.style.width = '100%';
-        progLabel.textContent = 'Upload complete!';
-    } catch (err) {
-        showToast('Upload failed. Try again.');
-        btn.disabled = false;
-        btn.textContent = 'Upload & Ask Ona';
-        progWrap.classList.remove('show');
-        return;
-    }
-
-    // store urls for message
-    pendingCloudinaryUrls = uploaded;
-
-    // close sheet & reset
-    closeUploadSheet();
-    setTimeout(() => {
-        progWrap.classList.remove('show');
-        progFill.style.width = '0%';
-        btn.disabled = false;
-        btn.textContent = 'Upload & Ask Ona';
-    }, 400);
-
-    // render strip
-    renderMediaStrip();
-
-    // if an AI action was pre-selected, fire immediately
-    const promptText = selectedAiAction || '';
-    if (promptText) {
-        document.getElementById('chat-input').value = promptText;
-        updateSendBtn();
-        await sendMessage();
-    } else {
-        // just show media in chat with a prompt hint
-        appendUserMessage({ mediaUrls: uploaded, text: '' });
-        appendOnaTyping();
-        const reply = await callOna('Tell me what you see in this media and ask what I would like to do with it.', uploaded);
-        removeTyping();
-        appendOnaMessage(reply, uploaded);
-    }
-
-    // clear
-    selectedFiles.forEach(f => URL.revokeObjectURL(f.url));
-    selectedFiles = [];
-    selectedAiAction = '';
-    document.querySelectorAll('.sheet-ai-chip').forEach(c => c.classList.remove('selected'));
-    renderSheetPreviews();
-    updateSheetUploadBtn();
-};
-
-// ── MEDIA STRIP (above input) ──
-function renderMediaStrip() {
-    const wrap  = document.getElementById('media-strip-wrap');
-    const strip = document.getElementById('media-strip');
-    if (!pendingCloudinaryUrls.length) { wrap.classList.remove('show'); return; }
-    wrap.classList.add('show');
-    strip.innerHTML = pendingCloudinaryUrls.map((m, i) =>
-        `<div class="strip-thumb">
-            ${m.type === 'video'
-                ? `<video src="${m.url}" muted></video>`
-                : `<img src="${m.url}" alt="">`}
-            <button class="strip-remove" onclick="removeStripMedia(${i})">
-                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            </button>
-        </div>`
-    ).join('') + `<button class="strip-add" onclick="openUploadSheet()">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Add
-    </button>`;
-}
-
-window.removeStripMedia = i => {
-    pendingCloudinaryUrls.splice(i, 1);
-    renderMediaStrip();
-};
-
-// ── SEND MESSAGE ──
-window.sendMessage = async () => {
-    const ta   = document.getElementById('chat-input');
-    const text = ta.value.trim();
-    if (!text && !pendingCloudinaryUrls.length) return;
-
-    const mediaForThisTurn = [...pendingCloudinaryUrls];
-    ta.value = '';
-    autoResize(ta);
-    updateSendBtn();
-
-    // clear strip only after we've captured
-    pendingCloudinaryUrls = [];
-    renderMediaStrip();
-
-    appendUserMessage({ text, mediaUrls: mediaForThisTurn });
-    document.getElementById('welcome-card')?.remove();
-
-    appendOnaTyping();
-    const reply = await callOna(text, mediaForThisTurn);
-    removeTyping();
-    appendOnaMessage(reply, mediaForThisTurn);
-};
-
-// ── CLAUDE API ──
-async function callOna(userText, mediaUrls = []) {
-    // Build content array for this user turn
-    const contentParts = [];
-
-    // Attach images from Cloudinary
-    mediaUrls.forEach(m => {
-        if (m.type === 'image') {
-            contentParts.push({ type: 'image', source: { type: 'url', url: m.url } });
-        } else if (m.type === 'video') {
-            // Videos: pass as url text hint since Claude can't process video streams
-            contentParts.push({ type: 'text', text: `[User uploaded a video: ${m.url}]` });
-        }
-    });
-
-    if (userText) contentParts.push({ type: 'text', text: userText });
-
-    const newUserMessage = { role: 'user', content: contentParts.length === 1 && contentParts[0].type === 'text' ? contentParts[0].text : contentParts };
-    const messages = [...conversationHistory, newUserMessage];
-
-    try {
-        const res = await fetch('https://api.anthropic.com/v1/messages', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                model: 'claude-sonnet-4-20250514',
-                max_tokens: 1000,
-                system: `You are Ona, a friendly and creative AI assistant built into Vynix — a South African social media platform (mzansi's social platform). You help users with their social media content: writing captions, translating text, suggesting hashtags, describing images, and answering questions about media they upload. Keep responses concise and conversational. When writing captions or hashtags, match the vibe of the content. For translations, be culturally accurate. You support South African languages including Zulu, Xhosa, Sotho, Afrikaans, Tswana, and English. Always be warm, creative, and on-brand for a youthful African social platform.`,
-                messages
-            })
-        });
-
-        if (!res.ok) {
-            const err = await res.json().catch(() => ({}));
-            console.error('API error', err);
-            return 'Something went wrong. Please try again.';
-        }
-
-        const data = await res.json();
-        const text = data.content?.find(b => b.type === 'text')?.text || 'No response.';
-
-        // Save to history
-        conversationHistory.push(newUserMessage);
-        conversationHistory.push({ role: 'assistant', content: text });
-
-        // Keep history manageable (last 20 turns)
-        if (conversationHistory.length > 40) conversationHistory.splice(0, 2);
-
-        return text;
-    } catch (e) {
-        console.error(e);
-        return 'Network error. Please check your connection.';
-    }
-}
-
-// ── CHAT RENDERING ──
-function appendUserMessage({ text, mediaUrls }) {
-    const area = document.getElementById('chat-area');
-    const div  = document.createElement('div');
-    div.className = 'message user-msg';
-
-    let mediaHtml = '';
-    if (mediaUrls?.length === 1) {
-        const m = mediaUrls[0];
-        mediaHtml = `<div class="bubble-media">${m.type === 'video'
-            ? `<video src="${m.url}" controls muted playsinline></video>`
-            : `<img src="${m.url}" alt="" onclick="openImageViewer('${m.url}')" style="cursor:pointer;">`
-        }</div>`;
-    } else if (mediaUrls?.length > 1) {
-        mediaHtml = `<div class="bubble-media-grid">${mediaUrls.slice(0, 4).map(m =>
-            m.type === 'video'
-                ? `<video src="${m.url}" muted></video>`
-                : `<img src="${m.url}" alt="" onclick="openImageViewer('${m.url}')" style="cursor:pointer;">`
-        ).join('')}</div>`;
-    }
-
-    div.innerHTML = `
-        <div style="max-width:78%;display:flex;flex-direction:column;align-items:flex-end;gap:2px;">
-            ${mediaHtml ? `<div class="bubble user" style="padding:6px;">${mediaHtml}</div>` : ''}
-            ${text ? `<div class="bubble user">${escHtml(text)}</div>` : ''}
-        </div>
-        <img src="${currentUserData?.photoURL || DEFAULT_AVATAR}" onerror="this.src='${DEFAULT_AVATAR}'" class="msg-avatar" style="width:30px;height:30px;border-radius:50%;object-fit:cover;flex-shrink:0;">
-    `;
-    area.appendChild(div);
-    scrollChat();
-}
-
-function appendOnaMessage(text, contextMedia = []) {
-    const area = document.getElementById('chat-area');
-    const div  = document.createElement('div');
-    div.className = 'message';
-
-    // parse potential captions / translations for copy UI
-    const hasCopyable = text.length > 40 && (
-        text.toLowerCase().includes('caption') ||
-        text.toLowerCase().includes('hashtag') ||
-        text.toLowerCase().includes('translat') ||
-        text.includes('🏷') || text.includes('✍')
-    );
-
-    // quick action chips based on context
-    let chips = '';
-    if (contextMedia.length) {
-        chips = `<div class="action-chips">
-            <button class="action-chip" onclick="quickAction('Write a different caption')">🔄 Retry</button>
-            <button class="action-chip" onclick="quickAction('Translate this to Zulu')">🌍 Zulu</button>
-            <button class="action-chip" onclick="quickAction('Make it shorter')">✂️ Shorter</button>
-        </div>`;
-    }
-
-    const copyBar = hasCopyable
-        ? `<div class="copy-bar" onclick="copyToClipboard(this, \`${text.replace(/`/g,'\\`')}\`)">
-                <span>Tap to copy</span>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-           </div>` : '';
-
-    div.innerHTML = `
-        <div class="msg-avatar ona">
-            <svg width="16" height="16" viewBox="0 0 32 32" fill="none">
-                <defs><linearGradient id="og3" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4A90E2"/><stop offset="50%" stop-color="#9013FE"/><stop offset="100%" stop-color="#FF7A59"/></linearGradient></defs>
-                <circle cx="16" cy="16" r="14" stroke="url(#og3)" stroke-width="2.5" fill="none"/>
-                <circle cx="16" cy="16" r="5" fill="url(#og3)"/>
-            </svg>
-        </div>
-        <div style="max-width:78%;display:flex;flex-direction:column;gap:4px;">
-            <div class="bubble ona">${formatOnaText(text)}</div>
-            ${copyBar}
-            ${chips}
-        </div>
-    `;
-    area.appendChild(div);
-    scrollChat();
-}
-
-function appendOnaTyping() {
-    const area = document.getElementById('chat-area');
-    const div  = document.createElement('div');
-    div.className = 'message'; div.id = 'typing-indicator';
-    div.innerHTML = `
-        <div class="msg-avatar ona">
-            <svg width="16" height="16" viewBox="0 0 32 32" fill="none">
-                <defs><linearGradient id="og4" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4A90E2"/><stop offset="50%" stop-color="#9013FE"/><stop offset="100%" stop-color="#FF7A59"/></linearGradient></defs>
-                <circle cx="16" cy="16" r="14" stroke="url(#og4)" stroke-width="2.5" fill="none"/>
-                <circle cx="16" cy="16" r="5" fill="url(#og4)"/>
-            </svg>
-        </div>
-        <div class="bubble ona loading"><div class="typing-dots"><span></span><span></span><span></span></div></div>
-    `;
-    area.appendChild(div);
-    scrollChat();
-}
-
-function removeTyping() {
-    document.getElementById('typing-indicator')?.remove();
-}
-
-function scrollChat() {
-    const area = document.getElementById('chat-area');
-    setTimeout(() => area.lastElementChild?.scrollIntoView({ behavior: 'smooth', block: 'end' }), 50);
-}
-
-function formatOnaText(text) {
-    return escHtml(text)
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\*(.*?)\*/g, '<em>$1</em>')
-        .replace(/`(.*?)`/g, '<code style="background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:13px;">$1</code>')
-        .replace(/\n/g, '<br>');
-}
-
-// ── UTILS ──
-window.quickAction = async (action) => {
-    document.getElementById('chat-input').value = action;
-    updateSendBtn();
-    await sendMessage();
-};
-
-window.setPrompt = text => {
-    document.getElementById('welcome-card')?.remove();
-    document.getElementById('chat-input').value = text;
-    document.getElementById('chat-input').focus();
-    updateSendBtn();
-};
-
-window.copyToClipboard = async (el, text) => {
-    try {
-        await navigator.clipboard.writeText(text);
-        const span = el.querySelector('span');
-        const orig = span.textContent;
-        span.textContent = 'Copied!';
-        setTimeout(() => span.textContent = orig, 2000);
-    } catch { showToast('Could not copy'); }
-};
-
-window.clearConversation = () => {
-    conversationHistory = [];
-    pendingCloudinaryUrls = [];
-    selectedFiles = [];
-    renderMediaStrip();
-    const area = document.getElementById('chat-area');
-    area.innerHTML = `
-        <div class="welcome-card" id="welcome-card">
-            <h2>
-                <svg width="22" height="22" viewBox="0 0 32 32" fill="none">
-                    <defs><linearGradient id="og2b" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4A90E2"/><stop offset="50%" stop-color="#9013FE"/><stop offset="100%" stop-color="#FF7A59"/></linearGradient></defs>
-                    <circle cx="16" cy="16" r="14" stroke="url(#og2b)" stroke-width="2.5" fill="none"/><circle cx="16" cy="16" r="5" fill="url(#og2b)"/>
-                </svg>
-                Hey, I'm Ona
-            </h2>
-            <p>Upload photos or videos and I'll help you write captions, translate content, or answer questions about your media.</p>
-            <div class="capability-pills">
-                <div class="capability-pill" onclick="setPrompt('Write a caption for this')">✍️ Write captions</div>
-                <div class="capability-pill" onclick="setPrompt('Translate this caption to Zulu')">🌍 Translate</div>
-                <div class="capability-pill" onclick="setPrompt('Suggest hashtags for this post')">🏷️ Hashtags</div>
-                <div class="capability-pill" onclick="setPrompt('Write a funny caption')">😄 Funny caption</div>
-                <div class="capability-pill" onclick="setPrompt('Describe what you see in this image')">👁️ Describe image</div>
-            </div>
-        </div>
-        <div id="context-banner-wrap"></div>
-    `;
-};
-
-window.autoResize = ta => {
-    ta.style.height = 'auto';
-    ta.style.height = Math.min(ta.scrollHeight, 120) + 'px';
-};
-
-window.updateSendBtn = () => {
-    const ta  = document.getElementById('chat-input');
-    const btn = document.getElementById('send-btn');
-    const has = ta.value.trim().length > 0 || pendingCloudinaryUrls.length > 0;
-    btn.classList.toggle('ready', has);
-};
-
-window.handleInputKey = e => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
-};
-
-window.showToast = msg => {
-    const t = document.getElementById('toast');
-    t.textContent = msg; t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 3000);
-};
-
-function escHtml(text) {
-    const d = document.createElement('div'); d.textContent = text; return d.innerHTML;
-}
-
-// simple image viewer
-window.openImageViewer = src => {
-    const d = document.createElement('div');
-    d.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:99999;display:flex;align-items:center;justify-content:center;';
-    d.onclick = () => d.remove();
-    d.innerHTML = `<img src="${src}" style="max-width:100%;max-height:100%;object-fit:contain;">
-        <button style="position:absolute;top:20px;left:20px;background:rgba(255,255,255,0.2);border:none;color:white;width:40px;height:40px;border-radius:50%;cursor:pointer;font-size:20px;">✕</button>`;
-    document.body.appendChild(d);
-};
-
-feather.replace();
-
-</script>
-
-<!-- inject user avatar placeholder for the input bar -->
-<script>
-// This runs before module, just sets placeholder
-document.getElementById = document.getElementById.bind(document);
-</script>
-
-<!-- We need the avatar img in the DOM early for the module to find it -->
-<!-- Using a workaround: the avatar img is rendered inside the input bar -->
-<style>
-#user-avatar-bar-wrap{display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;overflow:hidden;flex-shrink:0;border:1px solid var(--border);}
-</style>
-
-<script>
-// Insert user avatar img into input bar after DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-    const DEFAULT_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23A8A8A8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' style='background-color:%23EFEFEF'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3C/svg%3E";
-    // avatar injected by module; just ensure element exists
-    if (!document.getElementById('user-avatar-bar')) {
-        const img = document.createElement('img');
-        img.id = 'user-avatar-bar';
-        img.src = DEFAULT_AVATAR;
-        img.style.cssText = 'display:none;';
-        document.body.appendChild(img);
-    }
-    feather.replace();
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    const pickArea   = document.getElementById('pickArea');
+    const previewImg = document.getElementById('previewImg');
+    previewImg.src   = ev.target.result;
+    previewImg.style.display = 'block';
+    pickArea.classList.add('has-image');
+  };
+  reader.readAsDataURL(file);
 });
-</script>
 
+// ── CLOUDINARY UPLOAD ────────────────────────────────────────────────────────
+async function uploadToCloudinary(file, onProgress) {
+  return new Promise((resolve, reject) => {
+    const xhr  = new XMLHttpRequest();
+    const form = new FormData();
+    form.append('file', file);
+    form.append('upload_preset', UPLOAD_PRESET);
+
+    xhr.open('POST', CLOUDINARY_URL);
+
+    xhr.upload.addEventListener('progress', (e) => {
+      if (e.lengthComputable && onProgress) {
+        onProgress(Math.round((e.loaded / e.total) * 100));
+      }
+    });
+
+    xhr.onload = () => {
+      if (xhr.status === 200) {
+        const data = JSON.parse(xhr.responseText);
+        if (data.error) reject(new Error('Cloudinary: ' + data.error.message));
+        else resolve(data.secure_url);
+      } else {
+        reject(new Error('Cloudinary HTTP ' + xhr.status));
+      }
+    };
+    xhr.onerror = () => reject(new Error('Network error'));
+    xhr.send(form);
+  });
+}
+
+// ── SUBMIT POST ───────────────────────────────────────────────────────────────
+window.submitPost = async function() {
+  if (!selectedFile) { showToast('Please choose a photo first'); return; }
+
+  const caption = document.getElementById('captionInput').value.trim();
+  const postBtn = document.getElementById('postBtn');
+  const progress = document.getElementById('uploadProgress');
+  const bar      = document.getElementById('progressBar');
+
+  // Wait for auth if needed
+  if (!currentUser) await new Promise(r => setTimeout(r, 3000));
+  if (!currentUser) { showToast('Not signed in. Please reload.'); return; }
+
+  postBtn.disabled = true;
+  postBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Uploading...`;
+  progress.classList.add('active');
+  bar.style.width = '0%';
+
+  try {
+    // 1 – Upload to Cloudinary (with progress)
+    const cloudUrl = await uploadToCloudinary(selectedFile, (pct) => {
+      bar.style.width = pct + '%';
+    });
+    bar.style.width = '100%';
+
+    // 2 – Save to Firebase
+    postBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Saving...`;
+    const payload = {
+      imgUrl:    cloudUrl,
+      caption:   caption,
+      author:    currentUserName,
+      uid:       currentUser.uid,
+      likes:     0,
+      timestamp: Date.now()
+    };
+    const newRef = await push(ref(db, 'posts'), payload);
+
+    // 3 – Render locally
+    const post = { id: newRef.key, ...payload, liked: false, comments: [] };
+    posts.unshift(post);
+    document.getElementById('emptyFeed')?.remove();
+    renderPost(post, true);
+    closeCreate();
+    showToast('Posted!');
+
+  } catch(err) {
+    console.error('Post error:', err);
+    showToast('Post failed: ' + err.message);
+    postBtn.disabled = false;
+    postBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> POST TO FEED`;
+    progress.classList.remove('active');
+  }
+};
+
+// ── OPEN / CLOSE CREATE ───────────────────────────────────────────────────────
+window.openCreate = function() {
+  // Reset state
+  selectedFile = null;
+  document.getElementById('captionInput').value = '';
+  document.getElementById('fileInput').value = '';
+  const pickArea   = document.getElementById('pickArea');
+  const previewImg = document.getElementById('previewImg');
+  previewImg.src   = '';
+  previewImg.style.display = 'none';
+  pickArea.classList.remove('has-image');
+  const postBtn = document.getElementById('postBtn');
+  postBtn.disabled = false;
+  postBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> POST TO FEED`;
+  document.getElementById('uploadProgress').classList.remove('active');
+  document.getElementById('progressBar').style.width = '0%';
+
+  document.getElementById('createSheet').classList.add('open');
+  document.getElementById('backdrop').style.display = 'block';
+};
+window.closeCreate = function() {
+  document.getElementById('createSheet').classList.remove('open');
+  document.getElementById('backdrop').style.display = 'none';
+};
+window.closeAll = function() { closeCreate(); closeComments(); };
+
+// ── LOAD FEED ─────────────────────────────────────────────────────────────────
+function loadFeed() {
+  onValue(ref(db, 'posts'), (snapshot) => {
+    const data = snapshot.val();
+    if (!data) return;
+
+    const incoming = Object.entries(data)
+      .map(([key, val]) => ({
+        id:        key,
+        imgUrl:    val.imgUrl    || '',
+        caption:   val.caption   || '',
+        author:    val.author    || 'Unknown',
+        likes:     val.likes     || 0,
+        liked:     false,
+        timestamp: val.timestamp || 0,
+        comments:  val.comments  ? Object.values(val.comments) : []
+      }))
+      .sort((a, b) => b.timestamp - a.timestamp);
+
+    const existingIds = new Set(posts.map(p => p.id));
+    incoming.filter(p => !existingIds.has(p.id)).forEach(post => {
+      posts.push(post);
+      document.getElementById('emptyFeed')?.remove();
+      renderPost(post);
+    });
+  });
+}
+
+// ── RENDER POST ───────────────────────────────────────────────────────────────
+function renderPost(post, scrollTo = false) {
+  if (document.getElementById('post-' + post.id)) return;
+  const feed = document.getElementById('feed');
+  document.getElementById('emptyFeed')?.remove();
+  const div = document.createElement('div');
+  div.className = 'post';
+  div.id = 'post-' + post.id;
+  div.innerHTML = `
+    <div class="post-bg"><img src="${escHtml(post.imgUrl)}" alt="" loading="lazy" onclick="openViewer('${escHtml(post.imgUrl)}')"/></div>
+    <div class="post-content">
+      <div class="post-author">@${escHtml(post.author)}</div>
+      <div class="post-caption" id="caption-${post.id}">${escHtml(post.caption)}</div>
+      ${post.caption.length > 80 ? `<button class="read-more" onclick="toggleCaption('${post.id}')">more</button>` : ''}
+    </div>
+    <div class="action-bar">
+      <button class="action-btn" id="like-btn-${post.id}" onclick="toggleLike('${post.id}')">
+        <div class="action-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+        </div>
+        <span class="action-count" id="like-count-${post.id}">${post.likes || 0}</span>
+      </button>
+      <button class="action-btn" onclick="openComments('${post.id}')">
+        <div class="action-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+        </div>
+        <span class="action-count" id="comment-count-${post.id}">${(post.comments || []).length}</span>
+      </button>
+      <button class="action-btn" onclick="sharePost('${post.id}')">
+        <div class="action-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+          </svg>
+        </div>
+        <span class="action-count">Share</span>
+      </button>
+    </div>
+  `;
+  feed.insertBefore(div, feed.firstChild);
+  if (scrollTo) div.scrollIntoView({ behavior: 'smooth' });
+}
+
+// ── INTERACTIONS ──────────────────────────────────────────────────────────────
+window.toggleCaption = function(id) {
+  const cap = document.getElementById('caption-' + id);
+  const btn = cap?.nextElementSibling;
+  if (!cap) return;
+  cap.classList.toggle('expanded');
+  if (btn) btn.textContent = cap.classList.contains('expanded') ? 'less' : 'more';
+};
+
+window.toggleLike = function(id) {
+  const post = posts.find(p => p.id === id);
+  if (!post) return;
+  post.liked = !post.liked;
+  post.likes = (post.likes || 0) + (post.liked ? 1 : -1);
+  const btn   = document.getElementById('like-btn-' + id);
+  const count = document.getElementById('like-count-' + id);
+  if (!btn || !count) return;
+  btn.classList.toggle('liked', post.liked);
+  count.textContent = post.likes;
+  update(ref(db, 'posts/' + id), { likes: post.likes }).catch(console.error);
+  if (post.liked) {
+    const burst = document.createElement('div');
+    burst.className = 'heart-burst'; burst.textContent = '❤️';
+    document.getElementById('post-' + id).appendChild(burst);
+    setTimeout(() => burst.remove(), 700);
+  }
+};
+
+window.openComments = function(id) {
+  activeCommentPostId = id;
+  const post = posts.find(p => p.id === id);
+  const list = document.getElementById('commentsList');
+  list.innerHTML = '';
+  if (!post?.comments?.length) {
+    list.innerHTML = '<p style="color:var(--muted);font-size:0.9rem;text-align:center;padding:24px">No comments yet.</p>';
+  } else {
+    post.comments.forEach(c => {
+      const el = document.createElement('div');
+      el.className = 'comment-item';
+      el.innerHTML = `<div class="c-avatar">${escHtml((c.name||'?')[0])}</div><div class="c-body"><div class="c-name">${escHtml(c.name)}</div><div class="c-text">${escHtml(c.text)}</div></div>`;
+      list.appendChild(el);
+    });
+  }
+  document.getElementById('commentSheet').classList.add('open');
+  document.getElementById('backdrop').style.display = 'block';
+  document.getElementById('commentInput').focus();
+};
+window.closeComments = function() {
+  document.getElementById('commentSheet').classList.remove('open');
+  document.getElementById('backdrop').style.display = 'none';
+  activeCommentPostId = null;
+};
+window.postComment = function() {
+  const input = document.getElementById('commentInput');
+  const text  = input.value.trim();
+  if (!text || !activeCommentPostId) return;
+  const post = posts.find(p => p.id === activeCommentPostId);
+  if (!post) return;
+  const comment = { name: currentUserName, text };
+  if (!post.comments) post.comments = [];
+  post.comments.push(comment);
+  push(ref(db, 'posts/' + activeCommentPostId + '/comments'), comment).catch(console.error);
+  const el = document.createElement('div');
+  el.className = 'comment-item';
+  el.innerHTML = `<div class="c-avatar" style="background:var(--accent)">${escHtml(currentUserName[0])}</div><div class="c-body"><div class="c-name" style="color:var(--accent)">${escHtml(currentUserName)}</div><div class="c-text">${escHtml(text)}</div></div>`;
+  const list = document.getElementById('commentsList');
+  list.querySelector('p')?.remove();
+  list.appendChild(el);
+  list.scrollTop = list.scrollHeight;
+  const countEl = document.getElementById('comment-count-' + activeCommentPostId);
+  if (countEl) countEl.textContent = post.comments.length;
+  input.value = '';
+  showToast('Comment posted');
+};
+
+window.sharePost = function(id) {
+  if (navigator.share) {
+    navigator.share({ title: 'Ona', text: 'Check out this post!', url: window.location.href });
+  } else {
+    navigator.clipboard.writeText(window.location.href).then(() => showToast('Link copied!'));
+  }
+};
+
+window.openViewer = function(url) {
+  const v = document.getElementById('imgViewer');
+  document.getElementById('viewerImg').src = url;
+  v.classList.add('open');
+  setTimeout(() => v.classList.add('visible'), 10);
+};
+window.closeViewer = function() {
+  const v = document.getElementById('imgViewer');
+  v.classList.remove('visible');
+  setTimeout(() => { v.classList.remove('open'); document.getElementById('viewerImg').src = ''; }, 280);
+};
+
+document.getElementById('commentInput').addEventListener('keypress', e => { if (e.key === 'Enter') postComment(); });
+
+loadFeed();
+</script>
 </body>
 </html>
