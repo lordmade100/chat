@@ -403,8 +403,23 @@ body {
 
 <div class="toast" id="toast"></div>
 
-<script>
-const API_KEY_PARAM = ""; // Set your xAI API key here or load dynamically
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getRemoteConfig, fetchAndActivate, getValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-remote-config.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBOyZ3As4GTuNvjemvPF_SpsC6m6vqtNhc",
+  authDomain: "fire-b-a8878.firebaseapp.com",
+  projectId: "fire-b-a8878",
+  databaseURL: "https://fire-b-a8878-default-rtdb.firebaseio.com",
+  appId: "1:658673187627:web:6e4c29af661785f0afa36e"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const remoteConfig = getRemoteConfig(app);
+remoteConfig.settings.minimumFetchIntervalMillis = 0;
 
 // ─── TOPICS ────────────────────────────────────────────────────────────────
 const TOPICS = [
@@ -457,23 +472,11 @@ let promptIndex = 0;
 
 // ─── LOAD KEY ───────────────────────────────────────────────────────────────
 async function loadKey() {
-  // Try Firebase Remote Config if available
   try {
-    if (typeof firebase !== 'undefined') {
-      const rc = firebase.remoteConfig();
-      rc.settings = { minimumFetchIntervalMillis: 0 };
-      await rc.fetchAndActivate();
-      xaiKey = rc.getValue('xai_api_key').asString();
-    }
-  } catch(e) {}
-
-  // Fallback: prompt user once
-  if (!xaiKey) {
-    xaiKey = localStorage.getItem('ona_xai_key') || '';
-    if (!xaiKey) {
-      xaiKey = prompt('Enter your xAI API key to power Ona AI:') || '';
-      if (xaiKey) localStorage.setItem('ona_xai_key', xaiKey);
-    }
+    await fetchAndActivate(remoteConfig);
+    xaiKey = getValue(remoteConfig, 'xai_api_key').asString();
+  } catch(e) {
+    console.error("Remote Config key load error:", e);
   }
 }
 
@@ -812,7 +815,10 @@ function showToast(msg) {
 // ─── INIT ──────────────────────────────────────────────────────────────────
 async function init() {
   await loadKey();
-  if (!xaiKey) { showToast('No API key — demo mode'); return; }
+
+  onAuthStateChanged(auth, (user) => {
+    if (!user) { window.location.href = 'signup.html'; }
+  });
 
   // Pre-generate first 3 posts
   generateNewPost();
@@ -833,6 +839,15 @@ async function init() {
 document.getElementById('commentInput').addEventListener('keypress', e => {
   if (e.key === 'Enter') postComment();
 });
+
+// Expose globals for inline onclick handlers
+window.generateNewPost = generateNewPost;
+window.toggleLike = toggleLike;
+window.openComments = openComments;
+window.closeComments = closeComments;
+window.postComment = postComment;
+window.sharePost = sharePost;
+window.regenPost = regenPost;
 
 init();
 </script>
