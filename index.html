@@ -3,340 +3,125 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-<title>Ona • Vision Feed</title>
+<title>Ona - Vision Feed</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+:root { --accent:#FF4D6D; --accent2:#C084FC; --gold:#FFD166; --muted:rgba(255,255,255,0.55); }
+html,body { height:100%; overflow:hidden; background:#000; color:#FAFAFA; font-family:'DM Sans',sans-serif; }
 
-:root {
-  --accent: #FF4D6D;
-  --accent2: #C084FC;
-  --gold: #FFD166;
-  --muted: rgba(255,255,255,0.55);
-}
+#feed { width:100vw; height:100svh; overflow-y:scroll; scroll-snap-type:y mandatory; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+#feed::-webkit-scrollbar { display:none; }
 
-html, body { height: 100%; overflow: hidden; background: #000; color: #FAFAFA; font-family: 'DM Sans', sans-serif; }
+.post { width:100vw; height:100svh; scroll-snap-align:start; scroll-snap-stop:always; position:relative; overflow:hidden; display:flex; align-items:flex-end; }
+.post-bg { position:absolute; inset:0; background:#111; display:flex; align-items:center; justify-content:center; }
+.post-bg img { width:100%; height:100%; object-fit:cover; display:block; transition:transform 8s ease; }
+.post:not(.loading) .post-bg img { transform:scale(1.06); }
+.post::after { content:''; position:absolute; inset:0; pointer-events:none; background:linear-gradient(to bottom,rgba(0,0,0,0.2) 0%,transparent 30%,transparent 45%,rgba(0,0,0,0.85) 100%); }
 
-/* ── FEED ── */
-#feed {
-  width: 100vw; height: 100svh;
-  overflow-y: scroll; scroll-snap-type: y mandatory;
-  -webkit-overflow-scrolling: touch; scrollbar-width: none;
-}
-#feed::-webkit-scrollbar { display: none; }
+.post-content { position:relative; z-index:5; width:100%; padding:0 72px 40px 20px; display:flex; flex-direction:column; gap:8px; }
+.post-author { font-family:'Syne',sans-serif; font-size:0.78rem; font-weight:700; letter-spacing:1px; color:var(--gold); opacity:0.9; }
+.post-caption { font-size:0.95rem; line-height:1.5; color:#fff; text-shadow:0 1px 8px rgba(0,0,0,0.7); max-width:300px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+.post-caption.expanded { -webkit-line-clamp:unset; }
+.read-more { background:none; border:none; color:var(--gold); font-family:'DM Sans',sans-serif; font-size:0.82rem; font-weight:500; cursor:pointer; padding:0; align-self:flex-start; }
+.ona-badge { display:inline-flex; align-items:center; gap:5px; background:rgba(255,255,255,0.1); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.18); border-radius:20px; padding:4px 10px; font-size:0.7rem; font-family:'Syne',sans-serif; font-weight:700; letter-spacing:1px; width:fit-content; }
+.ona-badge svg { width:11px; height:11px; }
 
-/* ── POST ── */
-.post {
-  width: 100vw; height: 100svh;
-  scroll-snap-align: start; scroll-snap-stop: always;
-  position: relative; overflow: hidden; display: flex; align-items: flex-end;
-}
-.post-bg { position: absolute; inset: 0; background: #111; display: flex; align-items: center; justify-content: center; }
-.post-bg img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 8s ease; }
-.post:not(.loading) .post-bg img { transform: scale(1.06); }
-.post::after {
-  content: ''; position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, transparent 30%, transparent 45%, rgba(0,0,0,0.85) 100%);
-}
+.action-bar { position:absolute; right:12px; bottom:100px; z-index:10; display:flex; flex-direction:column; align-items:center; gap:20px; }
+.action-btn { display:flex; flex-direction:column; align-items:center; gap:4px; background:none; border:none; color:#FAFAFA; cursor:pointer; }
+.action-icon { width:48px; height:48px; border-radius:50%; background:rgba(255,255,255,0.12); backdrop-filter:blur(12px); border:1px solid rgba(255,255,255,0.18); display:flex; align-items:center; justify-content:center; transition:transform 0.15s,background 0.2s; }
+.action-btn:active .action-icon { transform:scale(0.88); }
+.action-btn.liked .action-icon { background:var(--accent); border-color:var(--accent); }
+.action-btn.liked svg { stroke:white; fill:white; }
+.action-count { font-family:'Syne',sans-serif; font-size:0.72rem; font-weight:700; color:rgba(255,255,255,0.85); }
 
-/* ── LOADING ── */
-.post.loading .post-bg { background: #0a0a0a; }
-.shimmer-wrap {
-  position: absolute; inset: 0; z-index: 2;
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
-}
-.ona-spinner { width: 52px; height: 52px; position: relative; }
-.ona-spinner::before, .ona-spinner::after {
-  content: ''; position: absolute; inset: 0; border-radius: 50%; border: 2px solid transparent;
-}
-.ona-spinner::before { border-top-color: var(--accent); border-right-color: var(--accent2); animation: spin 1s linear infinite; }
-.ona-spinner::after { border-bottom-color: var(--gold); inset: 6px; animation: spin 1.6s linear infinite reverse; }
-@keyframes spin { to { transform: rotate(360deg); } }
-.shimmer-label {
-  font-family: 'Syne', sans-serif; font-size: 0.8rem; letter-spacing: 2px;
-  text-transform: uppercase; color: var(--muted);
-  animation: fadepulse 1.4s ease-in-out infinite alternate;
-}
-@keyframes fadepulse { from { opacity: 0.4; } to { opacity: 1; } }
+.heart-burst { position:absolute; font-size:70px; left:50%; top:50%; transform:translate(-50%,-50%) scale(0); z-index:20; pointer-events:none; animation:burst 0.6s ease forwards; }
+@keyframes burst { 0%{transform:translate(-50%,-50%) scale(0);opacity:1} 50%{transform:translate(-50%,-50%) scale(1.4);opacity:1} 100%{transform:translate(-50%,-50%) scale(1.1);opacity:0} }
 
-/* ── POST CONTENT OVERLAY ── */
-.post-content {
-  position: relative; z-index: 5; width: 100%;
-  padding: 0 72px 40px 20px;
-  display: flex; flex-direction: column; gap: 8px;
-}
-.post-author {
-  font-family: 'Syne', sans-serif; font-size: 0.78rem; font-weight: 700;
-  letter-spacing: 1px; color: var(--gold); opacity: 0.9;
-}
-.post-caption {
-  font-size: 0.95rem; line-height: 1.5; color: #fff;
-  text-shadow: 0 1px 8px rgba(0,0,0,0.7); max-width: 300px;
-  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
-}
-.post-caption.expanded { -webkit-line-clamp: unset; }
-.read-more {
-  background: none; border: none; color: var(--gold);
-  font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 500;
-  cursor: pointer; padding: 0; align-self: flex-start;
-}
-.ona-badge {
-  display: inline-flex; align-items: center; gap: 5px;
-  background: rgba(255,255,255,0.1); backdrop-filter: blur(8px);
-  border: 1px solid rgba(255,255,255,0.18); border-radius: 20px;
-  padding: 4px 10px; font-size: 0.7rem; font-family: 'Syne', sans-serif;
-  font-weight: 700; letter-spacing: 1px; width: fit-content;
-}
-.ona-badge svg { width: 11px; height: 11px; }
+.top-nav { position:fixed; top:0; left:0; right:0; z-index:50; display:flex; align-items:center; justify-content:space-between; padding:16px 20px; padding-top:max(16px,env(safe-area-inset-top)); }
+.nav-logo { font-family:'Syne',sans-serif; font-size:1.3rem; font-weight:800; letter-spacing:1px; }
+.nav-logo span { color:var(--accent); }
+.nav-create-btn { background:var(--accent); border:none; color:white; font-family:'Syne',sans-serif; font-size:0.75rem; font-weight:700; letter-spacing:1px; padding:8px 16px; border-radius:20px; cursor:pointer; display:flex; align-items:center; gap:6px; transition:transform 0.15s; }
+.nav-create-btn:active { transform:scale(0.95); }
 
-/* ── ACTION BAR ── */
-.action-bar {
-  position: absolute; right: 12px; bottom: 100px; z-index: 10;
-  display: flex; flex-direction: column; align-items: center; gap: 20px;
-}
-.action-btn {
-  display: flex; flex-direction: column; align-items: center; gap: 4px;
-  background: none; border: none; color: #FAFAFA; cursor: pointer;
-}
-.action-icon {
-  width: 48px; height: 48px; border-radius: 50%;
-  background: rgba(255,255,255,0.12); backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.18);
-  display: flex; align-items: center; justify-content: center;
-  transition: transform 0.15s, background 0.2s;
-}
-.action-btn:active .action-icon { transform: scale(0.88); }
-.action-btn.liked .action-icon { background: var(--accent); border-color: var(--accent); }
-.action-btn.liked svg { stroke: white; fill: white; }
-.action-count { font-family: 'Syne', sans-serif; font-size: 0.72rem; font-weight: 700; color: rgba(255,255,255,0.85); }
+.empty-feed { width:100vw; height:100svh; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; text-align:center; padding:40px; }
+.empty-feed .big-icon { font-size:56px; }
+.empty-feed h2 { font-family:'Syne',sans-serif; font-size:1.4rem; font-weight:800; }
+.empty-feed p { color:var(--muted); font-size:0.9rem; max-width:260px; line-height:1.5; }
+.empty-cta { background:var(--accent); border:none; color:white; font-family:'Syne',sans-serif; font-size:0.85rem; font-weight:700; letter-spacing:1px; padding:12px 28px; border-radius:24px; cursor:pointer; margin-top:8px; }
 
-/* ── HEART BURST ── */
-.heart-burst {
-  position: absolute; font-size: 70px; left: 50%; top: 50%;
-  transform: translate(-50%,-50%) scale(0); z-index: 20; pointer-events: none;
-  animation: burst 0.6s ease forwards;
-}
-@keyframes burst {
-  0%  { transform: translate(-50%,-50%) scale(0); opacity: 1; }
-  50% { transform: translate(-50%,-50%) scale(1.4); opacity: 1; }
-  100%{ transform: translate(-50%,-50%) scale(1.1); opacity: 0; }
-}
+.create-sheet { position:fixed; bottom:0; left:0; right:0; z-index:200; background:#0f0f0f; border-radius:28px 28px 0 0; border-top:1px solid rgba(255,255,255,0.1); transform:translateY(100%); transition:transform 0.38s cubic-bezier(0.32,0.72,0,1); display:flex; flex-direction:column; max-height:92svh; padding-bottom:max(20px,env(safe-area-inset-bottom)); }
+.create-sheet.open { transform:translateY(0); }
+.sheet-handle { width:36px; height:4px; background:rgba(255,255,255,0.18); border-radius:2px; margin:14px auto 0; flex-shrink:0; }
+.sheet-header { padding:14px 20px 10px; font-family:'Syne',sans-serif; font-size:1rem; font-weight:700; border-bottom:1px solid rgba(255,255,255,0.08); flex-shrink:0; display:flex; justify-content:space-between; align-items:center; }
+.sheet-close { background:none; border:none; color:var(--muted); cursor:pointer; display:flex; align-items:center; padding:4px; }
 
-/* ── TOP NAV ── */
-.top-nav {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 50;
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 16px 20px; padding-top: max(16px, env(safe-area-inset-top));
-}
-.nav-logo { font-family: 'Syne', sans-serif; font-size: 1.3rem; font-weight: 800; letter-spacing: 1px; }
-.nav-logo span { color: var(--accent); }
-.nav-create-btn {
-  background: var(--accent); border: none; color: white;
-  font-family: 'Syne', sans-serif; font-size: 0.75rem; font-weight: 700; letter-spacing: 1px;
-  padding: 8px 16px; border-radius: 20px; cursor: pointer;
-  display: flex; align-items: center; gap: 6px; transition: transform 0.15s, opacity 0.2s;
-}
-.nav-create-btn:active { transform: scale(0.95); }
+.chat-messages { flex:1; overflow-y:auto; padding:16px 20px; display:flex; flex-direction:column; gap:14px; min-height:200px; }
+.chat-messages::-webkit-scrollbar { display:none; }
 
-/* ── EMPTY FEED ── */
-.empty-feed {
-  width: 100vw; height: 100svh;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center; gap: 16px;
-  text-align: center; padding: 40px;
-}
-.empty-feed .big-icon { font-size: 56px; }
-.empty-feed h2 { font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 800; }
-.empty-feed p { color: var(--muted); font-size: 0.9rem; max-width: 260px; line-height: 1.5; }
-.empty-cta {
-  background: var(--accent); border: none; color: white;
-  font-family: 'Syne', sans-serif; font-size: 0.85rem; font-weight: 700; letter-spacing: 1px;
-  padding: 12px 28px; border-radius: 24px; cursor: pointer; margin-top: 8px;
-}
+.msg-row { display:flex; flex-direction:column; }
+.msg-row.user { align-items:flex-end; }
+.msg-row.ai   { align-items:flex-start; }
+.msg-bubble { max-width:85%; padding:12px 16px; border-radius:18px; font-size:0.92rem; line-height:1.5; }
+.msg-bubble.user { background:var(--accent); color:white; border-radius:18px 18px 4px 18px; }
+.msg-bubble.ai   { background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.12); border-radius:18px 18px 18px 4px; }
 
-/* ── CREATE SHEET ── */
-.create-sheet {
-  position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
-  background: #0f0f0f; border-radius: 28px 28px 0 0;
-  border-top: 1px solid rgba(255,255,255,0.1);
-  transform: translateY(100%);
-  transition: transform 0.38s cubic-bezier(0.32,0.72,0,1);
-  display: flex; flex-direction: column;
-  max-height: 92svh;
-  padding-bottom: max(20px, env(safe-area-inset-bottom));
-}
-.create-sheet.open { transform: translateY(0); }
+.img-preview { max-width:85%; margin-top:4px; border-radius:16px; overflow:hidden; border:1px solid rgba(255,255,255,0.12); position:relative; cursor:zoom-in; }
+.img-preview img { width:100%; display:block; }
+.img-watermark { position:absolute; bottom:8px; right:8px; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px); border-radius:20px; padding:4px 10px; font-size:0.7rem; font-family:'Syne',sans-serif; font-weight:700; display:flex; align-items:center; gap:4px; pointer-events:none; }
 
-.sheet-handle { width: 36px; height: 4px; background: rgba(255,255,255,0.18); border-radius: 2px; margin: 14px auto 0; flex-shrink: 0; }
+.img-action-row { display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
+.img-action-btn { border:none; color:white; font-family:'Syne',sans-serif; font-size:0.75rem; font-weight:700; letter-spacing:1px; padding:9px 16px; border-radius:20px; cursor:pointer; display:flex; align-items:center; gap:6px; transition:transform 0.15s,opacity 0.2s; }
+.img-action-btn:active { transform:scale(0.95); }
+.img-action-btn:disabled { opacity:0.45; pointer-events:none; }
+.btn-download { background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.22); }
+.btn-post     { background:var(--accent); }
+.img-hint { margin-top:6px; font-size:0.72rem; color:var(--muted); font-family:'Syne',sans-serif; letter-spacing:0.3px; }
 
-.sheet-header {
-  padding: 14px 20px 10px;
-  font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-  flex-shrink: 0; display: flex; justify-content: space-between; align-items: center;
-}
-.sheet-close { background: none; border: none; color: var(--muted); cursor: pointer; display: flex; align-items: center; padding: 4px; }
-
-/* chat messages inside create sheet */
-.chat-messages {
-  flex: 1; overflow-y: auto; padding: 16px 20px;
-  display: flex; flex-direction: column; gap: 14px;
-  min-height: 200px;
-}
-.chat-messages::-webkit-scrollbar { display: none; }
-
-.msg-row { display: flex; flex-direction: column; }
-.msg-row.user { align-items: flex-end; }
-.msg-row.ai { align-items: flex-start; }
-
-.msg-bubble {
-  max-width: 85%; padding: 12px 16px; border-radius: 18px;
-  font-size: 0.92rem; line-height: 1.5;
-}
-.msg-bubble.user { background: var(--accent); color: white; border-radius: 18px 18px 4px 18px; }
-.msg-bubble.ai { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); border-radius: 18px 18px 18px 4px; }
-
-/* generated image preview inside chat */
-.img-preview {
-  max-width: 85%; margin-top: 4px;
-  border-radius: 16px; overflow: hidden;
-  border: 1px solid rgba(255,255,255,0.12);
-  position: relative; cursor: zoom-in;
-}
-.img-preview img { width: 100%; display: block; }
-.img-watermark {
-  position: absolute; bottom: 8px; right: 8px;
-  background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
-  border-radius: 20px; padding: 4px 10px;
-  font-size: 0.7rem; font-family: 'Syne', sans-serif; font-weight: 700;
-  display: flex; align-items: center; gap: 4px; pointer-events: none;
-}
-
-.post-to-feed-btn {
-  background: var(--accent); border: none; color: white;
-  font-family: 'Syne', sans-serif; font-size: 0.8rem; font-weight: 700; letter-spacing: 1px;
-  padding: 8px 18px; border-radius: 20px; cursor: pointer;
-  display: flex; align-items: center; gap: 6px; margin-top: 8px;
-  transition: transform 0.15s;
-}
-.post-to-feed-btn:active { transform: scale(0.95); }
-.post-to-feed-btn:disabled { opacity: 0.5; pointer-events: none; }
-
-/* typing dots */
-.typing-dots { display: flex; gap: 4px; padding: 14px 16px; background: rgba(255,255,255,0.08); border-radius: 18px 18px 18px 4px; width: fit-content; }
-.typing-dots span { width: 6px; height: 6px; background: rgba(255,255,255,0.5); border-radius: 50%; animation: tdot 1.2s infinite; }
-.typing-dots span:nth-child(2) { animation-delay: 0.2s; }
-.typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+.typing-dots { display:flex; gap:4px; padding:14px 16px; background:rgba(255,255,255,0.08); border-radius:18px 18px 18px 4px; width:fit-content; }
+.typing-dots span { width:6px; height:6px; background:rgba(255,255,255,0.5); border-radius:50%; animation:tdot 1.2s infinite; }
+.typing-dots span:nth-child(2) { animation-delay:0.2s; }
+.typing-dots span:nth-child(3) { animation-delay:0.4s; }
 @keyframes tdot { 0%,100%{opacity:0.3;transform:translateY(0)} 50%{opacity:1;transform:translateY(-3px)} }
+@keyframes fadepulse { from{opacity:0.4} to{opacity:1} }
 
-/* upload status label */
-.upload-status {
-  font-size: 0.78rem; color: var(--muted); font-family: 'Syne', sans-serif;
-  letter-spacing: 0.5px; margin-top: 4px; display: flex; align-items: center; gap: 6px;
-}
-.upload-status .dot {
-  width: 6px; height: 6px; border-radius: 50%; background: var(--gold);
-  animation: fadepulse 1s ease-in-out infinite alternate;
-}
+.status-msg { font-size:0.78rem; color:var(--muted); font-family:'Syne',sans-serif; letter-spacing:0.5px; display:flex; align-items:center; gap:6px; }
+.status-msg .dot { width:6px; height:6px; border-radius:50%; background:var(--gold); flex-shrink:0; animation:fadepulse 1s ease-in-out infinite alternate; }
 
-/* input row */
-.chat-input-row {
-  display: flex; gap: 10px; padding: 12px 16px 0;
-  flex-shrink: 0;
-}
-.chat-input {
-  flex: 1; background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.15); border-radius: 24px;
-  padding: 11px 18px; color: white; font-family: 'DM Sans', sans-serif;
-  font-size: 0.92rem; outline: none;
-}
-.chat-input::placeholder { color: var(--muted); }
-.send-btn {
-  width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0;
-  background: var(--accent); border: none; color: white;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; transition: transform 0.15s;
-}
-.send-btn:active { transform: scale(0.9); }
+.chat-input-row { display:flex; gap:10px; padding:12px 16px 0; flex-shrink:0; }
+.chat-input { flex:1; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); border-radius:24px; padding:11px 18px; color:white; font-family:'DM Sans',sans-serif; font-size:0.92rem; outline:none; }
+.chat-input::placeholder { color:var(--muted); }
+.send-btn { width:44px; height:44px; border-radius:50%; flex-shrink:0; background:var(--accent); border:none; color:white; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:transform 0.15s; }
+.send-btn:active { transform:scale(0.9); }
 
-/* ── COMMENT SHEET ── */
-.comment-sheet {
-  position: fixed; bottom: 0; left: 0; right: 0; z-index: 150;
-  background: #111; border-radius: 24px 24px 0 0;
-  border-top: 1px solid rgba(255,255,255,0.1);
-  transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.32,0.72,0,1);
-  max-height: 70svh; display: flex; flex-direction: column;
-}
-.comment-sheet.open { transform: translateY(0); }
-.c-handle { width: 36px; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; margin: 14px auto 0; flex-shrink: 0; }
-.c-header {
-  padding: 12px 20px; font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700;
-  border-bottom: 1px solid rgba(255,255,255,0.08); flex-shrink: 0;
-  display: flex; justify-content: space-between; align-items: center;
-}
-.c-close { background: none; border: none; color: var(--muted); cursor: pointer; display: flex; }
-.comments-list { flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 16px; }
-.comments-list::-webkit-scrollbar { display: none; }
-.comment-item { display: flex; gap: 10px; }
-.c-avatar {
-  width: 32px; height: 32px; border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  flex-shrink: 0; display: flex; align-items: center; justify-content: center;
-  font-family: 'Syne', sans-serif; font-size: 0.75rem; font-weight: 800; color: white;
-}
-.c-body { flex: 1; }
-.c-name { font-size: 0.78rem; font-weight: 600; color: rgba(255,255,255,0.65); margin-bottom: 3px; }
-.c-text { font-size: 0.9rem; line-height: 1.4; }
-.c-input-row {
-  display: flex; gap: 10px; padding: 12px 16px;
-  border-top: 1px solid rgba(255,255,255,0.08); flex-shrink: 0;
-  padding-bottom: max(16px, env(safe-area-inset-bottom));
-}
-.c-input {
-  flex: 1; background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.15); border-radius: 24px;
-  padding: 10px 16px; color: white; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; outline: none;
-}
-.c-input::placeholder { color: var(--muted); }
-.c-send {
-  background: var(--accent); border: none; color: white;
-  width: 42px; height: 42px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; flex-shrink: 0; transition: transform 0.15s;
-}
-.c-send:active { transform: scale(0.9); }
+.comment-sheet { position:fixed; bottom:0; left:0; right:0; z-index:150; background:#111; border-radius:24px 24px 0 0; border-top:1px solid rgba(255,255,255,0.1); transform:translateY(100%); transition:transform 0.35s cubic-bezier(0.32,0.72,0,1); max-height:70svh; display:flex; flex-direction:column; }
+.comment-sheet.open { transform:translateY(0); }
+.c-handle { width:36px; height:4px; background:rgba(255,255,255,0.2); border-radius:2px; margin:14px auto 0; flex-shrink:0; }
+.c-header { padding:12px 20px; font-family:'Syne',sans-serif; font-size:1rem; font-weight:700; border-bottom:1px solid rgba(255,255,255,0.08); flex-shrink:0; display:flex; justify-content:space-between; align-items:center; }
+.c-close { background:none; border:none; color:var(--muted); cursor:pointer; display:flex; }
+.comments-list { flex:1; overflow-y:auto; padding:16px 20px; display:flex; flex-direction:column; gap:16px; }
+.comments-list::-webkit-scrollbar { display:none; }
+.comment-item { display:flex; gap:10px; }
+.c-avatar { width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,var(--accent),var(--accent2)); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-family:'Syne',sans-serif; font-size:0.75rem; font-weight:800; color:white; }
+.c-body { flex:1; }
+.c-name { font-size:0.78rem; font-weight:600; color:rgba(255,255,255,0.65); margin-bottom:3px; }
+.c-text { font-size:0.9rem; line-height:1.4; }
+.c-input-row { display:flex; gap:10px; padding:12px 16px; border-top:1px solid rgba(255,255,255,0.08); flex-shrink:0; padding-bottom:max(16px,env(safe-area-inset-bottom)); }
+.c-input { flex:1; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); border-radius:24px; padding:10px 16px; color:white; font-family:'DM Sans',sans-serif; font-size:0.9rem; outline:none; }
+.c-input::placeholder { color:var(--muted); }
+.c-send { background:var(--accent); border:none; color:white; width:42px; height:42px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; transition:transform 0.15s; }
+.c-send:active { transform:scale(0.9); }
 
-/* ── BACKDROP ── */
-#backdrop { position: fixed; inset: 0; z-index: 99; background: rgba(0,0,0,0.6); display: none; }
+#backdrop { position:fixed; inset:0; z-index:99; background:rgba(0,0,0,0.6); display:none; }
 
-/* ── IMAGE VIEWER ── */
-.img-viewer {
-  position: fixed; inset: 0; z-index: 300;
-  background: rgba(0,0,0,0.95); backdrop-filter: blur(6px);
-  display: none; align-items: center; justify-content: center;
-  opacity: 0; transition: opacity 0.25s;
-}
-.img-viewer.open { display: flex; }
-.img-viewer.visible { opacity: 1; }
-.img-viewer img { max-width: 95%; max-height: 90%; border-radius: 8px; object-fit: contain; }
-.iv-close {
-  position: absolute; top: 24px; right: 24px;
-  background: rgba(255,255,255,0.15); border: none; color: white;
-  width: 44px; height: 44px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center; cursor: pointer;
-}
+.img-viewer { position:fixed; inset:0; z-index:300; background:rgba(0,0,0,0.95); backdrop-filter:blur(6px); display:none; align-items:center; justify-content:center; opacity:0; transition:opacity 0.25s; }
+.img-viewer.open { display:flex; }
+.img-viewer.visible { opacity:1; }
+.img-viewer img { max-width:95%; max-height:90%; border-radius:8px; object-fit:contain; }
+.iv-close { position:absolute; top:24px; right:24px; background:rgba(255,255,255,0.15); border:none; color:white; width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; }
 
-/* ── TOAST ── */
-.toast {
-  position: fixed; bottom: 90px; left: 50%;
-  transform: translateX(-50%) translateY(16px);
-  background: rgba(255,255,255,0.12); backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.2); border-radius: 24px;
-  padding: 10px 20px; font-size: 0.85rem; color: white;
-  white-space: nowrap; opacity: 0; pointer-events: none;
-  transition: opacity 0.25s, transform 0.25s; z-index: 400;
-}
-.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast { position:fixed; bottom:90px; left:50%; transform:translateX(-50%) translateY(16px); background:rgba(255,255,255,0.12); backdrop-filter:blur(12px); border:1px solid rgba(255,255,255,0.2); border-radius:24px; padding:10px 20px; font-size:0.85rem; color:white; white-space:nowrap; opacity:0; pointer-events:none; transition:opacity 0.25s,transform 0.25s; z-index:400; }
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
@@ -349,7 +134,6 @@ html, body { height: 100%; overflow: hidden; background: #000; color: #FAFAFA; f
   </button>
 </nav>
 
-<!-- FEED -->
 <div id="feed">
   <div class="empty-feed" id="emptyFeed">
     <div class="big-icon">✨</div>
@@ -359,10 +143,8 @@ html, body { height: 100%; overflow: hidden; background: #000; color: #FAFAFA; f
   </div>
 </div>
 
-<!-- BACKDROP -->
 <div id="backdrop" onclick="closeAll()"></div>
 
-<!-- CREATE / CHAT SHEET -->
 <div class="create-sheet" id="createSheet">
   <div class="sheet-handle"></div>
   <div class="sheet-header">
@@ -373,14 +155,13 @@ html, body { height: 100%; overflow: hidden; background: #000; color: #FAFAFA; f
   </div>
   <div class="chat-messages" id="chatMessages"></div>
   <div class="chat-input-row">
-    <input class="chat-input" id="chatInput" placeholder="Describe your vision…" autocomplete="off"/>
+    <input class="chat-input" id="chatInput" placeholder="Describe your vision..." autocomplete="off"/>
     <button class="send-btn" onclick="sendChat()">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
     </button>
   </div>
 </div>
 
-<!-- COMMENT SHEET -->
 <div class="comment-sheet" id="commentSheet">
   <div class="c-handle"></div>
   <div class="c-header">
@@ -391,14 +172,13 @@ html, body { height: 100%; overflow: hidden; background: #000; color: #FAFAFA; f
   </div>
   <div class="comments-list" id="commentsList"></div>
   <div class="c-input-row">
-    <input class="c-input" id="commentInput" placeholder="Add a comment…"/>
+    <input class="c-input" id="commentInput" placeholder="Add a comment..."/>
     <button class="c-send" onclick="postComment()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
     </button>
   </div>
 </div>
 
-<!-- IMAGE VIEWER -->
 <div class="img-viewer" id="imgViewer" onclick="closeViewer()">
   <button class="iv-close">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -406,53 +186,54 @@ html, body { height: 100%; overflow: hidden; background: #000; color: #FAFAFA; f
   <img id="viewerImg" src="" alt=""/>
 </div>
 
+<!-- Hidden file input: opens device photo picker when triggered -->
+<input type="file" id="filePickerInput" accept="image/*" style="display:none"/>
+
 <div class="toast" id="toast"></div>
 
 <script type="module">
-import { initializeApp }        from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getDatabase, ref, push, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-import { getRemoteConfig, fetchAndActivate, getValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-remote-config.js";
+import { initializeApp }              from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, onAuthStateChanged }  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getDatabase, ref, get, push, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getRemoteConfig, fetchAndActivate, getValue }  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-remote-config.js";
 
-// ── CONFIG ───────────────────────────────────────────────────────────────────
+// CONFIG
 const firebaseConfig = {
-  apiKey: "AIzaSyBOyZ3As4GTuNvjemvPF_SpsC6m6vqtNhc",
-  authDomain: "fire-b-a8878.firebaseapp.com",
-  projectId: "fire-b-a8878",
+  apiKey:      "AIzaSyBOyZ3As4GTuNvjemvPF_SpsC6m6vqtNhc",
+  authDomain:  "fire-b-a8878.firebaseapp.com",
+  projectId:   "fire-b-a8878",
   databaseURL: "https://fire-b-a8878-default-rtdb.firebaseio.com",
-  appId: "1:658673187627:web:6e4c29af661785f0afa36e"
+  appId:       "1:658673187627:web:6e4c29af661785f0afa36e"
 };
+const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dqkujefxj/upload";
+const UPLOAD_PRESET  = "banter_box";
+const API_BASE       = "https://api.x.ai/v1";
 
-const CLOUDINARY_URL  = "https://api.cloudinary.com/v1_1/dqkujefxj/upload";
-const UPLOAD_PRESET   = "banter_box";
-const API_BASE        = "https://api.x.ai/v1";
-
-// ── INIT ─────────────────────────────────────────────────────────────────────
+// INIT
 const app  = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db   = getDatabase(app);
 const rc   = getRemoteConfig(app);
 rc.settings.minimumFetchIntervalMillis = 0;
 
-let XAI_KEY         = "";
-let currentUser     = null;
-let currentUserName = "You";
-let posts           = [];            // local mirror of Firebase posts
+let XAI_KEY             = "";
+let currentUser         = null;
+let currentUserName     = "You";
+let posts               = [];
 let activeCommentPostId = null;
-let chatHistory     = [];
+let chatHistory         = [];
+let pendingPrompt       = ""; // caption stored while user picks file to upload
 
-// ── AUTH ─────────────────────────────────────────────────────────────────────
+// AUTH
 onAuthStateChanged(auth, async (user) => {
   if (!user) { window.location.href = 'signup.html'; return; }
   currentUser = user;
   try {
-    const { getDatabase: gd, ref: r, get } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
     const snap = await get(ref(db, `users/${user.uid}`));
     if (snap.exists()) currentUserName = snap.val().displayName || snap.val().username || "You";
   } catch(e) {}
 });
 
-// ── REMOTE KEY ────────────────────────────────────────────────────────────────
 async function loadKey() {
   try {
     await fetchAndActivate(rc);
@@ -460,191 +241,177 @@ async function loadKey() {
   } catch(e) { console.error("Remote Config error:", e); }
 }
 
-// ── HELPERS ──────────────────────────────────────────────────────────────────
+// HELPERS
 function escHtml(t = '') {
   return String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
 }
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2200);
+  setTimeout(() => t.classList.remove('show'), 2400);
 }
 function scrollChatBottom() {
   const el = document.getElementById('chatMessages');
   el.scrollTop = el.scrollHeight;
 }
 
-const SPARK_SVG = `<svg style="width:11px;height:11px" viewBox="0 0 24 24" fill="url(#sg)" stroke="none"><defs><linearGradient id="sg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#FF4D6D"/><stop offset="100%" stop-color="#C084FC"/></linearGradient></defs><path d="M11.5 2C11.5 7.25 7.25 11.5 2 11.5C7.25 11.5 11.5 15.75 11.5 21C11.5 15.75 15.75 11.5 21 11.5C15.75 11.5 11.5 7.25 11.5 2Z"/></svg>`;
+const SPARK = `<svg style="width:11px;height:11px" viewBox="0 0 24 24" fill="url(#sg)" stroke="none"><defs><linearGradient id="sg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#FF4D6D"/><stop offset="100%" stop-color="#C084FC"/></linearGradient></defs><path d="M11.5 2C11.5 7.25 7.25 11.5 2 11.5C7.25 11.5 11.5 15.75 11.5 21C11.5 15.75 15.75 11.5 21 11.5C15.75 11.5 11.5 7.25 11.5 2Z"/></svg>`;
+const DL_ICO   = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`;
+const POST_ICO = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>`;
 
-// ── CLOUDINARY UPLOAD ────────────────────────────────────────────────────────
-// Fetches the xAI image as a binary blob, then uploads it to Cloudinary.
-// Returns the permanent secure_url.
-async function uploadToCloudinary(imageUrl) {
-  // Step 1: Download image blob from xAI URL
-  const imgRes = await fetch(imageUrl);
-  if (!imgRes.ok) throw new Error('Failed to download generated image');
-  const blob = await imgRes.blob();
-
-  // Step 2: Upload blob to Cloudinary as multipart form data
-  const form = new FormData();
-  form.append('file', blob, 'ona-vision.jpg');
-  form.append('upload_preset', UPLOAD_PRESET);
-
-  const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: form });
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Cloudinary error: ${err}`);
-  }
-  const data = await res.json();
-  if (data.error) throw new Error(data.error.message);
-  return data.secure_url;
-}
-
-// ── FIREBASE: SAVE POST ───────────────────────────────────────────────────────
-async function savePostToFirebase(post) {
-  const postsRef = ref(db, 'posts');
-  // NOTE: Firebase ignores empty arrays — omit comments entirely on creation
-  const payload = {
-    imgUrl:    post.imgUrl,
-    caption:   post.caption,
-    author:    post.author,
-    uid:       currentUser ? currentUser.uid : '',
-    likes:     0,
-    timestamp: Date.now()
-  };
-  const newRef = await push(postsRef, payload);
-  return newRef.key;
-}
-
-// ── FIREBASE: LOAD FEED ───────────────────────────────────────────────────────
-function loadFeed() {
-  const postsRef = ref(db, 'posts');
-  onValue(postsRef, (snapshot) => {
-    const data = snapshot.val();
-    if (!data) return; // nothing saved yet, leave empty state visible
-
-    // Build sorted array (newest first)
-    const incoming = Object.entries(data)
-      .map(([key, val]) => ({
-        id:       key,
-        imgUrl:   val.imgUrl   || '',
-        caption:  val.caption  || '',
-        author:   val.author   || 'Unknown',
-        likes:    val.likes    || 0,
-        liked:    false,
-        timestamp: val.timestamp || 0,
-        comments: val.comments ? Object.values(val.comments) : []
-      }))
-      .sort((a, b) => b.timestamp - a.timestamp);
-
-    // Only render posts not already in local list
-    const existingIds = new Set(posts.map(p => p.id));
-    const newPosts = incoming.filter(p => !existingIds.has(p.id));
-
-    newPosts.forEach(post => {
-      posts.push(post); // push (not unshift) — already sorted above
-      document.getElementById('emptyFeed')?.remove();
-      renderPost(post);
-    });
-  });
-}
-
-// ── FIREBASE: UPDATE LIKES ────────────────────────────────────────────────────
-async function syncLike(postId, newCount) {
-  try {
-    await update(ref(db, `posts/${postId}`), { likes: newCount });
-  } catch(e) { console.error('Like sync failed', e); }
-}
-
-// ── FIREBASE: SAVE COMMENT ────────────────────────────────────────────────────
-async function saveComment(postId, comment) {
-  try {
-    await push(ref(db, `posts/${postId}/comments`), comment);
-  } catch(e) { console.error('Comment save failed', e); }
-}
-
-// ── CREATE SHEET ──────────────────────────────────────────────────────────────
-window.openCreate = function() {
-  chatHistory = [
-    { role: "system", content: "You are Ona AI, a creative assistant for an African visual platform. Help users craft vivid image prompts and generate images. When a user describes what they want, reply with a short enthusiastic message (1-2 sentences) and then say exactly: 'Generating your image now...' on a new line. Always be concise and culturally resonant." }
-  ];
-  const msgs = document.getElementById('chatMessages');
-  msgs.innerHTML = '';
-  appendAiMsg("Hey! Describe the vision you want to bring to life. I'll generate the image for you ✨");
-  document.getElementById('createSheet').classList.add('open');
-  document.getElementById('backdrop').style.display = 'block';
-  setTimeout(() => document.getElementById('chatInput').focus(), 400);
-};
-
-window.closeCreate = function() {
-  document.getElementById('createSheet').classList.remove('open');
-  document.getElementById('backdrop').style.display = 'none';
-};
-
+// CHAT UI
 function appendUserMsg(text) {
   const msgs = document.getElementById('chatMessages');
   const div = document.createElement('div');
   div.className = 'msg-row user';
   div.innerHTML = `<div class="msg-bubble user">${escHtml(text)}</div>`;
-  msgs.appendChild(div);
-  scrollChatBottom();
+  msgs.appendChild(div); scrollChatBottom();
 }
-
 function appendAiMsg(text) {
   const msgs = document.getElementById('chatMessages');
   const div = document.createElement('div');
   div.className = 'msg-row ai';
   div.innerHTML = `<div class="msg-bubble ai">${escHtml(text)}</div>`;
-  msgs.appendChild(div);
-  scrollChatBottom();
-  return div;
+  msgs.appendChild(div); scrollChatBottom();
 }
-
 function appendTyping(id = 'typingIndicator') {
-  const msgs = document.getElementById('chatMessages');
-  const div = document.createElement('div');
-  div.className = 'msg-row ai';
-  div.id = id;
-  div.innerHTML = `<div class="typing-dots"><span></span><span></span><span></span></div>`;
-  msgs.appendChild(div);
-  scrollChatBottom();
-}
-
-function removeTyping(id = 'typingIndicator') {
   document.getElementById(id)?.remove();
-}
-
-function appendStatusMsg(text, id) {
   const msgs = document.getElementById('chatMessages');
   const div = document.createElement('div');
-  div.className = 'msg-row ai';
-  if (id) div.id = id;
-  div.innerHTML = `<div class="upload-status"><span class="dot"></span>${escHtml(text)}</div>`;
-  msgs.appendChild(div);
-  scrollChatBottom();
-  return div;
+  div.className = 'msg-row ai'; div.id = id;
+  div.innerHTML = `<div class="typing-dots"><span></span><span></span><span></span></div>`;
+  msgs.appendChild(div); scrollChatBottom();
 }
+function removeTyping(id = 'typingIndicator') { document.getElementById(id)?.remove(); }
 
-function appendImagePreview(url, prompt) {
+function appendStatus(text, id) {
+  document.getElementById(id)?.remove();
   const msgs = document.getElementById('chatMessages');
   const div = document.createElement('div');
-  div.className = 'msg-row ai';
-  div.id = 'imgPreviewRow';
+  div.className = 'msg-row ai'; div.id = id;
+  div.innerHTML = `<div class="status-msg"><span class="dot"></span>${escHtml(text)}</div>`;
+  msgs.appendChild(div); scrollChatBottom();
+}
+
+// Image card: shows generated image + DOWNLOAD + POST TO FEED buttons
+function appendImageCard(imgUrl, prompt) {
+  document.getElementById('imgCard')?.remove();
+  const msgs = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = 'msg-row ai'; div.id = 'imgCard';
   div.innerHTML = `
-    <div class="img-preview" onclick="openViewer('${url}')">
-      <img src="${url}" alt="Generated image"/>
-      <div class="img-watermark">${SPARK_SVG} Ona AI</div>
+    <div class="img-preview" onclick="openViewer('${imgUrl}')">
+      <img src="${imgUrl}" alt="Generated vision"/>
+      <div class="img-watermark">${SPARK} Ona AI</div>
     </div>
-    <button class="post-to-feed-btn" id="postFeedBtn" onclick="postToFeed('${url}', '${encodeURIComponent(prompt)}')">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-      POST TO FEED
-    </button>
+    <div class="img-action-row">
+      <button class="img-action-btn btn-download" id="dlBtn" onclick="downloadImage('${imgUrl}')">
+        ${DL_ICO} DOWNLOAD
+      </button>
+      <button class="img-action-btn btn-post" id="postBtn" onclick="triggerFilePicker('${encodeURIComponent(prompt)}')">
+        ${POST_ICO} POST TO FEED
+      </button>
+    </div>
+    <p class="img-hint">1. Download the image &nbsp; 2. Tap Post to Feed and pick it from your photos</p>
   `;
-  msgs.appendChild(div);
-  scrollChatBottom();
+  msgs.appendChild(div); scrollChatBottom();
 }
 
-// ── SEND CHAT ─────────────────────────────────────────────────────────────────
+// DOWNLOAD IMAGE TO DEVICE
+window.downloadImage = async function(imageUrl) {
+  const btn = document.getElementById('dlBtn');
+  if (btn) { btn.disabled = true; btn.innerHTML = DL_ICO + ' Saving...'; }
+  try {
+    const res  = await fetch(imageUrl);
+    if (!res.ok) throw new Error('Could not fetch image');
+    const blob = await res.blob();
+    // Create a temporary object URL and click an invisible anchor to save the file
+    const blobUrl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = blobUrl;
+    a.download = 'ona-vision-' + Date.now() + '.jpg';
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(blobUrl);
+    showToast('Image saved to device');
+  } catch(err) {
+    showToast('Download failed: ' + err.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = DL_ICO + ' DOWNLOAD'; }
+  }
+};
+
+// OPEN DEVICE FILE PICKER
+window.triggerFilePicker = function(encodedPrompt) {
+  pendingPrompt = decodeURIComponent(encodedPrompt);
+  const input = document.getElementById('filePickerInput');
+  input.value = ''; // reset so re-picking same file fires change event
+  input.click();
+};
+
+// HANDLE FILE PICKED -> upload to Cloudinary -> save to Firebase
+document.getElementById('filePickerInput').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const postBtn = document.getElementById('postBtn');
+  if (postBtn) { postBtn.disabled = true; postBtn.innerHTML = POST_ICO + ' Uploading...'; }
+
+  // Wait for auth to resolve if needed
+  if (!currentUser) await new Promise(r => setTimeout(r, 3000));
+  if (!currentUser) {
+    showToast('Not signed in. Please reload.');
+    if (postBtn) { postBtn.disabled = false; postBtn.innerHTML = POST_ICO + ' POST TO FEED'; }
+    return;
+  }
+
+  try {
+    // Step 1: Upload the picked file directly to Cloudinary
+    if (postBtn) postBtn.innerHTML = POST_ICO + ' Uploading to Cloudinary...';
+    const cloudUrl = await uploadToCloudinary(file);
+
+    // Step 2: Save to Firebase (no empty arrays - omit comments field)
+    if (postBtn) postBtn.innerHTML = POST_ICO + ' Saving...';
+    const payload = {
+      imgUrl:    cloudUrl,
+      caption:   pendingPrompt,
+      author:    currentUserName,
+      uid:       currentUser.uid,
+      likes:     0,
+      timestamp: Date.now()
+    };
+    const newRef = await push(ref(db, 'posts'), payload);
+
+    // Step 3: Render locally for instant feedback
+    const post = { id: newRef.key, ...payload, liked: false, comments: [] };
+    posts.unshift(post);
+    document.getElementById('emptyFeed')?.remove();
+    renderPost(post, true);
+    closeCreate();
+    showToast('Posted to feed');
+
+  } catch(err) {
+    console.error('Post error:', err);
+    showToast('Post failed: ' + err.message);
+    if (postBtn) { postBtn.disabled = false; postBtn.innerHTML = POST_ICO + ' POST TO FEED'; }
+  }
+});
+
+// CLOUDINARY UPLOAD (accepts a File or Blob object)
+async function uploadToCloudinary(file) {
+  const form = new FormData();
+  form.append('file', file);
+  form.append('upload_preset', UPLOAD_PRESET);
+  const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: form });
+  if (!res.ok) throw new Error('Cloudinary HTTP ' + res.status);
+  const data = await res.json();
+  if (data.error) throw new Error('Cloudinary: ' + data.error.message);
+  return data.secure_url;
+}
+
+// SEND CHAT
 window.sendChat = async function() {
   const input = document.getElementById('chatInput');
   const userText = input.value.trim();
@@ -666,14 +433,12 @@ window.sendChat = async function() {
     const chatData = await chatRes.json();
     const aiText = chatData.choices[0].message.content;
     chatHistory.push({ role: "assistant", content: aiText });
-
     removeTyping();
     appendAiMsg(aiText);
 
-    // Step 2: If generating, call image API
+    // Step 2: Generate image if triggered
     if (aiText.toLowerCase().includes('generating your image')) {
       appendTyping('imgTyping');
-
       const imgRes = await fetch(`${API_BASE}/images/generations`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${XAI_KEY}`, 'Content-Type': 'application/json' },
@@ -681,153 +446,138 @@ window.sendChat = async function() {
       });
       if (!imgRes.ok) throw new Error(await imgRes.text());
       const imgData = await imgRes.json();
-      const xaiUrl = imgData.data[0].url;
-
+      const xaiUrl  = imgData.data[0].url;
       removeTyping('imgTyping');
 
-      // Step 3: Upload to Cloudinary
-      appendStatusMsg('Saving to Cloudinary…', 'cloudinaryStatus');
-      let cloudUrl;
+      // Step 3: Download xAI blob and back up to Cloudinary for a permanent URL
+      appendStatus('Backing up image...', 'cloudStatus');
+      let finalUrl = xaiUrl;
       try {
-        cloudUrl = await uploadToCloudinary(xaiUrl);
-        removeTyping('cloudinaryStatus');
-        document.getElementById('cloudinaryStatus')?.remove();
+        const blobRes = await fetch(xaiUrl);
+        if (!blobRes.ok) throw new Error('xAI fetch failed');
+        const blob = await blobRes.blob();
+        finalUrl = await uploadToCloudinary(new File([blob], 'ona-vision.jpg', { type: blob.type || 'image/jpeg' }));
       } catch(uploadErr) {
-        document.getElementById('cloudinaryStatus')?.remove();
-        appendAiMsg('⚠️ Could not save image permanently: ' + uploadErr.message);
-        cloudUrl = xaiUrl; // fallback to xAI URL
+        console.warn('Cloudinary backup failed, using xAI URL as fallback:', uploadErr.message);
       }
+      document.getElementById('cloudStatus')?.remove();
 
-      appendImagePreview(cloudUrl, userText);
+      // Step 4: Show image card with Download + Post to Feed
+      appendImageCard(finalUrl, userText);
     }
 
   } catch(err) {
     removeTyping();
     removeTyping('imgTyping');
-    document.getElementById('cloudinaryStatus')?.remove();
+    document.getElementById('cloudStatus')?.remove();
     appendAiMsg("Something went wrong: " + err.message);
   }
 };
 
-// ── POST TO FEED ──────────────────────────────────────────────────────────────
-window.postToFeed = async function(imgUrl, encodedPrompt) {
-  const prompt = decodeURIComponent(encodedPrompt);
-  const btn = document.getElementById('postFeedBtn');
-  if (btn) { btn.disabled = true; btn.textContent = 'Posting…'; }
+// LOAD FEED FROM FIREBASE
+function loadFeed() {
+  onValue(ref(db, 'posts'), (snapshot) => {
+    const data = snapshot.val();
+    if (!data) return;
 
-  // Auth guard — wait up to 3s for Firebase auth to resolve
-  if (!currentUser) {
-    await new Promise(resolve => setTimeout(resolve, 3000));
-  }
-  if (!currentUser) {
-    showToast('Not signed in — please reload');
-    if (btn) { btn.disabled = false; btn.textContent = 'POST TO FEED'; }
-    return;
-  }
+    const incoming = Object.entries(data)
+      .map(([key, val]) => ({
+        id:        key,
+        imgUrl:    val.imgUrl    || '',
+        caption:   val.caption   || '',
+        author:    val.author    || 'Unknown',
+        likes:     val.likes     || 0,
+        liked:     false,
+        timestamp: val.timestamp || 0,
+        comments:  val.comments  ? Object.values(val.comments) : []
+      }))
+      .sort((a, b) => b.timestamp - a.timestamp);
 
-  const post = {
-    imgUrl,
-    caption:  prompt,
-    author:   currentUserName,
-    likes:    0,
-    liked:    false,
-    comments: []
-  };
+    const existingIds = new Set(posts.map(p => p.id));
+    incoming.filter(p => !existingIds.has(p.id)).forEach(post => {
+      posts.push(post);
+      document.getElementById('emptyFeed')?.remove();
+      renderPost(post);
+    });
+  });
+}
 
-  try {
-    const fbId = await savePostToFirebase(post);
-    post.id = fbId;
-    // Add to local list so onValue dedup skips it
-    posts.unshift(post);
-    document.getElementById('emptyFeed')?.remove();
-    renderPost(post, true);
-    closeCreate();
-    showToast("Posted to feed ✓");
-  } catch(err) {
-    console.error('postToFeed error:', err);
-    if (btn) { btn.disabled = false; btn.textContent = 'POST TO FEED'; }
-    showToast('Post failed: ' + err.message);
-  }
-};
-
-// ── RENDER POST ───────────────────────────────────────────────────────────────
+// RENDER POST
 function renderPost(post, scrollTo = false) {
-  // Don't double-render
-  if (document.getElementById(`post-${post.id}`)) return;
-
+  if (document.getElementById('post-' + post.id)) return;
   const feed = document.getElementById('feed');
   document.getElementById('emptyFeed')?.remove();
-
   const div = document.createElement('div');
   div.className = 'post';
-  div.id = `post-${post.id}`;
+  div.id = 'post-' + post.id;
   div.innerHTML = `
-    <div class="post-bg">
-      <img src="${escHtml(post.imgUrl)}" alt="" loading="lazy"/>
-    </div>
+    <div class="post-bg"><img src="${escHtml(post.imgUrl)}" alt="" loading="lazy"/></div>
     <div class="post-content">
       <div class="post-author">@${escHtml(post.author)}</div>
       <div class="post-caption" id="caption-${post.id}">${escHtml(post.caption)}</div>
       <button class="read-more" onclick="toggleCaption('${post.id}')">more</button>
-      <div class="ona-badge">${SPARK_SVG} ONA AI</div>
+      <div class="ona-badge">${SPARK} ONA AI</div>
     </div>
     <div class="action-bar">
       <button class="action-btn" id="like-btn-${post.id}" onclick="toggleLike('${post.id}')">
         <div class="action-icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
         </div>
         <span class="action-count" id="like-count-${post.id}">${post.likes || 0}</span>
       </button>
       <button class="action-btn" onclick="openComments('${post.id}')">
         <div class="action-icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
         </div>
         <span class="action-count" id="comment-count-${post.id}">${(post.comments || []).length}</span>
       </button>
       <button class="action-btn" onclick="sharePost('${post.id}')">
         <div class="action-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+          </svg>
         </div>
         <span class="action-count">Share</span>
       </button>
     </div>
   `;
-
   feed.insertBefore(div, feed.firstChild);
   if (scrollTo) div.scrollIntoView({ behavior: 'smooth' });
 }
 
-// ── TOGGLE CAPTION ────────────────────────────────────────────────────────────
 window.toggleCaption = function(id) {
-  const cap = document.getElementById(`caption-${id}`);
+  const cap = document.getElementById('caption-' + id);
   const btn = cap?.nextElementSibling;
   if (!cap) return;
   cap.classList.toggle('expanded');
   if (btn) btn.textContent = cap.classList.contains('expanded') ? 'less' : 'more';
 };
 
-// ── LIKE ──────────────────────────────────────────────────────────────────────
 window.toggleLike = function(id) {
   const post = posts.find(p => p.id === id);
   if (!post) return;
   post.liked = !post.liked;
   post.likes = (post.likes || 0) + (post.liked ? 1 : -1);
-  const btn   = document.getElementById(`like-btn-${id}`);
-  const count = document.getElementById(`like-count-${id}`);
+  const btn   = document.getElementById('like-btn-' + id);
+  const count = document.getElementById('like-count-' + id);
   if (!btn || !count) return;
   btn.classList.toggle('liked', post.liked);
   count.textContent = post.likes;
-  syncLike(id, post.likes); // persist to Firebase
+  update(ref(db, 'posts/' + id), { likes: post.likes }).catch(console.error);
   if (post.liked) {
     const burst = document.createElement('div');
-    burst.className = 'heart-burst';
-    burst.textContent = '❤️';
-    document.getElementById(`post-${id}`).appendChild(burst);
+    burst.className = 'heart-burst'; burst.textContent = '❤️';
+    document.getElementById('post-' + id).appendChild(burst);
     setTimeout(() => burst.remove(), 700);
   }
 };
 
-// ── COMMENTS ─────────────────────────────────────────────────────────────────
 window.openComments = function(id) {
   activeCommentPostId = id;
   const post = posts.find(p => p.id === id);
@@ -839,7 +589,7 @@ window.openComments = function(id) {
     post.comments.forEach(c => {
       const el = document.createElement('div');
       el.className = 'comment-item';
-      el.innerHTML = `<div class="c-avatar">${escHtml(c.name[0])}</div><div class="c-body"><div class="c-name">${escHtml(c.name)}</div><div class="c-text">${escHtml(c.text)}</div></div>`;
+      el.innerHTML = `<div class="c-avatar">${escHtml((c.name||'?')[0])}</div><div class="c-body"><div class="c-name">${escHtml(c.name)}</div><div class="c-text">${escHtml(c.text)}</div></div>`;
       list.appendChild(el);
     });
   }
@@ -847,28 +597,21 @@ window.openComments = function(id) {
   document.getElementById('backdrop').style.display = 'block';
   document.getElementById('commentInput').focus();
 };
-
 window.closeComments = function() {
   document.getElementById('commentSheet').classList.remove('open');
   document.getElementById('backdrop').style.display = 'none';
   activeCommentPostId = null;
 };
-
 window.postComment = function() {
   const input = document.getElementById('commentInput');
   const text  = input.value.trim();
   if (!text || !activeCommentPostId) return;
   const post = posts.find(p => p.id === activeCommentPostId);
   if (!post) return;
-
   const comment = { name: currentUserName, text };
   if (!post.comments) post.comments = [];
   post.comments.push(comment);
-
-  // Save to Firebase
-  saveComment(activeCommentPostId, comment);
-
-  // Update UI
+  push(ref(db, 'posts/' + activeCommentPostId + '/comments'), comment).catch(console.error);
   const el = document.createElement('div');
   el.className = 'comment-item';
   el.innerHTML = `<div class="c-avatar" style="background:var(--accent)">${escHtml(currentUserName[0])}</div><div class="c-body"><div class="c-name" style="color:var(--accent)">${escHtml(currentUserName)}</div><div class="c-text">${escHtml(text)}</div></div>`;
@@ -876,15 +619,12 @@ window.postComment = function() {
   list.querySelector('p')?.remove();
   list.appendChild(el);
   list.scrollTop = list.scrollHeight;
-
-  const countEl = document.getElementById(`comment-count-${activeCommentPostId}`);
+  const countEl = document.getElementById('comment-count-' + activeCommentPostId);
   if (countEl) countEl.textContent = post.comments.length;
-
   input.value = '';
-  showToast('Comment posted ✓');
+  showToast('Comment posted');
 };
 
-// ── SHARE ─────────────────────────────────────────────────────────────────────
 window.sharePost = function(id) {
   if (navigator.share) {
     navigator.share({ title: 'Ona AI Vision', text: 'Check out this AI-generated vision!', url: window.location.href });
@@ -893,7 +633,6 @@ window.sharePost = function(id) {
   }
 };
 
-// ── VIEWER ────────────────────────────────────────────────────────────────────
 window.openViewer = function(url) {
   const v = document.getElementById('imgViewer');
   document.getElementById('viewerImg').src = url;
@@ -906,14 +645,26 @@ window.closeViewer = function() {
   setTimeout(() => { v.classList.remove('open'); document.getElementById('viewerImg').src = ''; }, 280);
 };
 
-// ── CLOSE ALL ─────────────────────────────────────────────────────────────────
+window.openCreate = function() {
+  chatHistory = [{
+    role: "system",
+    content: "You are Ona AI, a creative assistant for an African visual platform. Help users craft vivid image prompts and generate images. When a user describes what they want, reply with a short enthusiastic message (1-2 sentences) and then say exactly: 'Generating your image now...' on a new line. Always be concise and culturally resonant."
+  }];
+  document.getElementById('chatMessages').innerHTML = '';
+  appendAiMsg("Hey! Describe the vision you want to bring to life. I'll generate the image for you");
+  document.getElementById('createSheet').classList.add('open');
+  document.getElementById('backdrop').style.display = 'block';
+  setTimeout(() => document.getElementById('chatInput').focus(), 400);
+};
+window.closeCreate = function() {
+  document.getElementById('createSheet').classList.remove('open');
+  document.getElementById('backdrop').style.display = 'none';
+};
 window.closeAll = function() { closeCreate(); closeComments(); };
 
-// ── KEYBOARD ─────────────────────────────────────────────────────────────────
-document.getElementById('chatInput').addEventListener('keypress', e => { if (e.key === 'Enter') sendChat(); });
+document.getElementById('chatInput').addEventListener('keypress',    e => { if (e.key === 'Enter') sendChat(); });
 document.getElementById('commentInput').addEventListener('keypress', e => { if (e.key === 'Enter') postComment(); });
 
-// ── BOOT ──────────────────────────────────────────────────────────────────────
 await loadKey();
 loadFeed();
 </script>
