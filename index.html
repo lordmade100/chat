@@ -477,11 +477,17 @@ function scrollChatBottom() {
 const SPARK_SVG = `<svg style="width:11px;height:11px" viewBox="0 0 24 24" fill="url(#sg)" stroke="none"><defs><linearGradient id="sg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#FF4D6D"/><stop offset="100%" stop-color="#C084FC"/></linearGradient></defs><path d="M11.5 2C11.5 7.25 7.25 11.5 2 11.5C7.25 11.5 11.5 15.75 11.5 21C11.5 15.75 15.75 11.5 21 11.5C15.75 11.5 11.5 7.25 11.5 2Z"/></svg>`;
 
 // ── CLOUDINARY UPLOAD ────────────────────────────────────────────────────────
-// Accepts a remote URL (from xAI) and re-hosts it on Cloudinary.
+// Fetches the xAI image as a binary blob, then uploads it to Cloudinary.
 // Returns the permanent secure_url.
 async function uploadToCloudinary(imageUrl) {
+  // Step 1: Download image blob from xAI URL
+  const imgRes = await fetch(imageUrl);
+  if (!imgRes.ok) throw new Error('Failed to download generated image');
+  const blob = await imgRes.blob();
+
+  // Step 2: Upload blob to Cloudinary as multipart form data
   const form = new FormData();
-  form.append('file', imageUrl);
+  form.append('file', blob, 'ona-vision.jpg');
   form.append('upload_preset', UPLOAD_PRESET);
 
   const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: form });
@@ -490,6 +496,7 @@ async function uploadToCloudinary(imageUrl) {
     throw new Error(`Cloudinary error: ${err}`);
   }
   const data = await res.json();
+  if (data.error) throw new Error(data.error.message);
   return data.secure_url;
 }
 
