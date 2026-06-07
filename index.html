@@ -33,11 +33,15 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .carousel-slide{flex:0 0 100%;height:100%;position:relative}
 .carousel-slide img{width:100%;height:100%;object-fit:contain;display:block;pointer-events:none;background:#000}
 
-/* Dot indicators */
-.carousel-dots{position:absolute;top:max(60px,calc(env(safe-area-inset-top)+18px));left:50%;transform:translateX(-50%);display:flex;gap:5px;z-index:10;opacity:0;transition:opacity 0.3s}
-.carousel-dots.show{opacity:1}
-.dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,0.4);transition:all 0.25s;cursor:pointer}
-.dot.active{width:18px;border-radius:3px;background:#fff}
+/* ── CAROUSEL DOTS (always visible when multi-image) ── */
+.carousel-dots{
+  position:absolute;
+  bottom:max(100px, calc(env(safe-area-inset-bottom) + 90px));
+  left:50%;transform:translateX(-50%);
+  display:flex;gap:5px;z-index:10;
+}
+.dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.45);transition:all 0.25s;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,0.4)}
+.dot.active{width:20px;border-radius:3px;background:#fff;box-shadow:0 1px 5px rgba(0,0,0,0.5)}
 
 /* Swipe arrows (desktop) */
 .carousel-arrow{position:absolute;top:50%;transform:translateY(-50%);z-index:10;background:rgba(0,0,0,0.3);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.2);border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;opacity:0;transition:opacity 0.2s;pointer-events:none}
@@ -46,7 +50,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .carousel-arrow.right{right:10px}
 .carousel-arrow:active{background:rgba(0,0,0,0.55)}
 
-/* Image count badge */
+/* Image count badge (top right) */
 .img-count-badge{position:absolute;top:max(60px,calc(env(safe-area-inset-top)+18px));right:12px;z-index:10;background:rgba(0,0,0,0.5);backdrop-filter:blur(8px);border-radius:20px;padding:3px 9px;font-size:0.72rem;font-weight:700;color:#fff;font-family:'Lato',sans-serif;letter-spacing:0.5px;display:none}
 .img-count-badge.show{display:block}
 
@@ -73,9 +77,6 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .action-btn.liked .action-icon{background:var(--accent);border-color:var(--accent)}
 .action-btn.liked svg{stroke:#fff;fill:#fff}
 .action-count{font-family:'Playfair Display',serif;font-size:0.68rem;font-weight:700;color:rgba(255,255,255,0.92);text-shadow:0 1px 5px rgba(0,0,0,0.5)}
-
-.post-menu-btn{position:absolute;top:max(56px,calc(env(safe-area-inset-top)+14px));left:12px;z-index:10;width:36px;height:36px;border-radius:50%;border:none;background:rgba(0,0,0,0.3);backdrop-filter:blur(8px);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background 0.18s}
-.post-menu-btn:active{background:rgba(0,0,0,0.5)}
 
 /* heart burst */
 .heart-burst{position:absolute;font-size:72px;left:50%;top:50%;transform:translate(-50%,-50%) scale(0);z-index:20;pointer-events:none;animation:burst 0.6s ease forwards}
@@ -110,6 +111,16 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .sheet-close{background:none;border:none;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);transition:background 0.18s}
 .sheet-close:active{background:var(--surface2)}
 
+/* ─── POST OPTIONS BOTTOM SHEET ─── */
+#postOptionsSheet{z-index:230}
+.options-sheet-body{padding:8px 14px 6px;display:flex;flex-direction:column;gap:4px}
+.options-item{display:flex;align-items:center;gap:14px;padding:15px 10px;border-radius:16px;cursor:pointer;font-family:'Lato',sans-serif;font-size:0.95rem;font-weight:700;color:var(--text);transition:background 0.15s;border:none;background:none;width:100%;text-align:left}
+.options-item:active{background:var(--surface2)}
+.options-item.danger{color:var(--accent)}
+.options-item svg{flex-shrink:0;opacity:0.75}
+.options-item.danger svg{opacity:1}
+.options-divider{height:1px;background:var(--border);margin:2px 10px}
+
 /* ─── AUTH SHEET ─── */
 #authSheet{z-index:220}
 .auth-body{flex:1;overflow-y:auto;padding:22px 18px;display:flex;flex-direction:column;gap:16px}
@@ -140,7 +151,6 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .upload-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .upload-body::-webkit-scrollbar{display:none}
 
-/* Multi-image pick zone */
 .pick-zone{position:relative;width:100%;background:var(--surface2);cursor:pointer;flex-shrink:0;min-height:200px}
 .pick-zone-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:48px 24px;transition:opacity 0.2s}
 .pick-zone-placeholder.hidden{opacity:0;pointer-events:none;position:absolute;inset:0}
@@ -148,7 +158,6 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .pick-zone-label{font-family:'Lato',sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
 .pick-zone-hint{font-size:0.75rem;color:var(--muted)}
 
-/* Preview carousel in pick zone */
 .pick-carousel{display:none;position:relative;width:100%;aspect-ratio:4/3;overflow:hidden}
 .pick-carousel.show{display:block}
 .pick-carousel-track{display:flex;height:100%;transition:transform 0.32s cubic-bezier(0.25,0.46,0.45,0.94)}
@@ -158,24 +167,20 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .pick-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,0.5)}
 .pick-dot.active{width:14px;border-radius:3px;background:#fff}
 
-/* Top bar over pick preview */
 .pick-zone-bar{position:absolute;top:0;left:0;right:0;z-index:5;display:flex;align-items:center;justify-content:space-between;padding:10px 12px;opacity:0;transition:opacity 0.25s;pointer-events:none}
 .pick-zone-bar.show{opacity:1;pointer-events:all}
 .pick-zone-chip{background:rgba(0,0,0,0.55);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.2);border-radius:22px;padding:5px 12px;font-family:'Lato',sans-serif;font-size:0.7rem;font-weight:700;letter-spacing:1px;color:#fff;cursor:pointer;text-transform:uppercase}
 .pick-zone-chip:active{opacity:0.75}
 .pick-img-counter{background:rgba(0,0,0,0.55);backdrop-filter:blur(8px);border-radius:20px;padding:4px 10px;font-size:0.7rem;font-weight:700;color:#fff;font-family:'Lato',sans-serif}
 
-/* Drop overlay */
 .drop-overlay{position:absolute;inset:0;z-index:10;background:rgba(224,58,47,0.12);border:2.5px dashed var(--accent);display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0;transition:opacity 0.18s}
 .drop-overlay.active{opacity:1}
 .drop-overlay span{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:var(--accent)}
 
-/* Upload progress */
 .upload-strip{height:3px;background:var(--surface3);flex-shrink:0;overflow:hidden;display:none}
 .upload-strip.show{display:block}
 .upload-strip-bar{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width 0.25s ease;border-radius:0 2px 2px 0}
 
-/* Image thumbnails list */
 .picked-thumbs{display:none;flex-direction:row;gap:8px;padding:10px 14px;overflow-x:auto;scrollbar-width:none}
 .picked-thumbs::-webkit-scrollbar{display:none}
 .picked-thumbs.show{display:flex}
@@ -221,15 +226,6 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .c-send{background:var(--accent);border:none;color:#fff;width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:transform 0.14s}
 .c-send:active{transform:scale(0.88)}
 
-/* ─── CONTEXT MENU ─── */
-.ctx-menu{position:fixed;z-index:500;background:var(--surface);border-radius:18px;box-shadow:0 8px 40px rgba(0,0,0,0.16);border:1px solid var(--border);overflow:hidden;transform:scale(0.88);opacity:0;pointer-events:none;transition:transform 0.2s cubic-bezier(0.34,1.56,0.64,1),opacity 0.15s;min-width:180px}
-.ctx-menu.open{transform:scale(1);opacity:1;pointer-events:all}
-.ctx-item{display:flex;align-items:center;gap:11px;padding:13px 16px;cursor:pointer;font-family:'Lato',sans-serif;font-size:0.88rem;font-weight:700;color:var(--text);transition:background 0.15s;border-bottom:1px solid var(--border)}
-.ctx-item:last-child{border-bottom:none}
-.ctx-item:active{background:var(--surface2)}
-.ctx-item.danger{color:var(--accent)}
-.ctx-item svg{flex-shrink:0}
-
 /* ─── DIALOG ─── */
 .dialog-overlay{position:fixed;inset:0;z-index:600;background:rgba(0,0,0,0.38);display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity 0.22s}
 .dialog-overlay.open{opacity:1;pointer-events:all}
@@ -260,8 +256,14 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .img-viewer img{max-width:95%;max-height:90%;border-radius:14px;object-fit:contain;pointer-events:none}
 .iv-close{position:absolute;top:22px;right:22px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);color:#fff;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer}
 
+/* ─── LOAD MORE SENTINEL ─── */
+.load-sentinel{width:100vw;height:100svh;scroll-snap-align:start;display:flex;align-items:center;justify-content:center;background:var(--bg)}
+.load-spinner-wrap{display:flex;flex-direction:column;align-items:center;gap:14px}
+.load-spinner-wrap p{font-family:'Playfair Display',serif;font-size:0.9rem;color:var(--muted)}
+
 /* ─── SPINNER ─── */
 .spinner{width:18px;height:18px;border:2.5px solid rgba(255,255,255,0.32);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;flex-shrink:0}
+.spinner-dark{width:28px;height:28px;border:3px solid rgba(0,0,0,0.1);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
@@ -345,28 +347,22 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
         <span class="pick-zone-label">Tap or drag photos here</span>
         <span class="pick-zone-hint">Select up to 10 images · JPEG, PNG, WEBP</span>
       </div>
-      <!-- Preview carousel -->
       <div class="pick-carousel" id="pickCarousel">
         <div class="pick-carousel-track" id="pickCarouselTrack"></div>
         <div class="pick-carousel-dots" id="pickCarouselDots"></div>
       </div>
-      <!-- Bar over preview -->
       <div class="pick-zone-bar" id="pickBar">
         <span class="pick-zone-chip" onclick="triggerFilePick()">+ Add More</span>
         <span class="pick-img-counter" id="pickImgCounter">1 / 1</span>
       </div>
       <div class="drop-overlay" id="dropOverlay"><span>Drop to add photos</span></div>
     </div>
-
-    <!-- Thumbnail strip -->
     <div class="picked-thumbs" id="pickedThumbs">
       <div class="thumb-add" onclick="triggerFilePick()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       </div>
     </div>
-
     <div class="upload-strip" id="uploadStrip"><div class="upload-strip-bar" id="uploadStripBar"></div></div>
-
     <div class="upload-meta">
       <div class="caption-row">
         <div class="caption-avatar" id="captionAvatar">
@@ -405,15 +401,25 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
   </div>
 </div>
 
-<!-- CONTEXT MENU -->
-<div class="ctx-menu" id="ctxMenu">
-  <div class="ctx-item danger" onclick="ctxDeletePost()">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-    Delete Post
+<!-- POST OPTIONS BOTTOM SHEET (replaces context menu) -->
+<div class="sheet" id="postOptionsSheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <span>Post Options</span>
+    <button class="sheet-close" onclick="closePostOptions()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
   </div>
-  <div class="ctx-item" onclick="ctxCopyLink()">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-    Share Link
+  <div class="options-sheet-body">
+    <button class="options-item" onclick="optShareLink()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+      Share Link
+    </button>
+    <div class="options-divider" id="optDeleteDivider" style="display:none"></div>
+    <button class="options-item danger" id="optDeleteBtn" onclick="optDeletePost()" style="display:none">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+      Delete Post
+    </button>
   </div>
 </div>
 
@@ -446,7 +452,8 @@ import {
   signOut, GoogleAuthProvider, signInWithPopup, updateProfile
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
-  getDatabase, ref, get, push, set, remove, onValue, update, off, runTransaction
+  getDatabase, ref, get, push, set, remove, onValue, query,
+  orderByChild, limitToLast, endBefore, off, update, runTransaction
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 /* ── CONFIG ── */
@@ -460,6 +467,7 @@ const firebaseConfig = {
 };
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dqkujefxj/upload";
 const UPLOAD_PRESET  = "banter_box";
+const PAGE_SIZE      = 6; // posts per page
 
 const app  = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -469,17 +477,25 @@ const gp   = new GoogleAuthProvider();
 let currentUser     = null;
 let currentUserName = "You";
 let currentPhotoURL = null;
-let postsMap        = {};        // id → post object
-let feedOrder       = [];        // ordered list of post ids currently in feed
+let postsMap        = {};
+let feedOrder       = [];
 let activeCommentPostId = null;
-let selectedFiles   = [];        // array of File objects
-let pickedPreviews  = [];        // array of dataURL strings
+let selectedFiles   = [];
+let pickedPreviews  = [];
 let pickCarouselIdx = 0;
-let ctxPostId       = null;
+let optionsPostId   = null;
 let feedListener    = null;
 
+// Pagination state
+let allPostsData    = {};    // full data from Firebase, keyed by id
+let renderedIds     = new Set(); // ids already in DOM
+let isLoadingMore   = false;
+let noMorePosts     = false;
+let sentinelEl      = null;
+let intersectionObs = null;
+
 /* ═══════════════════════════════════════
-   SUPPRESS LONG-PRESS / CONTEXT MENUS
+   SUPPRESS LONG-PRESS
 ═══════════════════════════════════════ */
 document.addEventListener('contextmenu', e => e.preventDefault());
 new MutationObserver(m => m.forEach(mut => mut.addedNodes.forEach(node => {
@@ -522,28 +538,21 @@ window.closeDialog = closeDialog;
 
 /* ═══════════════════════════════════════
    FEED ALGORITHM
-   Weighted random: score = likes^0.6 + rand
-   Then shuffle positions so it doesn't feel sorted
 ═══════════════════════════════════════ */
 function algorithmicOrder(posts) {
   if (!posts.length) return [];
-
   const now = Date.now();
   const ONE_DAY = 86400000;
-
-  // Score each post
   const scored = posts.map(p => {
     const likes   = p.likes || 0;
     const age     = now - (p.timestamp || 0);
-    const ageDay  = age / ONE_DAY;          // age in days
-    const fresh   = Math.max(0, 1 - ageDay / 7);  // 0-1, fades over 7 days
-    const likePow = Math.pow(likes + 1, 0.65);     // diminishing returns on likes
-    const rand    = Math.random() * 0.55;           // randomness factor
+    const ageDay  = age / ONE_DAY;
+    const fresh   = Math.max(0, 1 - ageDay / 7);
+    const likePow = Math.pow(likes + 1, 0.65);
+    const rand    = Math.random() * 0.55;
     const score   = likePow * (0.6 + 0.4 * fresh) + rand;
     return { post: p, score };
   });
-
-  // Sort by score descending — higher likes float up, but randomness shuffles
   scored.sort((a, b) => b.score - a.score);
   return scored.map(s => s.post);
 }
@@ -667,21 +676,15 @@ function addPickedFiles(newFiles) {
   if (remaining <= 0) { showToast('Max 10 images per post'); return; }
   const toAdd = newFiles.slice(0, remaining);
   if (newFiles.length > remaining) showToast(`Added first ${remaining} image(s) — max 10`);
-
   toAdd.forEach(file => {
     const reader = new FileReader();
-    reader.onload = ev => {
-      selectedFiles.push(file);
-      pickedPreviews.push(ev.target.result);
-      renderPickUI();
-    };
+    reader.onload = ev => { selectedFiles.push(file); pickedPreviews.push(ev.target.result); renderPickUI(); };
     reader.readAsDataURL(file);
   });
 }
 
 function removePickedImage(idx) {
-  selectedFiles.splice(idx, 1);
-  pickedPreviews.splice(idx, 1);
+  selectedFiles.splice(idx, 1); pickedPreviews.splice(idx, 1);
   pickCarouselIdx = Math.min(pickCarouselIdx, Math.max(0, selectedFiles.length - 1));
   renderPickUI();
 }
@@ -693,60 +696,36 @@ function renderPickUI() {
   const car    = document.getElementById('pickCarousel');
   const bar    = document.getElementById('pickBar');
   const thumbs = document.getElementById('pickedThumbs');
-
-  if (!count) {
-    ph.classList.remove('hidden');
-    car.classList.remove('show');
-    bar.classList.remove('show');
-    thumbs.classList.remove('show');
-    return;
-  }
-
-  ph.classList.add('hidden');
-  car.classList.add('show');
-  bar.classList.add('show');
-  thumbs.classList.add('show');
-
-  // Rebuild carousel slides
+  if (!count) { ph.classList.remove('hidden'); car.classList.remove('show'); bar.classList.remove('show'); thumbs.classList.remove('show'); return; }
+  ph.classList.add('hidden'); car.classList.add('show'); bar.classList.add('show'); thumbs.classList.add('show');
   const track = document.getElementById('pickCarouselTrack');
   const dots  = document.getElementById('pickCarouselDots');
-  track.innerHTML = '';
-  dots.innerHTML  = '';
-
+  track.innerHTML = ''; dots.innerHTML = '';
   pickedPreviews.forEach((src, i) => {
-    const slide = document.createElement('div');
-    slide.className = 'pick-carousel-slide';
+    const slide = document.createElement('div'); slide.className = 'pick-carousel-slide';
     slide.innerHTML = `<img src="${src}" alt=""/>`;
     track.appendChild(slide);
-
     const dot = document.createElement('div');
     dot.className = 'pick-dot' + (i===pickCarouselIdx?' active':'');
     dot.onclick = () => goPickSlide(i);
     dots.appendChild(dot);
   });
-
   track.style.transform = `translateX(-${pickCarouselIdx * 100}%)`;
   document.getElementById('pickImgCounter').textContent = `${pickCarouselIdx+1} / ${count}`;
-
-  // Rebuild thumbnails
   thumbs.innerHTML = '';
   pickedPreviews.forEach((src, i) => {
-    const t = document.createElement('div');
-    t.className = 'thumb-item' + (i===pickCarouselIdx?' active-thumb':'');
+    const t = document.createElement('div'); t.className = 'thumb-item' + (i===pickCarouselIdx?' active-thumb':'');
     t.onclick = () => goPickSlide(i);
     t.innerHTML = `<img src="${src}" alt=""/><div class="thumb-remove" onclick="event.stopPropagation();removePickedImage(${i})">✕</div>`;
     thumbs.appendChild(t);
   });
-  const addBtn = document.createElement('div');
-  addBtn.className = 'thumb-add';
-  addBtn.onclick = triggerFilePick;
+  const addBtn = document.createElement('div'); addBtn.className = 'thumb-add'; addBtn.onclick = triggerFilePick;
   addBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`;
   thumbs.appendChild(addBtn);
 }
 
 function goPickSlide(idx) {
-  const count = selectedFiles.length;
-  if (!count) return;
+  const count = selectedFiles.length; if (!count) return;
   pickCarouselIdx = Math.max(0, Math.min(idx, count-1));
   const track = document.getElementById('pickCarouselTrack');
   track.style.transform = `translateX(-${pickCarouselIdx * 100}%)`;
@@ -755,7 +734,6 @@ function goPickSlide(idx) {
   document.querySelectorAll('#pickedThumbs .thumb-item').forEach((t,i)=>t.classList.toggle('active-thumb',i===pickCarouselIdx));
 }
 
-/* Touch swipe on pick carousel */
 let pickSwipeX = null;
 document.getElementById('pickCarousel').addEventListener('touchstart', e => { pickSwipeX = e.touches[0].clientX; }, {passive:true});
 document.getElementById('pickCarousel').addEventListener('touchend', e => {
@@ -797,35 +775,20 @@ window.submitPost = async () => {
   const btn     = document.getElementById('postBtn');
   const strip   = document.getElementById('uploadStrip');
   const bar     = document.getElementById('uploadStripBar');
-  btn.disabled=true;
-  btn.innerHTML='<div class="spinner"></div> Uploading…';
+  btn.disabled=true; btn.innerHTML='<div class="spinner"></div> Uploading…';
   strip.classList.add('show'); bar.style.width='0%';
-
   try {
-    const total = selectedFiles.length;
-    const urls  = [];
+    const total = selectedFiles.length; const urls = [];
     for (let i=0; i<total; i++) {
       const url = await uploadToCloudinary(selectedFiles[i], pct => {
         bar.style.width = Math.round(((i + pct/100) / total) * 100) + '%';
       });
       urls.push(url);
     }
-    bar.style.width='100%';
-    btn.innerHTML='<div class="spinner"></div> Saving…';
-
-    const payload = {
-      imgUrls:   urls,
-      imgUrl:    urls[0],  // keep for backwards compat
-      caption,
-      author:    currentUserName,
-      uid:       currentUser.uid,
-      photoURL:  currentPhotoURL||'',
-      likes:     0,
-      timestamp: Date.now()
-    };
-    const newRef = await push(ref(db,'posts'), payload);
-    closeCreate();
-    showToast(`Posted ${total > 1 ? total+' photos' : 'photo'} 🎉`);
+    bar.style.width='100%'; btn.innerHTML='<div class="spinner"></div> Saving…';
+    const payload = { imgUrls:urls, imgUrl:urls[0], caption, author:currentUserName, uid:currentUser.uid, photoURL:currentPhotoURL||'', likes:0, timestamp:Date.now() };
+    await push(ref(db,'posts'), payload);
+    closeCreate(); showToast(`Posted ${total > 1 ? total+' photos' : 'photo'} 🎉`);
   } catch(err) {
     showToast('Post failed: '+err.message);
     btn.disabled=false;
@@ -838,8 +801,7 @@ window.submitPost = async () => {
    OPEN/CLOSE SHEETS
 ═══════════════════════════════════════ */
 window.openCreate = () => {
-  selectedFiles=[]; pickedPreviews=[]; pickCarouselIdx=0;
-  renderPickUI();
+  selectedFiles=[]; pickedPreviews=[]; pickCarouselIdx=0; renderPickUI();
   document.getElementById('captionInput').value='';
   document.getElementById('charCount').textContent='0 / 300';
   const btn=document.getElementById('postBtn');
@@ -854,49 +816,88 @@ window.openCreate = () => {
 window.closeCreate = () => { document.getElementById('createSheet').classList.remove('open'); maybeClearBackdrop(); };
 
 function maybeClearBackdrop() {
-  const anyOpen = ['authSheet','createSheet','commentSheet'].some(id=>document.getElementById(id).classList.contains('open'));
+  const sheets = ['authSheet','createSheet','commentSheet','postOptionsSheet'];
+  const anyOpen = sheets.some(id => document.getElementById(id).classList.contains('open'));
   if (!anyOpen && !document.getElementById('dialogOverlay').classList.contains('open'))
     document.getElementById('backdrop').style.display='none';
 }
 
-window.closeAll = () => { closeCreate(); closeComments(); closeAuth(); closeCtxMenu(); closeDialog(); document.getElementById('backdrop').style.display='none'; };
+window.closeAll = () => {
+  closeCreate(); closeComments(); closeAuth(); closePostOptions(); closeDialog();
+  document.getElementById('backdrop').style.display='none';
+};
 window.handleCreateClick = () => { if (!currentUser){openAuth();return;} openCreate(); };
 
 /* ═══════════════════════════════════════
-   REALTIME FEED WITH FIREBASE onValue
+   POST OPTIONS BOTTOM SHEET
+═══════════════════════════════════════ */
+window.openPostOptions = (postId) => {
+  optionsPostId = postId;
+  const isOwn = currentUser && postsMap[postId]?.uid === currentUser.uid;
+  document.getElementById('optDeleteBtn').style.display    = isOwn ? 'flex' : 'none';
+  document.getElementById('optDeleteDivider').style.display = isOwn ? 'block' : 'none';
+  document.getElementById('postOptionsSheet').classList.add('open');
+  document.getElementById('backdrop').style.display = 'block';
+};
+window.closePostOptions = () => {
+  document.getElementById('postOptionsSheet').classList.remove('open');
+  optionsPostId = null;
+  maybeClearBackdrop();
+};
+
+window.optShareLink = () => {
+  closePostOptions();
+  if (navigator.share) navigator.share({title:'Snap Ona',text:'Check this out!',url:window.location.href});
+  else navigator.clipboard.writeText(window.location.href).then(()=>showToast('Link copied!')).catch(()=>showToast('Could not copy link'));
+};
+
+window.optDeletePost = () => {
+  const id = optionsPostId;
+  closePostOptions();
+  showDialog({
+    title: 'Delete this post?',
+    msg:   'This will permanently remove your post from everyone\'s feed.',
+    actions: [
+      { label:'Cancel', style:'cancel', fn: null },
+      { label:'Delete', style:'danger', fn: async () => {
+          try { await remove(ref(db,'posts/'+id)); showToast('Post deleted'); }
+          catch { showToast('Could not delete post.'); }
+        }
+      }
+    ]
+  });
+};
+
+/* ═══════════════════════════════════════
+   REALTIME FEED + INFINITE SCROLL PAGINATION
+   Strategy:
+   - onValue listens to ALL posts for live likes/comments updates
+   - But only PAGE_SIZE posts are rendered at a time in the DOM
+   - IntersectionObserver on a sentinel reveals more posts as you scroll
 ═══════════════════════════════════════ */
 function loadFeed() {
   const postsRef = ref(db, 'posts');
   feedListener = onValue(postsRef, snap => {
     const data = snap.val();
 
-    // --- Handle deletions: remove posts that no longer exist in Firebase ---
+    // Handle deletions
     const existingKeys = data ? new Set(Object.keys(data)) : new Set();
     Object.keys(postsMap).forEach(id => {
       if (!existingKeys.has(id)) {
-        // This post was deleted — animate it out
         const el = document.getElementById('post-'+id);
-        if (el) {
-          el.classList.add('removing');
-          setTimeout(() => el.remove(), 360);
-        }
+        if (el) { el.classList.add('removing'); setTimeout(() => el.remove(), 360); }
         delete postsMap[id];
         feedOrder = feedOrder.filter(fid => fid !== id);
+        renderedIds.delete(id);
+        delete allPostsData[id];
       }
     });
 
-    if (!data) {
-      // Feed is now empty
-      if (!Object.keys(postsMap).length) showEmptyFeed();
-      return;
-    }
+    if (!data) { if (!Object.keys(postsMap).length) showEmptyFeed(); return; }
 
-    // --- Process incoming posts ---
     let hasNew = false;
     Object.entries(data).forEach(([key, val]) => {
-      // Restore liked state from Firebase likedBy map
       const likedByMe = currentUser && val.likedBy && val.likedBy[currentUser.uid] === true;
-
       const incoming = {
         id: key,
         imgUrls:   Array.isArray(val.imgUrls) ? val.imgUrls : (val.imgUrl ? [val.imgUrl] : []),
@@ -910,16 +911,16 @@ function loadFeed() {
         comments:  val.comments ? Object.values(val.comments) : []
       };
 
+      // Store in full dataset for pagination
+      allPostsData[key] = incoming;
+
       if (!postsMap[key]) {
-        // Brand new post
         postsMap[key] = incoming;
         feedOrder.push(key);
         hasNew = true;
       } else {
-        // Update likes count + liked state in real-time
-        const old = postsMap[key];
+        // Live update likes/liked
         postsMap[key].likes = incoming.likes;
-        // Only update liked from Firebase if user isn't mid-interaction
         postsMap[key].liked = incoming.liked;
         const cnt = document.getElementById('like-count-'+key);
         if (cnt) cnt.textContent = incoming.likes;
@@ -928,7 +929,7 @@ function loadFeed() {
       }
     });
 
-    if (hasNew) rebuildFeed();
+    if (hasNew) initFeedRender();
   });
 }
 
@@ -944,23 +945,89 @@ function showEmptyFeed() {
   }
 }
 
-function rebuildFeed() {
+// Called once when data first arrives — sets up initial page + sentinel
+function initFeedRender() {
   const feed  = document.getElementById('feed');
   const empty = document.getElementById('emptyFeed');
-  const all   = feedOrder.map(id => postsMap[id]).filter(Boolean);
-
+  const all   = Object.values(allPostsData);
   if (!all.length) { showEmptyFeed(); return; }
   if (empty) empty.remove();
 
-  // Apply algorithm
   const ordered = algorithmicOrder(all);
 
-  // Only render posts not already in DOM
-  ordered.forEach(post => {
-    if (!document.getElementById('post-'+post.id)) {
-      renderPost(post);
-    }
+  // Reset and render first PAGE_SIZE
+  renderedIds.clear();
+  noMorePosts = false;
+
+  const toRender = ordered.slice(0, PAGE_SIZE);
+  toRender.forEach(post => {
+    if (!document.getElementById('post-'+post.id)) renderPost(post);
+    renderedIds.add(post.id);
   });
+
+  // Store ordered list for pagination
+  window._feedOrdered = ordered;
+
+  setupSentinel();
+}
+
+// Sentinel: renders next batch when it scrolls into view
+function setupSentinel() {
+  // Remove old sentinel if any
+  if (sentinelEl) sentinelEl.remove();
+  if (intersectionObs) intersectionObs.disconnect();
+
+  const total = (window._feedOrdered || []).length;
+  if (renderedIds.size >= total) { noMorePosts = true; return; }
+
+  sentinelEl = document.createElement('div');
+  sentinelEl.className = 'load-sentinel';
+  sentinelEl.innerHTML = `<div class="load-spinner-wrap"><div class="spinner-dark"></div><p>Loading more…</p></div>`;
+  document.getElementById('feed').appendChild(sentinelEl);
+
+  intersectionObs = new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting && !isLoadingMore && !noMorePosts) {
+      loadNextPage();
+    }
+  }, { threshold: 0.1 });
+
+  intersectionObs.observe(sentinelEl);
+}
+
+function loadNextPage() {
+  if (isLoadingMore || noMorePosts) return;
+  isLoadingMore = true;
+
+  const ordered = window._feedOrdered || [];
+  const nextBatch = ordered.filter(p => !renderedIds.has(p.id)).slice(0, PAGE_SIZE);
+
+  if (!nextBatch.length) {
+    noMorePosts = true;
+    isLoadingMore = false;
+    if (sentinelEl) sentinelEl.remove();
+    return;
+  }
+
+  // Small delay for natural feel
+  setTimeout(() => {
+    nextBatch.forEach(post => {
+      // Insert before sentinel
+      if (!document.getElementById('post-'+post.id)) {
+        renderPost(post, sentinelEl);
+      }
+      renderedIds.add(post.id);
+    });
+
+    isLoadingMore = false;
+
+    // Check if more remain
+    const remaining = ordered.filter(p => !renderedIds.has(p.id));
+    if (remaining.length === 0) {
+      noMorePosts = true;
+      if (sentinelEl) sentinelEl.remove();
+      if (intersectionObs) intersectionObs.disconnect();
+    }
+  }, 400);
 }
 
 /* ═══════════════════════════════════════
@@ -973,22 +1040,17 @@ function carouselState(postId) {
 }
 
 function goSlide(postId, idx, animate=true) {
-  const post  = postsMap[postId];
-  if (!post) return;
+  const post = postsMap[postId]; if (!post) return;
   const count = post.imgUrls.length;
   idx = Math.max(0, Math.min(idx, count-1));
   carouselState(postId)[postId] = idx;
-
   const track = document.querySelector(`#post-${postId} .carousel-track`);
   if (track) {
     if (!animate) track.style.transition='none';
     track.style.transform = `translateX(-${idx*100}%)`;
     if (!animate) void track.offsetWidth, track.style.transition='';
   }
-
-  // Update dots
   document.querySelectorAll(`#post-${postId} .dot`).forEach((d,i) => d.classList.toggle('active', i===idx));
-  // Update counter badge
   const badge = document.querySelector(`#post-${postId} .img-count-badge`);
   if (badge) badge.textContent = `${idx+1} / ${count}`;
 }
@@ -996,6 +1058,7 @@ window.goSlide = goSlide;
 
 /* ═══════════════════════════════════════
    RENDER POST
+   Optional insertBefore param for sentinel insertion
 ═══════════════════════════════════════ */
 function avatarHtml(photoURL, name, extra='') {
   const letter = (name||'?')[0].toUpperCase();
@@ -1003,7 +1066,7 @@ function avatarHtml(photoURL, name, extra='') {
   return `<div class="post-avatar" ${extra}>${esc(letter)}</div>`;
 }
 
-function renderPost(post) {
+function renderPost(post, insertBefore=null) {
   if (document.getElementById('post-'+post.id)) return;
   const feed  = document.getElementById('feed');
   const isOwn = currentUser && currentUser.uid === post.uid;
@@ -1011,27 +1074,23 @@ function renderPost(post) {
   const count = imgs.length;
   const isHot = (post.likes||0) >= 5;
 
-  const menuBtn = isOwn ? `<button class="post-menu-btn" onclick="openCtxMenu(event,'${post.id}')">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
-  </button>` : '';
-
   // Carousel slides
   const slides = imgs.map((url, i) =>
     `<div class="carousel-slide"><img src="${esc(url)}" alt="" loading="${i===0?'eager':'lazy'}"/></div>`
   ).join('');
 
-  // Dots (only if >1 image)
-  const dotsHtml = count > 1 ? `<div class="carousel-dots show" id="dots-${post.id}">
+  // Dots — always shown for multi-image, positioned above action bar
+  const dotsHtml = count > 1 ? `<div class="carousel-dots" id="dots-${post.id}">
     ${imgs.map((_,i) => `<div class="dot ${i===0?'active':''}" onclick="goSlide('${post.id}',${i})"></div>`).join('')}
   </div>` : '';
 
   const badgeHtml = count > 1 ? `<div class="img-count-badge show" id="badge-${post.id}">1 / ${count}</div>` : '';
 
   const arrows = count > 1 ? `
-    <button class="carousel-arrow left" onclick="goSlide('${post.id}',${carouselState(post.id)[post.id]||0}-1)">
+    <button class="carousel-arrow left">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
     </button>
-    <button class="carousel-arrow right" onclick="goSlide('${post.id}',(${carouselState(post.id)[post.id]||0})+1)">
+    <button class="carousel-arrow right">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
     </button>` : '';
 
@@ -1047,7 +1106,6 @@ function renderPost(post) {
         ${badgeHtml}
       </div>
     </div>
-    ${menuBtn}
     <div class="post-content">
       <div class="post-author-row">
         ${avatarHtml(post.photoURL, post.author)}
@@ -1075,6 +1133,12 @@ function renderPost(post) {
         </div>
         <span class="action-count">Share</span>
       </button>
+      <button class="action-btn" onclick="openPostOptions('${post.id}')">
+        <div class="action-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="12" cy="19" r="1.2"/></svg>
+        </div>
+        <span class="action-count">More</span>
+      </button>
     </div>
   `;
 
@@ -1089,79 +1153,29 @@ function renderPost(post) {
       if (Math.abs(dx) > 40) {
         const cur = carouselState(post.id)[post.id] || 0;
         goSlide(post.id, cur + (dx<0?1:-1));
-        // Refresh arrow targets after slide
       }
       sx = null;
     });
-  }
-
-  // Fix arrows (dynamic index reference)
-  if (count > 1) {
     div.querySelector('.carousel-arrow.left').onclick  = e => { e.stopPropagation(); goSlide(post.id, (carouselState(post.id)[post.id]||0)-1); };
     div.querySelector('.carousel-arrow.right').onclick = e => { e.stopPropagation(); goSlide(post.id, (carouselState(post.id)[post.id]||0)+1); };
   }
 
-  // Open viewer on image tap (single tap, not swipe)
-  div.querySelectorAll('.carousel-slide img').forEach((img, i) => {
+  // Image tap → viewer
+  div.querySelectorAll('.carousel-slide img').forEach((img) => {
     let tapStart = 0;
     img.addEventListener('touchstart', () => { tapStart = Date.now(); }, {passive:true});
-    img.addEventListener('touchend', e => {
-      if (Date.now()-tapStart < 200) openViewer(imgs[carouselState(post.id)[post.id]||0]);
-    });
+    img.addEventListener('touchend', () => { if (Date.now()-tapStart < 200) openViewer(imgs[carouselState(post.id)[post.id]||0]); });
     img.addEventListener('click', () => openViewer(imgs[carouselState(post.id)[post.id]||0]));
   });
 
-  feed.appendChild(div);
-
-  // Apply persisted liked state after render
-  if (post.liked) {
-    document.getElementById('like-btn-'+post.id)?.classList.add('liked');
+  if (insertBefore) {
+    feed.insertBefore(div, insertBefore);
+  } else {
+    feed.appendChild(div);
   }
+
+  if (post.liked) document.getElementById('like-btn-'+post.id)?.classList.add('liked');
 }
-
-/* ═══════════════════════════════════════
-   CONTEXT MENU
-═══════════════════════════════════════ */
-window.openCtxMenu = (e, postId) => {
-  e.stopPropagation();
-  ctxPostId = postId;
-  const menu = document.getElementById('ctxMenu');
-  const btn  = e.currentTarget;
-  const rect = btn.getBoundingClientRect();
-  menu.style.top   = (rect.bottom + 6) + 'px';
-  menu.style.left  = rect.left + 'px';
-  menu.style.right = 'auto';
-  menu.classList.add('open');
-  document.getElementById('backdrop').style.display='block';
-};
-function closeCtxMenu() { document.getElementById('ctxMenu').classList.remove('open'); ctxPostId=null; maybeClearBackdrop(); }
-window.closeCtxMenu = closeCtxMenu;
-
-window.ctxDeletePost = () => {
-  const id = ctxPostId;   // capture BEFORE closeCtxMenu nulls it
-  closeCtxMenu();
-  showDialog({
-    title: 'Delete this post?',
-    msg:   'This will permanently remove your post from everyone\'s feed.',
-    actions: [
-      { label:'Cancel', style:'cancel', fn: null },
-      { label:'Delete', style:'danger', fn: async () => {
-          try {
-            await remove(ref(db, 'posts/'+id));
-            // Real-time listener handles DOM removal automatically
-            showToast('Post deleted');
-          } catch { showToast('Could not delete post.'); }
-        }
-      }
-    ]
-  });
-};
-
-window.ctxCopyLink = () => {
-  closeCtxMenu();
-  navigator.clipboard.writeText(window.location.href)
-    .then(() => showToast('Link copied!')).catch(() => showToast('Could not copy link'));
-};
 
 /* ═══════════════════════════════════════
    INTERACTIONS
@@ -1176,39 +1190,30 @@ window.toggleCaption = id => {
 
 window.toggleLike = async id => {
   if (!currentUser){ showToast('Sign in to like posts'); openAuth(); return; }
-  const post = postsMap[id];
-  if (!post) return;
-
+  const post = postsMap[id]; if (!post) return;
   const likedByRef = ref(db, `posts/${id}/likedBy/${currentUser.uid}`);
   const likesRef   = ref(db, `posts/${id}/likes`);
-
-  // Optimistic UI update first
   const wasLiked = !!post.liked;
   post.liked = !wasLiked;
   post.likes = Math.max(0, (post.likes||0) + (post.liked ? 1 : -1));
   document.getElementById('like-btn-'+id)?.classList.toggle('liked', post.liked);
   const cnt = document.getElementById('like-count-'+id);
   if (cnt) cnt.textContent = post.likes;
-
   if (post.liked) {
     const burst = document.createElement('div');
     burst.className='heart-burst'; burst.textContent='❤️';
     document.getElementById('post-'+id)?.appendChild(burst);
     setTimeout(() => burst.remove(), 700);
   }
-
   try {
     if (post.liked) {
-      // Write like: set likedBy flag + increment likes atomically
       await set(likedByRef, true);
       await runTransaction(likesRef, cur => (cur||0) + 1);
     } else {
-      // Remove like: delete likedBy flag + decrement likes atomically
       await remove(likedByRef);
       await runTransaction(likesRef, cur => Math.max(0, (cur||0) - 1));
     }
-  } catch(err) {
-    // Rollback optimistic update on failure
+  } catch {
     post.liked = wasLiked;
     post.likes = Math.max(0, (post.likes||0) + (wasLiked ? 0 : -1));
     document.getElementById('like-btn-'+id)?.classList.toggle('liked', post.liked);
@@ -1226,8 +1231,7 @@ window.openComments = id => {
     list.innerHTML='<p style="color:var(--muted);font-size:0.88rem;text-align:center;padding:24px 0">No comments yet.</p>';
   } else {
     post.comments.forEach(c => {
-      const el = document.createElement('div');
-      el.className='comment-item';
+      const el = document.createElement('div'); el.className='comment-item';
       const av = c.photoURL
         ? `<div class="c-avatar"><img src="${esc(c.photoURL)}" alt=""/></div>`
         : `<div class="c-avatar">${esc((c.name||'?')[0].toUpperCase())}</div>`;
@@ -1245,8 +1249,7 @@ window.postComment = () => {
   const input=document.getElementById('commentInput');
   const text=input.value.trim();
   if (!text||!activeCommentPostId) return;
-  const post=postsMap[activeCommentPostId];
-  if (!post) return;
+  const post=postsMap[activeCommentPostId]; if (!post) return;
   const comment={name:currentUserName,text,photoURL:currentPhotoURL||''};
   post.comments=post.comments||[];
   post.comments.push(comment);
@@ -1258,12 +1261,10 @@ window.postComment = () => {
   el.innerHTML=`${av}<div class="c-body"><div class="c-name" style="color:var(--accent)">${esc(currentUserName)}</div><div class="c-text">${esc(text)}</div></div>`;
   const list=document.getElementById('commentsList');
   list.querySelector('p')?.remove();
-  list.appendChild(el);
-  list.scrollTop=list.scrollHeight;
+  list.appendChild(el); list.scrollTop=list.scrollHeight;
   const cnt=document.getElementById('comment-count-'+activeCommentPostId);
   if (cnt) cnt.textContent=post.comments.length;
-  input.value='';
-  showToast('Comment added');
+  input.value=''; showToast('Comment added');
 };
 
 window.sharePost = id => {
