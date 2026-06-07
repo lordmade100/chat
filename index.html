@@ -6,213 +6,284 @@
 <title>Ona - Vision Feed</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet"/>
 <style>
-* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+/* ─── RESET & VARS ─────────────────────────────────────────────────── */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+/* Disable long-press context menus / selection globally */
+* {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+}
+/* Allow text selection only in inputs/textareas */
+input, textarea { -webkit-user-select: text; user-select: text; }
 
 :root {
-  --accent: #E8392A;
-  --accent2: #F07B44;
-  --gold: #C9853A;
-  --bg: #F7F4F0;
-  --surface: #FFFFFF;
-  --surface2: #F0EDE8;
-  --border: rgba(0,0,0,0.08);
-  --border2: rgba(0,0,0,0.14);
-  --text: #1A1714;
-  --text2: #5C544C;
-  --muted: rgba(26,23,20,0.45);
-  --sheet-bg: #FDFCFB;
-  --shadow: 0 4px 32px rgba(0,0,0,0.10);
+  --accent:   #E03A2F;
+  --accent2:  #F07244;
+  --gold:     #C98540;
+  --bg:       #F5F2EE;
+  --surface:  #FFFFFF;
+  --surface2: #EDEBE7;
+  --surface3: #E5E2DC;
+  --border:   rgba(0,0,0,0.07);
+  --border2:  rgba(0,0,0,0.13);
+  --text:     #18140F;
+  --text2:    #56504A;
+  --muted:    rgba(24,20,15,0.42);
+  --radius:   20px;
+  --sheet-bg: #FDFCFA;
 }
 
 html, body { height:100%; overflow:hidden; background:var(--bg); color:var(--text); font-family:'Lato', sans-serif; }
 
-/* ── FEED ── */
+/* ─── FEED ─────────────────────────────────────────────────────────── */
 #feed { width:100vw; height:100svh; overflow-y:scroll; scroll-snap-type:y mandatory; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
 #feed::-webkit-scrollbar { display:none; }
 
 .post { width:100vw; height:100svh; scroll-snap-align:start; scroll-snap-stop:always; position:relative; overflow:hidden; display:flex; align-items:flex-end; }
-.post-bg { position:absolute; inset:0; background:#ddd; display:flex; align-items:center; justify-content:center; }
-.post-bg img { width:100%; height:100%; object-fit:cover; display:block; transition:transform 8s ease; }
-.post:not(.loading) .post-bg img { transform:scale(1.06); }
-.post::after { content:''; position:absolute; inset:0; pointer-events:none; background:linear-gradient(to bottom, rgba(255,255,255,0.05) 0%, transparent 28%, transparent 42%, rgba(0,0,0,0.62) 100%); }
+.post-bg { position:absolute; inset:0; background:#ccc; }
+.post-bg img { width:100%; height:100%; object-fit:cover; display:block; pointer-events:none; transition:transform 9s ease; }
+.post:not(.loading) .post-bg img { transform:scale(1.07); }
+.post::after { content:''; position:absolute; inset:0; pointer-events:none; background:linear-gradient(to bottom, rgba(0,0,0,0.12) 0%, transparent 22%, transparent 44%, rgba(0,0,0,0.72) 100%); }
 
-.post-content { position:relative; z-index:5; width:100%; padding:0 72px 44px 20px; display:flex; flex-direction:column; gap:6px; }
-.post-author { font-family:'Playfair Display', serif; font-size:0.75rem; font-weight:700; letter-spacing:1.5px; color:rgba(255,255,255,0.85); text-transform:uppercase; }
-.post-caption { font-size:0.96rem; line-height:1.55; color:#fff; text-shadow:0 1px 10px rgba(0,0,0,0.55); max-width:290px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+/* ─── POST CONTENT (bottom bar with avatar) ─── */
+.post-content { position:relative; z-index:5; width:100%; padding:0 72px 46px 16px; display:flex; flex-direction:column; gap:7px; }
+.post-author-row { display:flex; align-items:center; gap:9px; }
+.post-avatar { width:34px; height:34px; border-radius:50%; border:2px solid rgba(255,255,255,0.7); background:linear-gradient(135deg,var(--accent),var(--accent2)); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-family:'Playfair Display',serif; font-size:0.78rem; font-weight:700; color:#fff; overflow:hidden; pointer-events:none; }
+.post-avatar img { width:100%; height:100%; object-fit:cover; pointer-events:none; }
+.post-author { font-family:'Playfair Display', serif; font-size:0.78rem; font-weight:700; letter-spacing:0.8px; color:rgba(255,255,255,0.92); text-shadow:0 1px 6px rgba(0,0,0,0.5); }
+.post-caption { font-size:0.95rem; line-height:1.55; color:#fff; text-shadow:0 1px 10px rgba(0,0,0,0.55); max-width:290px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
 .post-caption.expanded { -webkit-line-clamp:unset; }
-.read-more { background:none; border:none; color:rgba(255,255,255,0.72); font-family:'Lato',sans-serif; font-size:0.8rem; font-weight:700; cursor:pointer; padding:0; align-self:flex-start; text-decoration:underline; }
+.read-more { background:none; border:none; color:rgba(255,255,255,0.75); font-family:'Lato',sans-serif; font-size:0.78rem; font-weight:700; cursor:pointer; padding:0; text-decoration:underline; align-self:flex-start; }
 
-.action-bar { position:absolute; right:12px; bottom:100px; z-index:10; display:flex; flex-direction:column; align-items:center; gap:18px; }
-.action-btn { display:flex; flex-direction:column; align-items:center; gap:4px; background:none; border:none; color:#FAFAFA; cursor:pointer; }
-.action-icon { width:48px; height:48px; border-radius:50%; background:rgba(255,255,255,0.18); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border:1px solid rgba(255,255,255,0.3); display:flex; align-items:center; justify-content:center; transition:transform 0.15s, background 0.2s; }
-.action-btn:active .action-icon { transform:scale(0.88); }
+/* ─── ACTION BAR ─── */
+.action-bar { position:absolute; right:10px; bottom:90px; z-index:10; display:flex; flex-direction:column; align-items:center; gap:16px; }
+.action-btn { display:flex; flex-direction:column; align-items:center; gap:4px; background:none; border:none; color:#fff; cursor:pointer; -webkit-touch-callout:none; }
+.action-icon { width:46px; height:46px; border-radius:50%; background:rgba(255,255,255,0.16); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); border:1px solid rgba(255,255,255,0.28); display:flex; align-items:center; justify-content:center; transition:transform 0.14s, background 0.2s; pointer-events:none; }
+.action-btn:active .action-icon { transform:scale(0.86); }
 .action-btn.liked .action-icon { background:var(--accent); border-color:var(--accent); }
-.action-btn.liked svg { stroke:white; fill:white; }
-.action-count { font-family:'Playfair Display', serif; font-size:0.7rem; font-weight:700; color:rgba(255,255,255,0.9); }
+.action-btn.liked svg { stroke:#fff; fill:#fff; }
+.action-count { font-family:'Playfair Display',serif; font-size:0.68rem; font-weight:700; color:rgba(255,255,255,0.92); text-shadow:0 1px 5px rgba(0,0,0,0.5); }
 
-.heart-burst { position:absolute; font-size:70px; left:50%; top:50%; transform:translate(-50%,-50%) scale(0); z-index:20; pointer-events:none; animation:burst 0.6s ease forwards; }
-@keyframes burst { 0%{transform:translate(-50%,-50%) scale(0);opacity:1} 50%{transform:translate(-50%,-50%) scale(1.4);opacity:1} 100%{transform:translate(-50%,-50%) scale(1.1);opacity:0} }
+/* 3-dot menu btn on post */
+.post-menu-btn { position:absolute; top:max(56px,calc(env(safe-area-inset-top) + 14px)); right:12px; z-index:10; width:36px; height:36px; border-radius:50%; border:none; background:rgba(0,0,0,0.3); backdrop-filter:blur(8px); color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:background 0.18s; }
+.post-menu-btn:active { background:rgba(0,0,0,0.5); }
 
-/* ── TOP NAV ── */
-.top-nav { position:fixed; top:0; left:0; right:0; z-index:50; display:flex; align-items:center; justify-content:space-between; padding:16px 20px; padding-top:max(16px,env(safe-area-inset-top)); background:linear-gradient(to bottom, rgba(247,244,240,0.9) 0%, rgba(247,244,240,0) 100%); }
+/* heart burst */
+.heart-burst { position:absolute; font-size:72px; left:50%; top:50%; transform:translate(-50%,-50%) scale(0); z-index:20; pointer-events:none; animation:burst 0.6s ease forwards; }
+@keyframes burst { 0%{transform:translate(-50%,-50%) scale(0);opacity:1} 50%{transform:translate(-50%,-50%) scale(1.45);opacity:1} 100%{transform:translate(-50%,-50%) scale(1.1);opacity:0} }
+
+/* ─── TOP NAV ─── */
+.top-nav { position:fixed; top:0; left:0; right:0; z-index:50; display:flex; align-items:center; justify-content:space-between; padding:14px 18px; padding-top:max(14px,env(safe-area-inset-top)); background:linear-gradient(to bottom,rgba(245,242,238,0.88),rgba(245,242,238,0)); }
 .nav-logo { font-family:'Playfair Display', serif; font-size:1.5rem; font-weight:900; letter-spacing:-0.5px; color:var(--text); }
-.nav-logo span { color:var(--accent); }
-.nav-auth-btn { background:var(--text); border:none; color:white; font-family:'Lato', sans-serif; font-size:0.72rem; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; padding:8px 16px; border-radius:20px; cursor:pointer; transition:transform 0.15s; }
-.nav-auth-btn:active { transform:scale(0.95); }
-.nav-create-btn { background:var(--accent); border:none; color:white; font-family:'Lato', sans-serif; font-size:0.72rem; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; padding:8px 16px; border-radius:20px; cursor:pointer; display:flex; align-items:center; gap:6px; transition:transform 0.15s; }
-.nav-create-btn:active { transform:scale(0.95); }
+.nav-logo em { font-style:normal; color:var(--accent); }
+.nav-btn { border:none; font-family:'Lato',sans-serif; font-size:0.72rem; font-weight:700; letter-spacing:1.4px; text-transform:uppercase; padding:8px 17px; border-radius:22px; cursor:pointer; transition:transform 0.14s; display:flex; align-items:center; gap:6px; }
+.nav-btn:active { transform:scale(0.95); }
+.nav-btn-ghost { background:var(--text); color:#fff; }
+.nav-btn-accent { background:var(--accent); color:#fff; }
 
-/* ── EMPTY FEED ── */
-.empty-feed { width:100vw; height:100svh; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; text-align:center; padding:40px; background:var(--bg); }
-.empty-feed .big-icon { font-size:56px; }
-.empty-feed h2 { font-family:'Playfair Display', serif; font-size:1.5rem; font-weight:900; color:var(--text); }
-.empty-feed p { color:var(--muted); font-size:0.9rem; max-width:260px; line-height:1.6; }
-.empty-cta { background:var(--accent); border:none; color:white; font-family:'Lato', sans-serif; font-size:0.8rem; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; padding:13px 30px; border-radius:24px; cursor:pointer; margin-top:8px; }
+/* ─── EMPTY STATE ─── */
+.empty-feed { width:100vw; height:100svh; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; text-align:center; padding:40px; background:var(--bg); }
+.empty-feed .big-icon { font-size:54px; }
+.empty-feed h2 { font-family:'Playfair Display',serif; font-size:1.5rem; font-weight:900; }
+.empty-feed p { color:var(--muted); font-size:0.9rem; max-width:250px; line-height:1.6; }
+.empty-cta { background:var(--accent); border:none; color:#fff; font-family:'Lato',sans-serif; font-size:0.78rem; font-weight:700; letter-spacing:1.4px; text-transform:uppercase; padding:13px 28px; border-radius:24px; cursor:pointer; margin-top:6px; }
 
-/* ── SHARED SHEET BASE ── */
-.sheet { position:fixed; bottom:0; left:0; right:0; z-index:200; background:var(--sheet-bg); border-radius:28px 28px 0 0; border-top:1px solid var(--border); box-shadow:0 -8px 40px rgba(0,0,0,0.10); transform:translateY(100%); transition:transform 0.4s cubic-bezier(0.32,0.72,0,1); display:flex; flex-direction:column; max-height:92svh; padding-bottom:max(24px,env(safe-area-inset-bottom)); }
+/* ─── SHARED SHEET BASE ─── */
+.sheet { position:fixed; bottom:0; left:0; right:0; z-index:200; background:var(--sheet-bg); border-radius:26px 26px 0 0; border-top:1px solid var(--border); box-shadow:0 -10px 50px rgba(0,0,0,0.10); transform:translateY(100%); transition:transform 0.4s cubic-bezier(0.32,0.72,0,1); display:flex; flex-direction:column; max-height:93svh; padding-bottom:max(22px,env(safe-area-inset-bottom)); }
 .sheet.open { transform:translateY(0); }
-.sheet-handle { width:36px; height:4px; background:rgba(0,0,0,0.12); border-radius:2px; margin:14px auto 0; flex-shrink:0; }
-.sheet-header { padding:16px 20px 12px; font-family:'Playfair Display', serif; font-size:1.1rem; font-weight:700; border-bottom:1px solid var(--border); flex-shrink:0; display:flex; justify-content:space-between; align-items:center; color:var(--text); }
-.sheet-close { background:none; border:none; color:var(--muted); cursor:pointer; display:flex; align-items:center; padding:4px; border-radius:50%; transition:background 0.2s; }
-.sheet-close:hover { background:var(--surface2); }
+.sheet-handle { width:38px; height:4px; background:rgba(0,0,0,0.11); border-radius:2px; margin:13px auto 0; flex-shrink:0; }
+.sheet-header { padding:15px 18px 12px; font-family:'Playfair Display',serif; font-size:1.05rem; font-weight:700; border-bottom:1px solid var(--border); flex-shrink:0; display:flex; justify-content:space-between; align-items:center; color:var(--text); }
+.sheet-close { background:none; border:none; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--muted); transition:background 0.18s; }
+.sheet-close:active { background:var(--surface2); }
 
-/* ── AUTH SHEET ── */
-#authSheet { z-index:210; }
-.auth-body { flex:1; overflow-y:auto; padding:24px 20px; display:flex; flex-direction:column; gap:0; }
+/* ─── AUTH SHEET ─── */
+#authSheet { z-index:220; }
+.auth-body { flex:1; overflow-y:auto; padding:22px 18px; display:flex; flex-direction:column; gap:16px; }
 .auth-body::-webkit-scrollbar { display:none; }
-
-.auth-tabs { display:flex; background:var(--surface2); border-radius:16px; padding:4px; margin-bottom:24px; flex-shrink:0; }
-.auth-tab { flex:1; padding:10px; border:none; background:none; font-family:'Lato',sans-serif; font-size:0.83rem; font-weight:700; letter-spacing:0.5px; color:var(--muted); border-radius:12px; cursor:pointer; transition:all 0.2s; }
-.auth-tab.active { background:var(--surface); color:var(--text); box-shadow:0 2px 8px rgba(0,0,0,0.08); }
-
-.auth-form { display:flex; flex-direction:column; gap:14px; }
-.auth-form-panel { display:none; }
-.auth-form-panel.active { display:flex; flex-direction:column; gap:14px; }
-
-.input-group { display:flex; flex-direction:column; gap:6px; }
-.input-label { font-size:0.75rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--text2); }
-.auth-input { background:var(--surface); border:1.5px solid var(--border2); border-radius:14px; padding:14px 16px; color:var(--text); font-family:'Lato',sans-serif; font-size:0.95rem; outline:none; transition:border-color 0.2s; }
+.auth-tabs { display:flex; background:var(--surface2); border-radius:14px; padding:4px; flex-shrink:0; }
+.auth-tab { flex:1; padding:10px; border:none; background:none; font-family:'Lato',sans-serif; font-size:0.82rem; font-weight:700; letter-spacing:0.5px; color:var(--muted); border-radius:10px; cursor:pointer; transition:all 0.2s; }
+.auth-tab.active { background:var(--surface); color:var(--text); box-shadow:0 2px 10px rgba(0,0,0,0.07); }
+.auth-form-panel { display:none; flex-direction:column; gap:13px; }
+.auth-form-panel.active { display:flex; }
+.input-group { display:flex; flex-direction:column; gap:5px; }
+.input-label { font-size:0.72rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--text2); }
+.auth-input { background:var(--surface); border:1.5px solid var(--border2); border-radius:13px; padding:14px 15px; color:var(--text); font-family:'Lato',sans-serif; font-size:0.95rem; outline:none; transition:border-color 0.2s; }
 .auth-input:focus { border-color:var(--accent); }
 .auth-input::placeholder { color:var(--muted); }
-
-.auth-btn { background:var(--accent); border:none; color:white; font-family:'Lato',sans-serif; font-size:0.85rem; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; padding:16px; border-radius:16px; cursor:pointer; transition:transform 0.15s, opacity 0.2s; margin-top:4px; }
+.auth-btn { background:var(--accent); border:none; color:#fff; font-family:'Lato',sans-serif; font-size:0.82rem; font-weight:700; letter-spacing:1.4px; text-transform:uppercase; padding:15px; border-radius:15px; cursor:pointer; transition:transform 0.14s,opacity 0.2s; display:flex; align-items:center; justify-content:center; gap:8px; }
 .auth-btn:active { transform:scale(0.97); }
 .auth-btn:disabled { opacity:0.45; pointer-events:none; }
-
-.auth-divider { display:flex; align-items:center; gap:12px; margin:4px 0; }
+.auth-divider { display:flex; align-items:center; gap:10px; }
 .auth-divider::before, .auth-divider::after { content:''; flex:1; height:1px; background:var(--border2); }
-.auth-divider span { font-size:0.75rem; color:var(--muted); font-weight:700; letter-spacing:1px; }
-
-.google-btn { background:var(--surface); border:1.5px solid var(--border2); border-radius:16px; padding:14px; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer; font-family:'Lato',sans-serif; font-size:0.85rem; font-weight:700; color:var(--text); transition:transform 0.15s, box-shadow 0.2s; }
-.google-btn:active { transform:scale(0.97); box-shadow:0 2px 10px rgba(0,0,0,0.08); }
-
-.auth-error { background:#FFF0EE; border:1px solid rgba(232,57,42,0.25); border-radius:12px; padding:10px 14px; font-size:0.83rem; color:var(--accent); display:none; }
+.auth-divider span { font-size:0.72rem; color:var(--muted); font-weight:700; letter-spacing:1px; }
+.google-btn { background:var(--surface); border:1.5px solid var(--border2); border-radius:14px; padding:13px; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer; font-family:'Lato',sans-serif; font-size:0.84rem; font-weight:700; color:var(--text); transition:transform 0.14s,box-shadow 0.2s; }
+.google-btn:active { transform:scale(0.97); }
+.auth-error { background:#FFF0EE; border:1px solid rgba(224,58,47,0.22); border-radius:11px; padding:10px 13px; font-size:0.82rem; color:var(--accent); display:none; line-height:1.4; }
 .auth-error.show { display:block; }
 
-/* ── CREATE SHEET ── */
-.upload-body { flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:16px; }
+/* ─── UPLOAD SHEET (advanced) ─── */
+#createSheet { z-index:210; }
+.upload-body { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
 .upload-body::-webkit-scrollbar { display:none; }
 
-.pick-area { width:100%; aspect-ratio:4/3; border-radius:20px; border:2px dashed var(--border2); background:var(--surface2); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; cursor:pointer; overflow:hidden; position:relative; transition:border-color 0.2s; }
-.pick-area:active { border-color:var(--accent); }
-.pick-area.has-image { border-style:solid; border-color:var(--border2); }
-.pick-area img { width:100%; height:100%; object-fit:cover; position:absolute; inset:0; border-radius:18px; }
-.pick-label { font-family:'Lato', sans-serif; font-size:0.75rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--muted); z-index:1; }
-.pick-icon { width:44px; height:44px; border-radius:50%; background:rgba(0,0,0,0.07); display:flex; align-items:center; justify-content:center; z-index:1; }
-.pick-change { position:absolute; bottom:10px; right:10px; z-index:2; background:rgba(0,0,0,0.55); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.2); border-radius:20px; padding:5px 12px; font-family:'Lato',sans-serif; font-size:0.7rem; font-weight:700; letter-spacing:1px; color:white; display:none; }
-.pick-area.has-image .pick-icon, .pick-area.has-image .pick-label { display:none; }
-.pick-area.has-image .pick-change { display:block; }
+/* Image pick zone */
+.pick-zone { position:relative; width:100%; aspect-ratio:4/3; overflow:hidden; background:var(--surface2); cursor:pointer; flex-shrink:0; }
+.pick-zone-placeholder { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; transition:opacity 0.2s; }
+.pick-zone-placeholder.hidden { opacity:0; pointer-events:none; }
+.pick-zone-icon { width:52px; height:52px; border-radius:50%; background:var(--surface3); display:flex; align-items:center; justify-content:center; }
+.pick-zone-label { font-family:'Lato',sans-serif; font-size:0.75rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--muted); }
+.pick-zone-hint { font-size:0.75rem; color:var(--muted); }
+.pick-zone img#pickPreview { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; pointer-events:none; opacity:0; transition:opacity 0.3s; }
+.pick-zone img#pickPreview.loaded { opacity:1; }
 
-.caption-field { background:var(--surface); border:1.5px solid var(--border2); border-radius:16px; padding:14px 16px; color:var(--text); font-family:'Lato',sans-serif; font-size:0.95rem; outline:none; resize:none; min-height:90px; line-height:1.5; transition:border-color 0.2s; }
-.caption-field:focus { border-color:var(--accent); }
+/* Top bar over preview */
+.pick-zone-bar { position:absolute; top:0; left:0; right:0; z-index:5; display:flex; align-items:center; justify-content:space-between; padding:10px 12px; opacity:0; transition:opacity 0.25s; pointer-events:none; }
+.pick-zone-bar.show { opacity:1; pointer-events:all; }
+.pick-zone-chip { background:rgba(0,0,0,0.55); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.2); border-radius:22px; padding:5px 12px; font-family:'Lato',sans-serif; font-size:0.7rem; font-weight:700; letter-spacing:1px; color:#fff; cursor:pointer; text-transform:uppercase; }
+.pick-zone-chip:active { opacity:0.75; }
+
+/* Overlay drag hint */
+.drop-overlay { position:absolute; inset:0; z-index:10; background:rgba(224,58,47,0.12); border:2.5px dashed var(--accent); border-radius:0; display:flex; align-items:center; justify-content:center; pointer-events:none; opacity:0; transition:opacity 0.18s; }
+.drop-overlay.active { opacity:1; }
+.drop-overlay span { font-family:'Playfair Display',serif; font-size:1.1rem; font-weight:700; color:var(--accent); }
+
+/* Upload progress strip */
+.upload-strip { height:3px; background:var(--surface3); flex-shrink:0; overflow:hidden; display:none; }
+.upload-strip.show { display:block; }
+.upload-strip-bar { height:100%; width:0%; background:linear-gradient(90deg,var(--accent),var(--accent2)); transition:width 0.25s ease; border-radius:0 2px 2px 0; }
+
+/* Caption + meta section */
+.upload-meta { padding:16px 18px; display:flex; flex-direction:column; gap:12px; }
+.caption-row { display:flex; align-items:flex-start; gap:10px; }
+.caption-avatar { width:34px; height:34px; border-radius:50%; border:2px solid var(--border2); background:linear-gradient(135deg,var(--accent),var(--accent2)); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-family:'Playfair Display',serif; font-size:0.78rem; font-weight:700; color:#fff; overflow:hidden; margin-top:2px; }
+.caption-avatar img { width:100%; height:100%; object-fit:cover; pointer-events:none; }
+.caption-field { flex:1; border:none; outline:none; background:none; font-family:'Lato',sans-serif; font-size:1rem; color:var(--text); resize:none; line-height:1.55; min-height:64px; padding:2px 0; }
 .caption-field::placeholder { color:var(--muted); }
 
-.post-btn { background:var(--accent); border:none; color:white; font-family:'Lato',sans-serif; font-size:0.85rem; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; padding:16px; border-radius:20px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:transform 0.15s, opacity 0.2s; }
+.caption-meta-row { display:flex; align-items:center; justify-content:space-between; padding-top:6px; border-top:1px solid var(--border); }
+.caption-char-count { font-size:0.75rem; color:var(--muted); font-weight:700; }
+.caption-char-count.warn { color:var(--accent); }
+
+.upload-options { display:flex; flex-direction:column; border-top:1px solid var(--border); }
+.upload-option-row { display:flex; align-items:center; justify-content:space-between; padding:13px 18px; cursor:pointer; transition:background 0.15s; }
+.upload-option-row:active { background:var(--surface2); }
+.upload-option-label { display:flex; align-items:center; gap:11px; font-family:'Lato',sans-serif; font-size:0.88rem; font-weight:700; color:var(--text); }
+.upload-option-label svg { color:var(--text2); }
+.upload-option-value { font-size:0.82rem; color:var(--muted); display:flex; align-items:center; gap:5px; }
+
+.post-btn { margin:14px 18px 0; background:var(--accent); border:none; color:#fff; font-family:'Lato',sans-serif; font-size:0.84rem; font-weight:700; letter-spacing:1.4px; text-transform:uppercase; padding:16px; border-radius:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:transform 0.14s,opacity 0.2s; }
 .post-btn:active { transform:scale(0.97); }
-.post-btn:disabled { opacity:0.45; pointer-events:none; }
+.post-btn:disabled { opacity:0.4; pointer-events:none; }
 
-.upload-progress { height:3px; background:var(--surface2); border-radius:2px; overflow:hidden; display:none; }
-.upload-progress.active { display:block; }
-.upload-progress-bar { height:100%; background:linear-gradient(90deg, var(--accent), var(--accent2)); width:0%; transition:width 0.3s ease; border-radius:2px; }
-
-/* ── COMMENT SHEET ── */
-.comment-sheet { position:fixed; bottom:0; left:0; right:0; z-index:150; background:var(--sheet-bg); border-radius:24px 24px 0 0; border-top:1px solid var(--border); box-shadow:0 -4px 30px rgba(0,0,0,0.08); transform:translateY(100%); transition:transform 0.35s cubic-bezier(0.32,0.72,0,1); max-height:70svh; display:flex; flex-direction:column; }
+/* ─── COMMENT SHEET ─── */
+.comment-sheet { position:fixed; bottom:0; left:0; right:0; z-index:190; background:var(--sheet-bg); border-radius:24px 24px 0 0; border-top:1px solid var(--border); box-shadow:0 -6px 32px rgba(0,0,0,0.08); transform:translateY(100%); transition:transform 0.36s cubic-bezier(0.32,0.72,0,1); max-height:72svh; display:flex; flex-direction:column; }
 .comment-sheet.open { transform:translateY(0); }
-.c-handle { width:36px; height:4px; background:rgba(0,0,0,0.12); border-radius:2px; margin:14px auto 0; flex-shrink:0; }
-.c-header { padding:12px 20px; font-family:'Playfair Display',serif; font-size:1rem; font-weight:700; border-bottom:1px solid var(--border); flex-shrink:0; display:flex; justify-content:space-between; align-items:center; color:var(--text); }
+.c-handle { width:38px; height:4px; background:rgba(0,0,0,0.11); border-radius:2px; margin:13px auto 0; flex-shrink:0; }
+.c-header { padding:12px 18px; font-family:'Playfair Display',serif; font-size:1rem; font-weight:700; border-bottom:1px solid var(--border); flex-shrink:0; display:flex; justify-content:space-between; align-items:center; color:var(--text); }
 .c-close { background:none; border:none; color:var(--muted); cursor:pointer; display:flex; }
-.comments-list { flex:1; overflow-y:auto; padding:16px 20px; display:flex; flex-direction:column; gap:16px; }
+.comments-list { flex:1; overflow-y:auto; padding:14px 18px; display:flex; flex-direction:column; gap:14px; }
 .comments-list::-webkit-scrollbar { display:none; }
 .comment-item { display:flex; gap:10px; }
-.c-avatar { width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg, var(--accent), var(--accent2)); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-family:'Playfair Display',serif; font-size:0.8rem; font-weight:700; color:white; }
+.c-avatar { width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg,var(--accent),var(--accent2)); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-family:'Playfair Display',serif; font-size:0.78rem; font-weight:700; color:#fff; overflow:hidden; pointer-events:none; }
+.c-avatar img { width:100%; height:100%; object-fit:cover; }
 .c-body { flex:1; }
-.c-name { font-size:0.78rem; font-weight:700; color:var(--text2); margin-bottom:3px; }
-.c-text { font-size:0.9rem; line-height:1.4; color:var(--text); }
-.c-input-row { display:flex; gap:10px; padding:12px 16px; border-top:1px solid var(--border); flex-shrink:0; padding-bottom:max(16px,env(safe-area-inset-bottom)); }
-.c-input { flex:1; background:var(--surface2); border:1.5px solid var(--border2); border-radius:24px; padding:10px 16px; color:var(--text); font-family:'Lato',sans-serif; font-size:0.9rem; outline:none; transition:border-color 0.2s; }
+.c-name { font-size:0.76rem; font-weight:700; color:var(--text2); margin-bottom:3px; }
+.c-text { font-size:0.88rem; line-height:1.45; color:var(--text); }
+.c-input-row { display:flex; gap:10px; padding:11px 16px; border-top:1px solid var(--border); flex-shrink:0; padding-bottom:max(14px,env(safe-area-inset-bottom)); align-items:center; }
+.c-input { flex:1; background:var(--surface2); border:1.5px solid var(--border2); border-radius:24px; padding:10px 15px; color:var(--text); font-family:'Lato',sans-serif; font-size:0.9rem; outline:none; transition:border-color 0.2s; }
 .c-input:focus { border-color:var(--accent); }
 .c-input::placeholder { color:var(--muted); }
-.c-send { background:var(--accent); border:none; color:white; width:42px; height:42px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; transition:transform 0.15s; }
-.c-send:active { transform:scale(0.9); }
+.c-send { background:var(--accent); border:none; color:#fff; width:42px; height:42px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; transition:transform 0.14s; }
+.c-send:active { transform:scale(0.88); }
 
-/* ── BACKDROP ── */
-#backdrop { position:fixed; inset:0; z-index:99; background:rgba(0,0,0,0.35); display:none; }
+/* ─── CONTEXT MENU (3-dot) ─── */
+.ctx-menu { position:fixed; z-index:500; background:var(--surface); border-radius:18px; box-shadow:0 8px 40px rgba(0,0,0,0.16); border:1px solid var(--border); overflow:hidden; transform:scale(0.88); opacity:0; pointer-events:none; transition:transform 0.2s cubic-bezier(0.34,1.56,0.64,1), opacity 0.15s; min-width:180px; }
+.ctx-menu.open { transform:scale(1); opacity:1; pointer-events:all; }
+.ctx-item { display:flex; align-items:center; gap:11px; padding:13px 16px; cursor:pointer; font-family:'Lato',sans-serif; font-size:0.88rem; font-weight:700; color:var(--text); transition:background 0.15s; border-bottom:1px solid var(--border); }
+.ctx-item:last-child { border-bottom:none; }
+.ctx-item:active { background:var(--surface2); }
+.ctx-item.danger { color:var(--accent); }
+.ctx-item svg { flex-shrink:0; }
 
-/* ── IMAGE VIEWER ── */
-.img-viewer { position:fixed; inset:0; z-index:300; background:rgba(247,244,240,0.97); backdrop-filter:blur(6px); display:none; align-items:center; justify-content:center; opacity:0; transition:opacity 0.25s; }
-.img-viewer.open { display:flex; }
-.img-viewer.visible { opacity:1; }
-.img-viewer img { max-width:95%; max-height:90%; border-radius:12px; object-fit:contain; box-shadow:0 8px 40px rgba(0,0,0,0.15); }
-.iv-close { position:absolute; top:24px; right:24px; background:rgba(0,0,0,0.08); border:none; color:var(--text); width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+/* ─── CUSTOM ALERT / CONFIRM DIALOG ─── */
+.dialog-overlay { position:fixed; inset:0; z-index:600; background:rgba(0,0,0,0.38); display:flex; align-items:center; justify-content:center; padding:24px; opacity:0; pointer-events:none; transition:opacity 0.22s; }
+.dialog-overlay.open { opacity:1; pointer-events:all; }
+.dialog-box { background:var(--surface); border-radius:22px; padding:28px 22px 20px; width:100%; max-width:340px; box-shadow:0 16px 60px rgba(0,0,0,0.18); transform:scale(0.92) translateY(10px); transition:transform 0.28s cubic-bezier(0.34,1.4,0.64,1); }
+.dialog-overlay.open .dialog-box { transform:scale(1) translateY(0); }
+.dialog-icon { width:48px; height:48px; border-radius:50%; margin:0 auto 14px; display:flex; align-items:center; justify-content:center; }
+.dialog-icon.warn { background:#FFF0EE; }
+.dialog-icon.info { background:#EEF4FF; }
+.dialog-title { font-family:'Playfair Display',serif; font-size:1.1rem; font-weight:700; text-align:center; margin-bottom:8px; color:var(--text); }
+.dialog-msg { font-size:0.88rem; line-height:1.55; text-align:center; color:var(--text2); margin-bottom:22px; }
+.dialog-actions { display:flex; gap:10px; }
+.dialog-btn { flex:1; padding:13px; border-radius:14px; border:none; font-family:'Lato',sans-serif; font-size:0.84rem; font-weight:700; letter-spacing:0.5px; cursor:pointer; transition:transform 0.13s, opacity 0.15s; }
+.dialog-btn:active { transform:scale(0.96); }
+.dialog-btn-cancel { background:var(--surface2); color:var(--text2); }
+.dialog-btn-danger { background:var(--accent); color:#fff; }
+.dialog-btn-ok { background:var(--text); color:#fff; }
 
-/* ── TOAST ── */
-.toast { position:fixed; bottom:90px; left:50%; transform:translateX(-50%) translateY(16px); background:var(--text); border-radius:24px; padding:10px 20px; font-size:0.85rem; color:white; white-space:nowrap; opacity:0; pointer-events:none; transition:opacity 0.25s, transform 0.25s; z-index:400; }
+/* ─── TOAST ─── */
+.toast { position:fixed; bottom:88px; left:50%; transform:translateX(-50%) translateY(14px); background:var(--text); border-radius:22px; padding:10px 20px; font-size:0.84rem; font-family:'Lato',sans-serif; font-weight:700; color:#fff; white-space:nowrap; opacity:0; pointer-events:none; transition:opacity 0.22s, transform 0.22s; z-index:700; }
 .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
 
-/* ── LOADING SPINNER ── */
-.spinner { width:20px; height:20px; border:2px solid rgba(255,255,255,0.35); border-top-color:white; border-radius:50%; animation:spin 0.7s linear infinite; }
+/* ─── BACKDROP ─── */
+#backdrop { position:fixed; inset:0; z-index:99; background:rgba(0,0,0,0.32); display:none; }
+
+/* ─── IMAGE VIEWER ─── */
+.img-viewer { position:fixed; inset:0; z-index:300; background:rgba(245,242,238,0.97); backdrop-filter:blur(8px); display:none; align-items:center; justify-content:center; opacity:0; transition:opacity 0.24s; }
+.img-viewer.open { display:flex; }
+.img-viewer.visible { opacity:1; }
+.img-viewer img { max-width:95%; max-height:90%; border-radius:14px; object-fit:contain; box-shadow:0 10px 50px rgba(0,0,0,0.14); pointer-events:none; }
+.iv-close { position:absolute; top:22px; right:22px; background:rgba(0,0,0,0.09); border:1px solid rgba(0,0,0,0.1); color:var(--text); width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+
+/* ─── SPINNER ─── */
+.spinner { width:18px; height:18px; border:2.5px solid rgba(255,255,255,0.32); border-top-color:#fff; border-radius:50%; animation:spin 0.7s linear infinite; flex-shrink:0; }
 @keyframes spin { to { transform:rotate(360deg); } }
 </style>
 </head>
 <body>
 
+<!-- ── TOP NAV ── -->
 <nav class="top-nav">
-  <div class="nav-logo">On<span>a</span></div>
-  <button class="nav-auth-btn" id="navAuthBtn" onclick="openAuth()">Sign In</button>
+  <div class="nav-logo">On<em>a</em></div>
+  <button class="nav-btn nav-btn-ghost" id="navAuthBtn" onclick="openAuth()">Sign In</button>
 </nav>
 
+<!-- ── FEED ── -->
 <div id="feed">
   <div class="empty-feed" id="emptyFeed">
     <div class="big-icon">📸</div>
-    <h2>No posts yet</h2>
-    <p>Be the first to share a photo with the community.</p>
+    <h2>Nothing here yet</h2>
+    <p>Be the first to share a moment with the community.</p>
     <button class="empty-cta" onclick="handleCreateClick()">Share a photo</button>
   </div>
 </div>
 
+<!-- ── BACKDROP ── -->
 <div id="backdrop" onclick="closeAll()"></div>
 
-<!-- ── AUTH SHEET ── -->
+<!-- ═══════════════════════════════════════════════════════════════════
+     AUTH SHEET
+═══════════════════════════════════════════════════════════════════ -->
 <div class="sheet" id="authSheet">
   <div class="sheet-handle"></div>
   <div class="sheet-header">
     <span id="authSheetTitle">Welcome to Ona</span>
     <button class="sheet-close" onclick="closeAuth()">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
     </button>
   </div>
   <div class="auth-body">
-    <!-- Tabs -->
     <div class="auth-tabs">
       <button class="auth-tab active" id="tabSignIn" onclick="switchAuthTab('signin')">Sign In</button>
       <button class="auth-tab" id="tabSignUp" onclick="switchAuthTab('signup')">Create Account</button>
     </div>
-
-    <!-- Error -->
     <div class="auth-error" id="authError"></div>
 
-    <!-- Sign In Panel -->
+    <!-- Sign In -->
     <div class="auth-form-panel active" id="signinPanel">
       <div class="input-group">
         <label class="input-label">Email</label>
@@ -230,7 +301,7 @@ html, body { height:100%; overflow:hidden; background:var(--bg); color:var(--tex
       </button>
     </div>
 
-    <!-- Sign Up Panel -->
+    <!-- Sign Up -->
     <div class="auth-form-panel" id="signupPanel">
       <div class="input-group">
         <label class="input-label">Display Name</label>
@@ -254,36 +325,84 @@ html, body { height:100%; overflow:hidden; background:var(--bg); color:var(--tex
   </div>
 </div>
 
-<!-- ── CREATE / UPLOAD SHEET ── -->
+<!-- ═══════════════════════════════════════════════════════════════════
+     CREATE / UPLOAD SHEET
+═══════════════════════════════════════════════════════════════════ -->
 <div class="sheet" id="createSheet">
   <div class="sheet-handle"></div>
   <div class="sheet-header">
     <span>New Post</span>
     <button class="sheet-close" onclick="closeCreate()">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
     </button>
   </div>
-  <div class="upload-body">
-    <div class="pick-area" id="pickArea" onclick="document.getElementById('fileInput').click()">
-      <div class="pick-icon">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,0.35)" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+
+  <div class="upload-body" id="uploadBody">
+    <!-- Image pick zone (top, full-width) -->
+    <div class="pick-zone" id="pickZone">
+      <!-- placeholder -->
+      <div class="pick-zone-placeholder" id="pickPlaceholder">
+        <div class="pick-zone-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,0.3)" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        </div>
+        <span class="pick-zone-label">Tap or drag a photo here</span>
+        <span class="pick-zone-hint">JPEG, PNG, WEBP</span>
       </div>
-      <span class="pick-label">Tap to choose photo</span>
-      <span class="pick-change">Change</span>
-      <img id="previewImg" src="" alt="" style="display:none"/>
+      <!-- preview image -->
+      <img id="pickPreview" src="" alt=""/>
+      <!-- overlay bar (shown when image picked) -->
+      <div class="pick-zone-bar" id="pickBar">
+        <span class="pick-zone-chip" onclick="triggerFilePick()">Change Photo</span>
+        <span class="pick-zone-chip" id="pickZoneRemove" onclick="removePickedImage()">Remove</span>
+      </div>
+      <!-- drag-over overlay -->
+      <div class="drop-overlay" id="dropOverlay"><span>Drop to set photo</span></div>
     </div>
-    <textarea class="caption-field" id="captionInput" placeholder="Write a caption..." rows="3" maxlength="300"></textarea>
-    <div class="upload-progress" id="uploadProgress">
-      <div class="upload-progress-bar" id="progressBar"></div>
+
+    <!-- upload progress strip -->
+    <div class="upload-strip" id="uploadStrip">
+      <div class="upload-strip-bar" id="uploadStripBar"></div>
     </div>
-    <button class="post-btn" id="postBtn" onclick="submitPost()">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-      Post to Feed
-    </button>
+
+    <!-- Caption + author row -->
+    <div class="upload-meta">
+      <div class="caption-row">
+        <div class="caption-avatar" id="captionAvatar">
+          <img id="captionAvatarImg" src="" alt="" style="display:none"/>
+          <span id="captionAvatarLetter">?</span>
+        </div>
+        <textarea class="caption-field" id="captionInput" placeholder="Write a caption…" rows="3" maxlength="300"></textarea>
+      </div>
+      <div class="caption-meta-row">
+        <span></span>
+        <span class="caption-char-count" id="charCount">0 / 300</span>
+      </div>
+    </div>
+
+    <!-- Options rows -->
+    <div class="upload-options">
+      <div class="upload-option-row" onclick="triggerFilePick()">
+        <span class="upload-option-label">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          From Gallery
+        </span>
+        <span class="upload-option-value">
+          <span id="pickedFileName">No file chosen</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </span>
+      </div>
+    </div>
   </div>
+
+  <button class="post-btn" id="postBtn" onclick="submitPost()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+    Post to Feed
+  </button>
 </div>
 
-<!-- ── COMMENTS SHEET ── -->
+<!-- ═══════════════════════════════════════════════════════════════════
+     COMMENT SHEET
+═══════════════════════════════════════════════════════════════════ -->
 <div class="comment-sheet" id="commentSheet">
   <div class="c-handle"></div>
   <div class="c-header">
@@ -294,17 +413,47 @@ html, body { height:100%; overflow:hidden; background:var(--bg); color:var(--tex
   </div>
   <div class="comments-list" id="commentsList"></div>
   <div class="c-input-row">
-    <input class="c-input" id="commentInput" placeholder="Add a comment..."/>
+    <input class="c-input" id="commentInput" placeholder="Add a comment…"/>
     <button class="c-send" onclick="postComment()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
     </button>
   </div>
 </div>
 
-<!-- ── IMAGE VIEWER ── -->
+<!-- ═══════════════════════════════════════════════════════════════════
+     CONTEXT MENU
+═══════════════════════════════════════════════════════════════════ -->
+<div class="ctx-menu" id="ctxMenu">
+  <div class="ctx-item danger" onclick="ctxDeletePost()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+    Delete Post
+  </div>
+  <div class="ctx-item" onclick="ctxCopyLink()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+    Share Link
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     CUSTOM DIALOG
+═══════════════════════════════════════════════════════════════════ -->
+<div class="dialog-overlay" id="dialogOverlay">
+  <div class="dialog-box">
+    <div class="dialog-icon" id="dialogIcon">
+      <svg id="dialogIconSvg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    </div>
+    <div class="dialog-title" id="dialogTitle">Are you sure?</div>
+    <div class="dialog-msg" id="dialogMsg">This action cannot be undone.</div>
+    <div class="dialog-actions" id="dialogActions"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     IMAGE VIEWER
+═══════════════════════════════════════════════════════════════════ -->
 <div class="img-viewer" id="imgViewer" onclick="closeViewer()">
   <button class="iv-close">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
   </button>
   <img id="viewerImg" src="" alt=""/>
 </div>
@@ -312,16 +461,21 @@ html, body { height:100%; overflow:hidden; background:var(--bg); color:var(--tex
 <input type="file" id="fileInput" accept="image/*" style="display:none"/>
 <div class="toast" id="toast"></div>
 
+<!-- ═══════════════════════════════════════════════════════════════════
+     SCRIPT
+═══════════════════════════════════════════════════════════════════ -->
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { initializeApp }    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
-  getAuth, onAuthStateChanged, signInWithEmailAndPassword,
-  createUserWithEmailAndPassword, signOut, GoogleAuthProvider,
-  signInWithPopup, updateProfile
+  getAuth, onAuthStateChanged,
+  signInWithEmailAndPassword, createUserWithEmailAndPassword,
+  signOut, GoogleAuthProvider, signInWithPopup, updateProfile
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getDatabase, ref, get, push, set, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import {
+  getDatabase, ref, get, push, set, remove, onValue, update
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-// ── CONFIG ──
+/* ── CONFIG ── */
 const firebaseConfig = {
   apiKey: "AIzaSyDllNp4lOwf8VNElzM16pBug8pLB6-9XNY",
   authDomain: "newstart-64c43.firebaseapp.com",
@@ -329,60 +483,131 @@ const firebaseConfig = {
   storageBucket: "newstart-64c43.firebasestorage.app",
   messagingSenderId: "941619830061",
   appId: "1:941619830061:web:097b8f4f50c9486bcf87a4",
-  measurementId: "G-ZGV4MDXC7W"
 };
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dqkujefxj/upload";
 const UPLOAD_PRESET  = "banter_box";
 
-const app      = initializeApp(firebaseConfig);
-const auth     = getAuth(app);
-const db       = getDatabase(app);
-const googleProvider = new GoogleAuthProvider();
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getDatabase(app);
+const gp   = new GoogleAuthProvider();
 
-let currentUser         = null;
-let currentUserName     = "You";
-let posts               = [];
+let currentUser     = null;
+let currentUserName = "You";
+let currentPhotoURL = null;
+let posts           = [];
 let activeCommentPostId = null;
-let selectedFile        = null;
+let selectedFile    = null;
+let ctxPostId       = null;   // post id for context menu
 
-// ── HELPERS ──
-function escHtml(t = '') {
-  return String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-}
+/* ═══════════════════════════════════════════════════════════
+   DISABLE LONG-PRESS / CONTEXT MENU / SELECTION
+═══════════════════════════════════════════════════════════ */
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('touchstart',  e => {}, { passive:true });
+
+/* prevent long-press menu on images/buttons/avatars */
+document.querySelectorAll('img, button, .action-btn, .post-avatar, .c-avatar, .action-icon').forEach(el => {
+  el.addEventListener('contextmenu', e => e.preventDefault());
+  el.addEventListener('dragstart',   e => e.preventDefault());
+});
+
+/* global observer to catch dynamically added elements too */
+new MutationObserver(mutations => {
+  mutations.forEach(m => m.addedNodes.forEach(node => {
+    if (node.nodeType !== 1) return;
+    const targets = [node, ...node.querySelectorAll('img, button, .action-btn, .post-avatar, .c-avatar, .action-icon')];
+    targets.forEach(el => {
+      el.addEventListener('contextmenu', e => e.preventDefault());
+      el.addEventListener('dragstart',   e => e.preventDefault());
+    });
+  }));
+}).observe(document.body, { childList:true, subtree:true });
+
+/* ═══════════════════════════════════════════════════════════
+   HELPERS
+═══════════════════════════════════════════════════════════ */
+const esc = (t='') => String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2400);
-}
-function showAuthError(msg) {
-  const el = document.getElementById('authError');
-  el.textContent = msg; el.classList.add('show');
-}
-function clearAuthError() {
-  document.getElementById('authError').classList.remove('show');
+  clearTimeout(t._tid);
+  t._tid = setTimeout(() => t.classList.remove('show'), 2500);
 }
 
-// ── AUTH STATE ──
-onAuthStateChanged(auth, async (user) => {
+/* ── Custom dialog ── */
+function showDialog({ icon='warn', title='', msg='', actions=[] }) {
+  document.getElementById('dialogTitle').textContent = title;
+  document.getElementById('dialogMsg').textContent   = msg;
+  const iconEl = document.getElementById('dialogIcon');
+  iconEl.className = `dialog-icon ${icon}`;
+  const acts = document.getElementById('dialogActions');
+  acts.innerHTML = '';
+  actions.forEach(a => {
+    const b = document.createElement('button');
+    b.className = `dialog-btn dialog-btn-${a.style||'ok'}`;
+    b.textContent = a.label;
+    b.onclick = () => { closeDialog(); a.fn?.(); };
+    acts.appendChild(b);
+  });
+  document.getElementById('dialogOverlay').classList.add('open');
+  document.getElementById('backdrop').style.display = 'block';
+}
+function closeDialog() {
+  document.getElementById('dialogOverlay').classList.remove('open');
+}
+window.closeDialog = closeDialog;
+
+/* ═══════════════════════════════════════════════════════════
+   AUTH
+═══════════════════════════════════════════════════════════ */
+onAuthStateChanged(auth, async user => {
   currentUser = user;
   const navBtn = document.getElementById('navAuthBtn');
   if (user) {
     try {
       const snap = await get(ref(db, `users/${user.uid}`));
-      if (snap.exists()) currentUserName = snap.val().displayName || snap.val().username || user.displayName || "You";
-      else currentUserName = user.displayName || "You";
-    } catch(e) { currentUserName = user.displayName || "You"; }
-    navBtn.textContent = "Post";
-    navBtn.onclick = openCreate;
+      if (snap.exists()) {
+        const d = snap.val();
+        currentUserName = d.displayName || d.username || user.displayName || 'You';
+        currentPhotoURL = d.photoURL || user.photoURL || null;
+      } else {
+        currentUserName = user.displayName || 'You';
+        currentPhotoURL = user.photoURL || null;
+      }
+    } catch { currentUserName = user.displayName||'You'; currentPhotoURL = user.photoURL||null; }
+    navBtn.textContent = 'Post';
+    navBtn.className   = 'nav-btn nav-btn-accent';
+    navBtn.onclick     = openCreate;
     closeAuth();
+    updateCaptionAvatar();
   } else {
-    navBtn.textContent = "Sign In";
-    navBtn.onclick = openAuth;
+    currentUserName = 'You'; currentPhotoURL = null;
+    navBtn.textContent = 'Sign In';
+    navBtn.className   = 'nav-btn nav-btn-ghost';
+    navBtn.onclick     = openAuth;
   }
 });
 
-// ── AUTH SHEET ──
-window.openAuth = function(tab = 'signin') {
+function updateCaptionAvatar() {
+  const img  = document.getElementById('captionAvatarImg');
+  const lttr = document.getElementById('captionAvatarLetter');
+  if (currentPhotoURL) {
+    img.src = currentPhotoURL; img.style.display = 'block'; lttr.style.display = 'none';
+  } else {
+    img.style.display = 'none'; lttr.style.display = '';
+    lttr.textContent = currentUserName[0]?.toUpperCase() || '?';
+  }
+}
+
+function showAuthError(msg) {
+  const el = document.getElementById('authError');
+  el.textContent = msg; el.classList.add('show');
+}
+function clearAuthError() { document.getElementById('authError').classList.remove('show'); }
+
+window.openAuth = function(tab='signin') {
   clearAuthError();
   switchAuthTab(tab);
   document.getElementById('authSheet').classList.add('open');
@@ -390,215 +615,239 @@ window.openAuth = function(tab = 'signin') {
 };
 window.closeAuth = function() {
   document.getElementById('authSheet').classList.remove('open');
-  if (!document.getElementById('createSheet').classList.contains('open') &&
-      !document.getElementById('commentSheet').classList.contains('open')) {
-    document.getElementById('backdrop').style.display = 'none';
-  }
+  maybeClearBackdrop();
 };
 window.switchAuthTab = function(tab) {
-  const isSignIn = tab === 'signin';
-  document.getElementById('tabSignIn').classList.toggle('active', isSignIn);
-  document.getElementById('tabSignUp').classList.toggle('active', !isSignIn);
-  document.getElementById('signinPanel').classList.toggle('active', isSignIn);
-  document.getElementById('signupPanel').classList.toggle('active', !isSignIn);
-  document.getElementById('authSheetTitle').textContent = isSignIn ? 'Welcome back' : 'Join Ona';
+  const si = tab === 'signin';
+  document.getElementById('tabSignIn').classList.toggle('active', si);
+  document.getElementById('tabSignUp').classList.toggle('active', !si);
+  document.getElementById('signinPanel').classList.toggle('active', si);
+  document.getElementById('signupPanel').classList.toggle('active', !si);
+  document.getElementById('authSheetTitle').textContent = si ? 'Welcome back' : 'Join Ona';
   clearAuthError();
 };
 
-// ── SIGN IN ──
-window.doSignIn = async function() {
-  const email    = document.getElementById('siEmail').value.trim();
-  const password = document.getElementById('siPassword').value;
-  if (!email || !password) { showAuthError('Please fill in all fields.'); return; }
+window.doSignIn = async () => {
+  const email = document.getElementById('siEmail').value.trim();
+  const pw    = document.getElementById('siPassword').value;
+  if (!email || !pw) { showAuthError('Please fill in all fields.'); return; }
   const btn = document.getElementById('signInBtn');
-  btn.disabled = true;
-  btn.innerHTML = '<div class="spinner"></div>';
+  btn.disabled = true; btn.innerHTML = '<div class="spinner"></div>';
   clearAuthError();
-  try {
-    await signInWithEmailAndPassword(auth, email, password);
-    showToast('Welcome back!');
-  } catch(e) {
-    showAuthError(friendlyAuthError(e.code));
-    btn.disabled = false;
-    btn.textContent = 'Sign In';
-  }
+  try { await signInWithEmailAndPassword(auth, email, pw); showToast('Welcome back!'); }
+  catch(e) { showAuthError(friendlyErr(e.code)); btn.disabled=false; btn.textContent='Sign In'; }
 };
 
-// ── SIGN UP ──
-window.doSignUp = async function() {
-  const name     = document.getElementById('suName').value.trim();
-  const email    = document.getElementById('suEmail').value.trim();
-  const password = document.getElementById('suPassword').value;
-  if (!name || !email || !password) { showAuthError('Please fill in all fields.'); return; }
-  if (password.length < 6) { showAuthError('Password must be at least 6 characters.'); return; }
+window.doSignUp = async () => {
+  const name  = document.getElementById('suName').value.trim();
+  const email = document.getElementById('suEmail').value.trim();
+  const pw    = document.getElementById('suPassword').value;
+  if (!name||!email||!pw) { showAuthError('Please fill in all fields.'); return; }
+  if (pw.length < 6)      { showAuthError('Password must be at least 6 characters.'); return; }
   const btn = document.getElementById('signUpBtn');
-  btn.disabled = true;
-  btn.innerHTML = '<div class="spinner"></div>';
+  btn.disabled = true; btn.innerHTML = '<div class="spinner"></div>';
   clearAuthError();
   try {
-    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    const cred = await createUserWithEmailAndPassword(auth, email, pw);
     await updateProfile(cred.user, { displayName: name });
-    await set(ref(db, `users/${cred.user.uid}`), {
-      displayName: name,
-      email: email,
-      createdAt: Date.now()
-    });
+    await set(ref(db, `users/${cred.user.uid}`), { displayName:name, email, createdAt:Date.now() });
     currentUserName = name;
-    showToast('Account created! Welcome 🎉');
-  } catch(e) {
-    showAuthError(friendlyAuthError(e.code));
-    btn.disabled = false;
-    btn.textContent = 'Create Account';
-  }
+    showToast('Welcome to Ona 🎉');
+  } catch(e) { showAuthError(friendlyErr(e.code)); btn.disabled=false; btn.textContent='Create Account'; }
 };
 
-// ── GOOGLE SIGN IN ──
-window.doGoogleSignIn = async function() {
+window.doGoogleSignIn = async () => {
   clearAuthError();
   try {
-    const result = await signInWithPopup(auth, googleProvider);
-    const user   = result.user;
-    const snap   = await get(ref(db, `users/${user.uid}`));
-    if (!snap.exists()) {
-      await set(ref(db, `users/${user.uid}`), {
-        displayName: user.displayName || 'User',
-        email: user.email,
-        createdAt: Date.now()
-      });
-    }
-    showToast('Signed in with Google!');
-  } catch(e) {
-    if (e.code !== 'auth/popup-closed-by-user') showAuthError(friendlyAuthError(e.code));
-  }
+    const r    = await signInWithPopup(auth, gp);
+    const snap = await get(ref(db, `users/${r.user.uid}`));
+    if (!snap.exists()) await set(ref(db,`users/${r.user.uid}`), { displayName:r.user.displayName||'User', email:r.user.email, photoURL:r.user.photoURL||'', createdAt:Date.now() });
+    showToast('Signed in!');
+  } catch(e) { if(e.code!=='auth/popup-closed-by-user') showAuthError(friendlyErr(e.code)); }
 };
 
-function friendlyAuthError(code) {
-  const map = {
-    'auth/invalid-email':             'That doesn\'t look like a valid email.',
-    'auth/user-not-found':            'No account found with that email.',
-    'auth/wrong-password':            'Incorrect password.',
-    'auth/email-already-in-use':      'An account already exists with this email.',
-    'auth/weak-password':             'Password is too weak.',
-    'auth/too-many-requests':         'Too many attempts. Try again later.',
-    'auth/network-request-failed':    'Network error. Check your connection.',
-    'auth/invalid-credential':        'Invalid credentials. Check and try again.',
-  };
-  return map[code] || 'Something went wrong. Please try again.';
+function friendlyErr(code) {
+  return ({
+    'auth/invalid-email':          'Invalid email address.',
+    'auth/user-not-found':         'No account found with that email.',
+    'auth/wrong-password':         'Incorrect password.',
+    'auth/invalid-credential':     'Email or password is incorrect.',
+    'auth/email-already-in-use':   'An account already exists with this email.',
+    'auth/weak-password':          'Password is too weak.',
+    'auth/too-many-requests':      'Too many attempts. Please try again later.',
+    'auth/network-request-failed': 'Network error. Check your connection.',
+  })[code] || 'Something went wrong. Please try again.';
 }
 
-// ── HANDLE CREATE CLICK ──
-window.handleCreateClick = function() {
-  if (!currentUser) { openAuth('signin'); return; }
-  openCreate();
-};
+/* ═══════════════════════════════════════════════════════════
+   FILE PICKER / DRAG-AND-DROP
+═══════════════════════════════════════════════════════════ */
+window.triggerFilePick = () => document.getElementById('fileInput').click();
 
-// ── FILE PICKER ──
-document.getElementById('fileInput').addEventListener('change', (e) => {
+document.getElementById('fileInput').addEventListener('change', e => {
   const file = e.target.files[0];
-  if (!file) return;
-  selectedFile = file;
-  const reader = new FileReader();
-  reader.onload = (ev) => {
-    const pickArea   = document.getElementById('pickArea');
-    const previewImg = document.getElementById('previewImg');
-    previewImg.src   = ev.target.result;
-    previewImg.style.display = 'block';
-    pickArea.classList.add('has-image');
-  };
-  reader.readAsDataURL(file);
+  if (file) applyPickedFile(file);
 });
 
-// ── CLOUDINARY ──
+/* drag-and-drop onto the pick zone */
+const pickZone = document.getElementById('pickZone');
+pickZone.addEventListener('dragover', e => { e.preventDefault(); document.getElementById('dropOverlay').classList.add('active'); });
+pickZone.addEventListener('dragleave', () => document.getElementById('dropOverlay').classList.remove('active'));
+pickZone.addEventListener('drop', e => {
+  e.preventDefault();
+  document.getElementById('dropOverlay').classList.remove('active');
+  const file = e.dataTransfer?.files?.[0];
+  if (file && file.type.startsWith('image/')) applyPickedFile(file);
+});
+pickZone.addEventListener('click', () => { if (!selectedFile) triggerFilePick(); });
+
+function applyPickedFile(file) {
+  selectedFile = file;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const img = document.getElementById('pickPreview');
+    img.src   = ev.target.result;
+    img.classList.add('loaded');
+    document.getElementById('pickPlaceholder').classList.add('hidden');
+    document.getElementById('pickBar').classList.add('show');
+    document.getElementById('pickedFileName').textContent = file.name.length > 22 ? file.name.slice(0,20)+'…' : file.name;
+  };
+  reader.readAsDataURL(file);
+}
+
+window.removePickedImage = () => {
+  selectedFile = null;
+  const img = document.getElementById('pickPreview');
+  img.src = ''; img.classList.remove('loaded');
+  document.getElementById('pickPlaceholder').classList.remove('hidden');
+  document.getElementById('pickBar').classList.remove('show');
+  document.getElementById('pickedFileName').textContent = 'No file chosen';
+  document.getElementById('fileInput').value = '';
+};
+
+/* character counter */
+document.getElementById('captionInput').addEventListener('input', () => {
+  const len = document.getElementById('captionInput').value.length;
+  const el  = document.getElementById('charCount');
+  el.textContent = `${len} / 300`;
+  el.classList.toggle('warn', len > 260);
+});
+
+/* ═══════════════════════════════════════════════════════════
+   CLOUDINARY
+═══════════════════════════════════════════════════════════ */
 async function uploadToCloudinary(file, onProgress) {
-  return new Promise((resolve, reject) => {
-    const xhr  = new XMLHttpRequest();
-    const form = new FormData();
-    form.append('file', file);
-    form.append('upload_preset', UPLOAD_PRESET);
+  return new Promise((res, rej) => {
+    const xhr = new XMLHttpRequest(), fd = new FormData();
+    fd.append('file', file); fd.append('upload_preset', UPLOAD_PRESET);
     xhr.open('POST', CLOUDINARY_URL);
-    xhr.upload.addEventListener('progress', (e) => {
-      if (e.lengthComputable && onProgress) onProgress(Math.round((e.loaded / e.total) * 100));
-    });
+    xhr.upload.addEventListener('progress', e => { if (e.lengthComputable && onProgress) onProgress(Math.round(e.loaded/e.total*100)); });
     xhr.onload = () => {
-      if (xhr.status === 200) {
-        const data = JSON.parse(xhr.responseText);
-        data.error ? reject(new Error(data.error.message)) : resolve(data.secure_url);
-      } else reject(new Error('Cloudinary HTTP ' + xhr.status));
+      if (xhr.status===200) { const d=JSON.parse(xhr.responseText); d.error ? rej(new Error(d.error.message)) : res(d.secure_url); }
+      else rej(new Error('HTTP '+xhr.status));
     };
-    xhr.onerror = () => reject(new Error('Network error'));
-    xhr.send(form);
+    xhr.onerror = () => rej(new Error('Network error'));
+    xhr.send(fd);
   });
 }
 
-// ── SUBMIT POST ──
-window.submitPost = async function() {
-  if (!selectedFile) { showToast('Please choose a photo first'); return; }
-  const caption  = document.getElementById('captionInput').value.trim();
-  const postBtn  = document.getElementById('postBtn');
-  const progress = document.getElementById('uploadProgress');
-  const bar      = document.getElementById('progressBar');
-  if (!currentUser) { showToast('Please sign in first'); openAuth(); return; }
-  postBtn.disabled = true;
-  postBtn.innerHTML = '<div class="spinner"></div> Uploading...';
-  progress.classList.add('active');
-  bar.style.width = '0%';
+/* ═══════════════════════════════════════════════════════════
+   SUBMIT POST
+═══════════════════════════════════════════════════════════ */
+window.submitPost = async () => {
+  if (!selectedFile)   { showToast('Please choose a photo first'); return; }
+  if (!currentUser)    { showToast('Please sign in first'); openAuth(); return; }
+  const caption = document.getElementById('captionInput').value.trim();
+  const btn     = document.getElementById('postBtn');
+  const strip   = document.getElementById('uploadStrip');
+  const bar     = document.getElementById('uploadStripBar');
+
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div> Uploading…';
+  strip.classList.add('show'); bar.style.width = '0%';
+
   try {
-    const cloudUrl = await uploadToCloudinary(selectedFile, (pct) => { bar.style.width = pct + '%'; });
+    const cloudUrl = await uploadToCloudinary(selectedFile, pct => { bar.style.width = pct + '%'; });
     bar.style.width = '100%';
-    postBtn.innerHTML = '<div class="spinner"></div> Saving...';
-    const payload = { imgUrl: cloudUrl, caption, author: currentUserName, uid: currentUser.uid, likes: 0, timestamp: Date.now() };
-    const newRef  = await push(ref(db, 'posts'), payload);
-    const post    = { id: newRef.key, ...payload, liked: false, comments: [] };
+    btn.innerHTML = '<div class="spinner"></div> Saving…';
+
+    const payload = {
+      imgUrl:    cloudUrl,
+      caption,
+      author:    currentUserName,
+      uid:       currentUser.uid,
+      photoURL:  currentPhotoURL || '',
+      likes:     0,
+      timestamp: Date.now()
+    };
+    const newRef = await push(ref(db, 'posts'), payload);
+    const post   = { id:newRef.key, ...payload, liked:false, comments:[] };
     posts.unshift(post);
     document.getElementById('emptyFeed')?.remove();
     renderPost(post, true);
     closeCreate();
-    showToast('Posted!');
+    showToast('Posted! 🎉');
   } catch(err) {
-    showToast('Post failed: ' + err.message);
-    postBtn.disabled = false;
-    postBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Post to Feed`;
-    progress.classList.remove('active');
+    showToast('Post failed: '+err.message);
+    btn.disabled = false;
+    btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Post to Feed`;
+    strip.classList.remove('show');
   }
 };
 
-// ── OPEN/CLOSE SHEETS ──
-window.openCreate = function() {
-  selectedFile = null;
+/* ═══════════════════════════════════════════════════════════
+   OPEN / CLOSE SHEETS
+═══════════════════════════════════════════════════════════ */
+window.openCreate = () => {
+  window.removePickedImage();
   document.getElementById('captionInput').value = '';
-  document.getElementById('fileInput').value = '';
-  const pickArea = document.getElementById('pickArea');
-  const previewImg = document.getElementById('previewImg');
-  previewImg.src = ''; previewImg.style.display = 'none';
-  pickArea.classList.remove('has-image');
-  const postBtn = document.getElementById('postBtn');
-  postBtn.disabled = false;
-  postBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Post to Feed`;
-  document.getElementById('uploadProgress').classList.remove('active');
-  document.getElementById('progressBar').style.width = '0%';
+  document.getElementById('charCount').textContent = '0 / 300';
+  const btn   = document.getElementById('postBtn');
+  btn.disabled = false;
+  btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Post to Feed`;
+  document.getElementById('uploadStrip').classList.remove('show');
+  document.getElementById('uploadStripBar').style.width = '0%';
+  updateCaptionAvatar();
   document.getElementById('createSheet').classList.add('open');
   document.getElementById('backdrop').style.display = 'block';
 };
-window.closeCreate = function() {
+window.closeCreate = () => {
   document.getElementById('createSheet').classList.remove('open');
+  maybeClearBackdrop();
+};
+
+function maybeClearBackdrop() {
+  const anyOpen = ['authSheet','createSheet','commentSheet']
+    .some(id => document.getElementById(id).classList.contains('open'));
+  if (!anyOpen && !document.getElementById('dialogOverlay').classList.contains('open')) {
+    document.getElementById('backdrop').style.display = 'none';
+  }
+}
+
+window.closeAll = () => {
+  closeCreate(); closeComments(); closeAuth(); closeCtxMenu(); closeDialog();
   document.getElementById('backdrop').style.display = 'none';
 };
-window.closeAll = function() { closeCreate(); closeComments(); closeAuth(); };
 
-// ── LOAD FEED ──
+window.handleCreateClick = () => { if (!currentUser) { openAuth(); return; } openCreate(); };
+
+/* ═══════════════════════════════════════════════════════════
+   FEED
+═══════════════════════════════════════════════════════════ */
 function loadFeed() {
-  onValue(ref(db, 'posts'), (snapshot) => {
-    const data = snapshot.val();
+  onValue(ref(db, 'posts'), snap => {
+    const data = snap.val();
     if (!data) return;
     const incoming = Object.entries(data)
-      .map(([key, val]) => ({
-        id: key, imgUrl: val.imgUrl||'', caption: val.caption||'',
-        author: val.author||'Unknown', likes: val.likes||0, liked: false,
-        timestamp: val.timestamp||0,
-        comments: val.comments ? Object.values(val.comments) : []
+      .map(([key,val]) => ({
+        id:key, imgUrl:val.imgUrl||'', caption:val.caption||'',
+        author:val.author||'Unknown', uid:val.uid||'',
+        photoURL:val.photoURL||'', likes:val.likes||0,
+        liked:false, timestamp:val.timestamp||0,
+        comments:val.comments ? Object.values(val.comments) : []
       }))
-      .sort((a, b) => b.timestamp - a.timestamp);
-    const existingIds = new Set(posts.map(p => p.id));
+      .sort((a,b) => b.timestamp - a.timestamp);
+    const existingIds = new Set(posts.map(p=>p.id));
     incoming.filter(p => !existingIds.has(p.id)).forEach(post => {
       posts.push(post);
       document.getElementById('emptyFeed')?.remove();
@@ -607,20 +856,37 @@ function loadFeed() {
   });
 }
 
-// ── RENDER POST ──
-function renderPost(post, scrollTo = false) {
-  if (document.getElementById('post-' + post.id)) return;
+/* ─── Build avatar HTML ─── */
+function avatarHtml(photoURL, name, extra='') {
+  const letter = (name||'?')[0].toUpperCase();
+  if (photoURL) return `<div class="post-avatar" ${extra}><img src="${esc(photoURL)}" alt="" loading="lazy"/></div>`;
+  return `<div class="post-avatar" ${extra}>${esc(letter)}</div>`;
+}
+
+function renderPost(post, scrollTo=false) {
+  if (document.getElementById('post-'+post.id)) return;
   const feed = document.getElementById('feed');
   document.getElementById('emptyFeed')?.remove();
+
+  const isOwn = currentUser && currentUser.uid === post.uid;
+  const menuBtn = isOwn ? `<button class="post-menu-btn" onclick="openCtxMenu(event,'${post.id}')">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+  </button>` : '';
+
   const div = document.createElement('div');
-  div.className = 'post';
-  div.id = 'post-' + post.id;
+  div.className = 'post'; div.id = 'post-'+post.id;
   div.innerHTML = `
-    <div class="post-bg"><img src="${escHtml(post.imgUrl)}" alt="" loading="lazy" onclick="openViewer('${escHtml(post.imgUrl)}')"/></div>
+    <div class="post-bg"><img src="${esc(post.imgUrl)}" alt="" loading="lazy"/></div>
+    ${menuBtn}
     <div class="post-content">
-      <div class="post-author">@${escHtml(post.author)}</div>
-      <div class="post-caption" id="caption-${post.id}">${escHtml(post.caption)}</div>
+      <div class="post-author-row">
+        ${avatarHtml(post.photoURL, post.author)}
+        <div class="post-author">@${esc(post.author)}</div>
+      </div>
+      ${post.caption ? `
+      <div class="post-caption" id="caption-${post.id}">${esc(post.caption)}</div>
       ${post.caption.length > 80 ? `<button class="read-more" onclick="toggleCaption('${post.id}')">more</button>` : ''}
+      ` : ''}
     </div>
     <div class="action-bar">
       <button class="action-btn" id="like-btn-${post.id}" onclick="toggleLike('${post.id}')">
@@ -643,108 +909,178 @@ function renderPost(post, scrollTo = false) {
       </button>
     </div>
   `;
+  /* open viewer on image tap */
+  div.querySelector('.post-bg img').addEventListener('click', () => openViewer(post.imgUrl));
   feed.insertBefore(div, feed.firstChild);
   if (scrollTo) div.scrollIntoView({ behavior:'smooth' });
 }
 
-// ── INTERACTIONS ──
-window.toggleCaption = function(id) {
-  const cap = document.getElementById('caption-' + id);
+/* ═══════════════════════════════════════════════════════════
+   CONTEXT MENU
+═══════════════════════════════════════════════════════════ */
+window.openCtxMenu = (e, postId) => {
+  e.stopPropagation();
+  ctxPostId = postId;
+  const menu = document.getElementById('ctxMenu');
+  const btn  = e.currentTarget;
+  const rect = btn.getBoundingClientRect();
+  /* position below the button, right-aligned */
+  menu.style.top   = (rect.bottom + 6) + 'px';
+  menu.style.right = (window.innerWidth - rect.right) + 'px';
+  menu.style.left  = 'auto';
+  menu.classList.add('open');
+  document.getElementById('backdrop').style.display = 'block';
+};
+function closeCtxMenu() {
+  document.getElementById('ctxMenu').classList.remove('open');
+  ctxPostId = null;
+  maybeClearBackdrop();
+}
+window.closeCtxMenu = closeCtxMenu;
+
+/* tap outside to close ctx menu */
+document.getElementById('backdrop').addEventListener('click', () => {
+  closeCtxMenu();
+});
+
+window.ctxDeletePost = () => {
+  closeCtxMenu();
+  const post = posts.find(p => p.id === ctxPostId) || posts.find(p => p.id === ctxPostId);
+  const id   = ctxPostId;
+  showDialog({
+    icon: 'warn',
+    title: 'Delete this post?',
+    msg:  'This will permanently remove your post and cannot be undone.',
+    actions: [
+      { label:'Cancel', style:'cancel', fn: null },
+      { label:'Delete', style:'danger', fn: async () => {
+          try {
+            await remove(ref(db, 'posts/'+id));
+            document.getElementById('post-'+id)?.remove();
+            posts = posts.filter(p => p.id !== id);
+            showToast('Post deleted');
+          } catch { showToast('Could not delete post.'); }
+        }
+      }
+    ]
+  });
+};
+
+window.ctxCopyLink = () => {
+  closeCtxMenu();
+  navigator.clipboard.writeText(window.location.href)
+    .then(() => showToast('Link copied!'))
+    .catch(() => showToast('Could not copy link'));
+};
+
+/* ═══════════════════════════════════════════════════════════
+   INTERACTIONS
+═══════════════════════════════════════════════════════════ */
+window.toggleCaption = id => {
+  const cap = document.getElementById('caption-'+id);
   const btn = cap?.nextElementSibling;
   if (!cap) return;
   cap.classList.toggle('expanded');
   if (btn) btn.textContent = cap.classList.contains('expanded') ? 'less' : 'more';
 };
 
-window.toggleLike = function(id) {
+window.toggleLike = id => {
   if (!currentUser) { showToast('Sign in to like posts'); openAuth(); return; }
   const post = posts.find(p => p.id === id);
   if (!post) return;
-  post.liked = !post.liked;
-  post.likes = (post.likes||0) + (post.liked ? 1 : -1);
-  const btn   = document.getElementById('like-btn-' + id);
-  const count = document.getElementById('like-count-' + id);
-  if (!btn || !count) return;
-  btn.classList.toggle('liked', post.liked);
-  count.textContent = post.likes;
-  update(ref(db, 'posts/' + id), { likes: post.likes }).catch(console.error);
+  post.liked  = !post.liked;
+  post.likes  = (post.likes||0) + (post.liked ? 1 : -1);
+  document.getElementById('like-btn-'+id)?.classList.toggle('liked', post.liked);
+  const cnt = document.getElementById('like-count-'+id);
+  if (cnt) cnt.textContent = post.likes;
+  update(ref(db,'posts/'+id), { likes:post.likes }).catch(console.error);
   if (post.liked) {
     const burst = document.createElement('div');
     burst.className = 'heart-burst'; burst.textContent = '❤️';
-    document.getElementById('post-' + id).appendChild(burst);
+    document.getElementById('post-'+id)?.appendChild(burst);
     setTimeout(() => burst.remove(), 700);
   }
 };
 
-window.openComments = function(id) {
+window.openComments = id => {
   activeCommentPostId = id;
   const post = posts.find(p => p.id === id);
   const list = document.getElementById('commentsList');
   list.innerHTML = '';
   if (!post?.comments?.length) {
-    list.innerHTML = '<p style="color:var(--muted);font-size:0.9rem;text-align:center;padding:24px">No comments yet.</p>';
+    list.innerHTML = '<p style="color:var(--muted);font-size:0.88rem;text-align:center;padding:24px 0">No comments yet.</p>';
   } else {
     post.comments.forEach(c => {
       const el = document.createElement('div');
       el.className = 'comment-item';
-      el.innerHTML = `<div class="c-avatar">${escHtml((c.name||'?')[0].toUpperCase())}</div><div class="c-body"><div class="c-name">${escHtml(c.name)}</div><div class="c-text">${escHtml(c.text)}</div></div>`;
+      const av = c.photoURL
+        ? `<div class="c-avatar"><img src="${esc(c.photoURL)}" alt=""/></div>`
+        : `<div class="c-avatar">${esc((c.name||'?')[0].toUpperCase())}</div>`;
+      el.innerHTML = `${av}<div class="c-body"><div class="c-name">${esc(c.name)}</div><div class="c-text">${esc(c.text)}</div></div>`;
       list.appendChild(el);
     });
   }
   document.getElementById('commentSheet').classList.add('open');
   document.getElementById('backdrop').style.display = 'block';
-  document.getElementById('commentInput').focus();
+  setTimeout(() => document.getElementById('commentInput').focus(), 300);
 };
-window.closeComments = function() {
+window.closeComments = () => {
   document.getElementById('commentSheet').classList.remove('open');
-  document.getElementById('backdrop').style.display = 'none';
   activeCommentPostId = null;
+  maybeClearBackdrop();
 };
-window.postComment = function() {
+window.postComment = () => {
   if (!currentUser) { showToast('Sign in to comment'); openAuth(); return; }
   const input = document.getElementById('commentInput');
   const text  = input.value.trim();
   if (!text || !activeCommentPostId) return;
   const post = posts.find(p => p.id === activeCommentPostId);
   if (!post) return;
-  const comment = { name: currentUserName, text };
-  if (!post.comments) post.comments = [];
+  const comment = { name:currentUserName, text, photoURL:currentPhotoURL||'' };
+  post.comments = post.comments || [];
   post.comments.push(comment);
-  push(ref(db, 'posts/' + activeCommentPostId + '/comments'), comment).catch(console.error);
+  push(ref(db,'posts/'+activeCommentPostId+'/comments'), comment).catch(console.error);
   const el = document.createElement('div');
   el.className = 'comment-item';
-  el.innerHTML = `<div class="c-avatar" style="background:var(--accent)">${escHtml(currentUserName[0].toUpperCase())}</div><div class="c-body"><div class="c-name" style="color:var(--accent)">${escHtml(currentUserName)}</div><div class="c-text">${escHtml(text)}</div></div>`;
+  const av = currentPhotoURL
+    ? `<div class="c-avatar" style="border:2px solid var(--accent)"><img src="${esc(currentPhotoURL)}" alt=""/></div>`
+    : `<div class="c-avatar" style="background:var(--accent)">${esc(currentUserName[0].toUpperCase())}</div>`;
+  el.innerHTML = `${av}<div class="c-body"><div class="c-name" style="color:var(--accent)">${esc(currentUserName)}</div><div class="c-text">${esc(text)}</div></div>`;
   const list = document.getElementById('commentsList');
   list.querySelector('p')?.remove();
   list.appendChild(el);
   list.scrollTop = list.scrollHeight;
-  const countEl = document.getElementById('comment-count-' + activeCommentPostId);
-  if (countEl) countEl.textContent = post.comments.length;
+  const cnt = document.getElementById('comment-count-'+activeCommentPostId);
+  if (cnt) cnt.textContent = post.comments.length;
   input.value = '';
-  showToast('Comment posted');
+  showToast('Comment added');
 };
 
-window.sharePost = function(id) {
+window.sharePost = id => {
   if (navigator.share) navigator.share({ title:'Ona', text:'Check out this post!', url:window.location.href });
   else navigator.clipboard.writeText(window.location.href).then(() => showToast('Link copied!'));
 };
 
-window.openViewer = function(url) {
+/* ═══════════════════════════════════════════════════════════
+   IMAGE VIEWER
+═══════════════════════════════════════════════════════════ */
+window.openViewer = url => {
   const v = document.getElementById('imgViewer');
   document.getElementById('viewerImg').src = url;
   v.classList.add('open');
-  setTimeout(() => v.classList.add('visible'), 10);
+  requestAnimationFrame(() => v.classList.add('visible'));
 };
-window.closeViewer = function() {
+window.closeViewer = () => {
   const v = document.getElementById('imgViewer');
   v.classList.remove('visible');
-  setTimeout(() => { v.classList.remove('open'); document.getElementById('viewerImg').src = ''; }, 280);
+  setTimeout(() => { v.classList.remove('open'); document.getElementById('viewerImg').src=''; }, 260);
 };
 
-document.getElementById('commentInput').addEventListener('keypress', e => { if (e.key === 'Enter') postComment(); });
-document.getElementById('siEmail').addEventListener('keypress', e => { if (e.key === 'Enter') document.getElementById('siPassword').focus(); });
-document.getElementById('siPassword').addEventListener('keypress', e => { if (e.key === 'Enter') doSignIn(); });
-document.getElementById('suPassword').addEventListener('keypress', e => { if (e.key === 'Enter') doSignUp(); });
+/* ─── keyboard shortcuts in sheets ─── */
+document.getElementById('commentInput').addEventListener('keypress', e => { if(e.key==='Enter') postComment(); });
+document.getElementById('siEmail').addEventListener('keypress',     e => { if(e.key==='Enter') document.getElementById('siPassword').focus(); });
+document.getElementById('siPassword').addEventListener('keypress',  e => { if(e.key==='Enter') doSignIn(); });
+document.getElementById('suPassword').addEventListener('keypress',  e => { if(e.key==='Enter') doSignUp(); });
 
 loadFeed();
 </script>
