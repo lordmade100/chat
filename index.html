@@ -4,125 +4,182 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 <title>Ona - Vision Feed</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet"/>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-:root { --accent:#FF4D6D; --accent2:#C084FC; --gold:#FFD166; --muted:rgba(255,255,255,0.55); }
-html,body { height:100%; overflow:hidden; background:#000; color:#FAFAFA; font-family:'DM Sans',sans-serif; }
 
+:root {
+  --accent: #E8392A;
+  --accent2: #F07B44;
+  --gold: #C9853A;
+  --bg: #F7F4F0;
+  --surface: #FFFFFF;
+  --surface2: #F0EDE8;
+  --border: rgba(0,0,0,0.08);
+  --border2: rgba(0,0,0,0.14);
+  --text: #1A1714;
+  --text2: #5C544C;
+  --muted: rgba(26,23,20,0.45);
+  --sheet-bg: #FDFCFB;
+  --shadow: 0 4px 32px rgba(0,0,0,0.10);
+}
+
+html, body { height:100%; overflow:hidden; background:var(--bg); color:var(--text); font-family:'Lato', sans-serif; }
+
+/* ── FEED ── */
 #feed { width:100vw; height:100svh; overflow-y:scroll; scroll-snap-type:y mandatory; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
 #feed::-webkit-scrollbar { display:none; }
 
 .post { width:100vw; height:100svh; scroll-snap-align:start; scroll-snap-stop:always; position:relative; overflow:hidden; display:flex; align-items:flex-end; }
-.post-bg { position:absolute; inset:0; background:#111; display:flex; align-items:center; justify-content:center; }
+.post-bg { position:absolute; inset:0; background:#ddd; display:flex; align-items:center; justify-content:center; }
 .post-bg img { width:100%; height:100%; object-fit:cover; display:block; transition:transform 8s ease; }
 .post:not(.loading) .post-bg img { transform:scale(1.06); }
-.post::after { content:''; position:absolute; inset:0; pointer-events:none; background:linear-gradient(to bottom,rgba(0,0,0,0.2) 0%,transparent 30%,transparent 45%,rgba(0,0,0,0.85) 100%); }
+.post::after { content:''; position:absolute; inset:0; pointer-events:none; background:linear-gradient(to bottom, rgba(255,255,255,0.05) 0%, transparent 28%, transparent 42%, rgba(0,0,0,0.62) 100%); }
 
-.post-content { position:relative; z-index:5; width:100%; padding:0 72px 40px 20px; display:flex; flex-direction:column; gap:8px; }
-.post-author { font-family:'Syne',sans-serif; font-size:0.78rem; font-weight:700; letter-spacing:1px; color:var(--gold); opacity:0.9; }
-.post-caption { font-size:0.95rem; line-height:1.5; color:#fff; text-shadow:0 1px 8px rgba(0,0,0,0.7); max-width:300px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+.post-content { position:relative; z-index:5; width:100%; padding:0 72px 44px 20px; display:flex; flex-direction:column; gap:6px; }
+.post-author { font-family:'Playfair Display', serif; font-size:0.75rem; font-weight:700; letter-spacing:1.5px; color:rgba(255,255,255,0.85); text-transform:uppercase; }
+.post-caption { font-size:0.96rem; line-height:1.55; color:#fff; text-shadow:0 1px 10px rgba(0,0,0,0.55); max-width:290px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
 .post-caption.expanded { -webkit-line-clamp:unset; }
-.read-more { background:none; border:none; color:var(--gold); font-family:'DM Sans',sans-serif; font-size:0.82rem; font-weight:500; cursor:pointer; padding:0; align-self:flex-start; }
+.read-more { background:none; border:none; color:rgba(255,255,255,0.72); font-family:'Lato',sans-serif; font-size:0.8rem; font-weight:700; cursor:pointer; padding:0; align-self:flex-start; text-decoration:underline; }
 
-.action-bar { position:absolute; right:12px; bottom:100px; z-index:10; display:flex; flex-direction:column; align-items:center; gap:20px; }
+.action-bar { position:absolute; right:12px; bottom:100px; z-index:10; display:flex; flex-direction:column; align-items:center; gap:18px; }
 .action-btn { display:flex; flex-direction:column; align-items:center; gap:4px; background:none; border:none; color:#FAFAFA; cursor:pointer; }
-.action-icon { width:48px; height:48px; border-radius:50%; background:rgba(255,255,255,0.12); backdrop-filter:blur(12px); border:1px solid rgba(255,255,255,0.18); display:flex; align-items:center; justify-content:center; transition:transform 0.15s,background 0.2s; }
+.action-icon { width:48px; height:48px; border-radius:50%; background:rgba(255,255,255,0.18); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border:1px solid rgba(255,255,255,0.3); display:flex; align-items:center; justify-content:center; transition:transform 0.15s, background 0.2s; }
 .action-btn:active .action-icon { transform:scale(0.88); }
 .action-btn.liked .action-icon { background:var(--accent); border-color:var(--accent); }
 .action-btn.liked svg { stroke:white; fill:white; }
-.action-count { font-family:'Syne',sans-serif; font-size:0.72rem; font-weight:700; color:rgba(255,255,255,0.85); }
+.action-count { font-family:'Playfair Display', serif; font-size:0.7rem; font-weight:700; color:rgba(255,255,255,0.9); }
 
 .heart-burst { position:absolute; font-size:70px; left:50%; top:50%; transform:translate(-50%,-50%) scale(0); z-index:20; pointer-events:none; animation:burst 0.6s ease forwards; }
 @keyframes burst { 0%{transform:translate(-50%,-50%) scale(0);opacity:1} 50%{transform:translate(-50%,-50%) scale(1.4);opacity:1} 100%{transform:translate(-50%,-50%) scale(1.1);opacity:0} }
 
-.top-nav { position:fixed; top:0; left:0; right:0; z-index:50; display:flex; align-items:center; justify-content:space-between; padding:16px 20px; padding-top:max(16px,env(safe-area-inset-top)); }
-.nav-logo { font-family:'Syne',sans-serif; font-size:1.3rem; font-weight:800; letter-spacing:1px; }
+/* ── TOP NAV ── */
+.top-nav { position:fixed; top:0; left:0; right:0; z-index:50; display:flex; align-items:center; justify-content:space-between; padding:16px 20px; padding-top:max(16px,env(safe-area-inset-top)); background:linear-gradient(to bottom, rgba(247,244,240,0.9) 0%, rgba(247,244,240,0) 100%); }
+.nav-logo { font-family:'Playfair Display', serif; font-size:1.5rem; font-weight:900; letter-spacing:-0.5px; color:var(--text); }
 .nav-logo span { color:var(--accent); }
-.nav-create-btn { background:var(--accent); border:none; color:white; font-family:'Syne',sans-serif; font-size:0.75rem; font-weight:700; letter-spacing:1px; padding:8px 16px; border-radius:20px; cursor:pointer; display:flex; align-items:center; gap:6px; transition:transform 0.15s; }
+.nav-auth-btn { background:var(--text); border:none; color:white; font-family:'Lato', sans-serif; font-size:0.72rem; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; padding:8px 16px; border-radius:20px; cursor:pointer; transition:transform 0.15s; }
+.nav-auth-btn:active { transform:scale(0.95); }
+.nav-create-btn { background:var(--accent); border:none; color:white; font-family:'Lato', sans-serif; font-size:0.72rem; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; padding:8px 16px; border-radius:20px; cursor:pointer; display:flex; align-items:center; gap:6px; transition:transform 0.15s; }
 .nav-create-btn:active { transform:scale(0.95); }
 
-.empty-feed { width:100vw; height:100svh; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; text-align:center; padding:40px; }
+/* ── EMPTY FEED ── */
+.empty-feed { width:100vw; height:100svh; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; text-align:center; padding:40px; background:var(--bg); }
 .empty-feed .big-icon { font-size:56px; }
-.empty-feed h2 { font-family:'Syne',sans-serif; font-size:1.4rem; font-weight:800; }
-.empty-feed p { color:var(--muted); font-size:0.9rem; max-width:260px; line-height:1.5; }
-.empty-cta { background:var(--accent); border:none; color:white; font-family:'Syne',sans-serif; font-size:0.85rem; font-weight:700; letter-spacing:1px; padding:12px 28px; border-radius:24px; cursor:pointer; margin-top:8px; }
+.empty-feed h2 { font-family:'Playfair Display', serif; font-size:1.5rem; font-weight:900; color:var(--text); }
+.empty-feed p { color:var(--muted); font-size:0.9rem; max-width:260px; line-height:1.6; }
+.empty-cta { background:var(--accent); border:none; color:white; font-family:'Lato', sans-serif; font-size:0.8rem; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; padding:13px 30px; border-radius:24px; cursor:pointer; margin-top:8px; }
+
+/* ── SHARED SHEET BASE ── */
+.sheet { position:fixed; bottom:0; left:0; right:0; z-index:200; background:var(--sheet-bg); border-radius:28px 28px 0 0; border-top:1px solid var(--border); box-shadow:0 -8px 40px rgba(0,0,0,0.10); transform:translateY(100%); transition:transform 0.4s cubic-bezier(0.32,0.72,0,1); display:flex; flex-direction:column; max-height:92svh; padding-bottom:max(24px,env(safe-area-inset-bottom)); }
+.sheet.open { transform:translateY(0); }
+.sheet-handle { width:36px; height:4px; background:rgba(0,0,0,0.12); border-radius:2px; margin:14px auto 0; flex-shrink:0; }
+.sheet-header { padding:16px 20px 12px; font-family:'Playfair Display', serif; font-size:1.1rem; font-weight:700; border-bottom:1px solid var(--border); flex-shrink:0; display:flex; justify-content:space-between; align-items:center; color:var(--text); }
+.sheet-close { background:none; border:none; color:var(--muted); cursor:pointer; display:flex; align-items:center; padding:4px; border-radius:50%; transition:background 0.2s; }
+.sheet-close:hover { background:var(--surface2); }
+
+/* ── AUTH SHEET ── */
+#authSheet { z-index:210; }
+.auth-body { flex:1; overflow-y:auto; padding:24px 20px; display:flex; flex-direction:column; gap:0; }
+.auth-body::-webkit-scrollbar { display:none; }
+
+.auth-tabs { display:flex; background:var(--surface2); border-radius:16px; padding:4px; margin-bottom:24px; flex-shrink:0; }
+.auth-tab { flex:1; padding:10px; border:none; background:none; font-family:'Lato',sans-serif; font-size:0.83rem; font-weight:700; letter-spacing:0.5px; color:var(--muted); border-radius:12px; cursor:pointer; transition:all 0.2s; }
+.auth-tab.active { background:var(--surface); color:var(--text); box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+
+.auth-form { display:flex; flex-direction:column; gap:14px; }
+.auth-form-panel { display:none; }
+.auth-form-panel.active { display:flex; flex-direction:column; gap:14px; }
+
+.input-group { display:flex; flex-direction:column; gap:6px; }
+.input-label { font-size:0.75rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--text2); }
+.auth-input { background:var(--surface); border:1.5px solid var(--border2); border-radius:14px; padding:14px 16px; color:var(--text); font-family:'Lato',sans-serif; font-size:0.95rem; outline:none; transition:border-color 0.2s; }
+.auth-input:focus { border-color:var(--accent); }
+.auth-input::placeholder { color:var(--muted); }
+
+.auth-btn { background:var(--accent); border:none; color:white; font-family:'Lato',sans-serif; font-size:0.85rem; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; padding:16px; border-radius:16px; cursor:pointer; transition:transform 0.15s, opacity 0.2s; margin-top:4px; }
+.auth-btn:active { transform:scale(0.97); }
+.auth-btn:disabled { opacity:0.45; pointer-events:none; }
+
+.auth-divider { display:flex; align-items:center; gap:12px; margin:4px 0; }
+.auth-divider::before, .auth-divider::after { content:''; flex:1; height:1px; background:var(--border2); }
+.auth-divider span { font-size:0.75rem; color:var(--muted); font-weight:700; letter-spacing:1px; }
+
+.google-btn { background:var(--surface); border:1.5px solid var(--border2); border-radius:16px; padding:14px; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer; font-family:'Lato',sans-serif; font-size:0.85rem; font-weight:700; color:var(--text); transition:transform 0.15s, box-shadow 0.2s; }
+.google-btn:active { transform:scale(0.97); box-shadow:0 2px 10px rgba(0,0,0,0.08); }
+
+.auth-error { background:#FFF0EE; border:1px solid rgba(232,57,42,0.25); border-radius:12px; padding:10px 14px; font-size:0.83rem; color:var(--accent); display:none; }
+.auth-error.show { display:block; }
 
 /* ── CREATE SHEET ── */
-.create-sheet { position:fixed; bottom:0; left:0; right:0; z-index:200; background:#0f0f0f; border-radius:28px 28px 0 0; border-top:1px solid rgba(255,255,255,0.1); transform:translateY(100%); transition:transform 0.38s cubic-bezier(0.32,0.72,0,1); display:flex; flex-direction:column; max-height:92svh; padding-bottom:max(20px,env(safe-area-inset-bottom)); }
-.create-sheet.open { transform:translateY(0); }
-.sheet-handle { width:36px; height:4px; background:rgba(255,255,255,0.18); border-radius:2px; margin:14px auto 0; flex-shrink:0; }
-.sheet-header { padding:14px 20px 10px; font-family:'Syne',sans-serif; font-size:1rem; font-weight:700; border-bottom:1px solid rgba(255,255,255,0.08); flex-shrink:0; display:flex; justify-content:space-between; align-items:center; }
-.sheet-close { background:none; border:none; color:var(--muted); cursor:pointer; display:flex; align-items:center; padding:4px; }
-
 .upload-body { flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:16px; }
 .upload-body::-webkit-scrollbar { display:none; }
 
-/* Image pick area */
-.pick-area { width:100%; aspect-ratio:4/3; border-radius:20px; border:2px dashed rgba(255,255,255,0.18); background:rgba(255,255,255,0.04); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; cursor:pointer; overflow:hidden; position:relative; transition:border-color 0.2s; }
+.pick-area { width:100%; aspect-ratio:4/3; border-radius:20px; border:2px dashed var(--border2); background:var(--surface2); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; cursor:pointer; overflow:hidden; position:relative; transition:border-color 0.2s; }
 .pick-area:active { border-color:var(--accent); }
-.pick-area.has-image { border-style:solid; border-color:rgba(255,255,255,0.22); }
+.pick-area.has-image { border-style:solid; border-color:var(--border2); }
 .pick-area img { width:100%; height:100%; object-fit:cover; position:absolute; inset:0; border-radius:18px; }
-.pick-label { font-family:'Syne',sans-serif; font-size:0.78rem; font-weight:700; letter-spacing:1px; color:var(--muted); z-index:1; }
-.pick-icon { width:44px; height:44px; border-radius:50%; background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; z-index:1; }
-.pick-change { position:absolute; bottom:10px; right:10px; z-index:2; background:rgba(0,0,0,0.65); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.2); border-radius:20px; padding:5px 12px; font-family:'Syne',sans-serif; font-size:0.7rem; font-weight:700; letter-spacing:1px; color:white; display:none; }
-.pick-area.has-image .pick-icon,
-.pick-area.has-image .pick-label { display:none; }
+.pick-label { font-family:'Lato', sans-serif; font-size:0.75rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--muted); z-index:1; }
+.pick-icon { width:44px; height:44px; border-radius:50%; background:rgba(0,0,0,0.07); display:flex; align-items:center; justify-content:center; z-index:1; }
+.pick-change { position:absolute; bottom:10px; right:10px; z-index:2; background:rgba(0,0,0,0.55); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.2); border-radius:20px; padding:5px 12px; font-family:'Lato',sans-serif; font-size:0.7rem; font-weight:700; letter-spacing:1px; color:white; display:none; }
+.pick-area.has-image .pick-icon, .pick-area.has-image .pick-label { display:none; }
 .pick-area.has-image .pick-change { display:block; }
 
-/* Caption input */
-.caption-field { background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.14); border-radius:16px; padding:14px 16px; color:white; font-family:'DM Sans',sans-serif; font-size:0.95rem; outline:none; resize:none; min-height:90px; line-height:1.5; }
+.caption-field { background:var(--surface); border:1.5px solid var(--border2); border-radius:16px; padding:14px 16px; color:var(--text); font-family:'Lato',sans-serif; font-size:0.95rem; outline:none; resize:none; min-height:90px; line-height:1.5; transition:border-color 0.2s; }
+.caption-field:focus { border-color:var(--accent); }
 .caption-field::placeholder { color:var(--muted); }
 
-/* Post button */
-.post-btn { background:var(--accent); border:none; color:white; font-family:'Syne',sans-serif; font-size:0.85rem; font-weight:700; letter-spacing:1px; padding:15px; border-radius:20px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:transform 0.15s,opacity 0.2s; }
+.post-btn { background:var(--accent); border:none; color:white; font-family:'Lato',sans-serif; font-size:0.85rem; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; padding:16px; border-radius:20px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:transform 0.15s, opacity 0.2s; }
 .post-btn:active { transform:scale(0.97); }
 .post-btn:disabled { opacity:0.45; pointer-events:none; }
 
-/* Progress bar */
-.upload-progress { height:3px; background:rgba(255,255,255,0.1); border-radius:2px; overflow:hidden; display:none; }
+.upload-progress { height:3px; background:var(--surface2); border-radius:2px; overflow:hidden; display:none; }
 .upload-progress.active { display:block; }
-.upload-progress-bar { height:100%; background:linear-gradient(90deg,var(--accent),var(--accent2)); width:0%; transition:width 0.3s ease; border-radius:2px; }
+.upload-progress-bar { height:100%; background:linear-gradient(90deg, var(--accent), var(--accent2)); width:0%; transition:width 0.3s ease; border-radius:2px; }
 
-/* Comment sheet */
-.comment-sheet { position:fixed; bottom:0; left:0; right:0; z-index:150; background:#111; border-radius:24px 24px 0 0; border-top:1px solid rgba(255,255,255,0.1); transform:translateY(100%); transition:transform 0.35s cubic-bezier(0.32,0.72,0,1); max-height:70svh; display:flex; flex-direction:column; }
+/* ── COMMENT SHEET ── */
+.comment-sheet { position:fixed; bottom:0; left:0; right:0; z-index:150; background:var(--sheet-bg); border-radius:24px 24px 0 0; border-top:1px solid var(--border); box-shadow:0 -4px 30px rgba(0,0,0,0.08); transform:translateY(100%); transition:transform 0.35s cubic-bezier(0.32,0.72,0,1); max-height:70svh; display:flex; flex-direction:column; }
 .comment-sheet.open { transform:translateY(0); }
-.c-handle { width:36px; height:4px; background:rgba(255,255,255,0.2); border-radius:2px; margin:14px auto 0; flex-shrink:0; }
-.c-header { padding:12px 20px; font-family:'Syne',sans-serif; font-size:1rem; font-weight:700; border-bottom:1px solid rgba(255,255,255,0.08); flex-shrink:0; display:flex; justify-content:space-between; align-items:center; }
+.c-handle { width:36px; height:4px; background:rgba(0,0,0,0.12); border-radius:2px; margin:14px auto 0; flex-shrink:0; }
+.c-header { padding:12px 20px; font-family:'Playfair Display',serif; font-size:1rem; font-weight:700; border-bottom:1px solid var(--border); flex-shrink:0; display:flex; justify-content:space-between; align-items:center; color:var(--text); }
 .c-close { background:none; border:none; color:var(--muted); cursor:pointer; display:flex; }
 .comments-list { flex:1; overflow-y:auto; padding:16px 20px; display:flex; flex-direction:column; gap:16px; }
 .comments-list::-webkit-scrollbar { display:none; }
 .comment-item { display:flex; gap:10px; }
-.c-avatar { width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,var(--accent),var(--accent2)); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-family:'Syne',sans-serif; font-size:0.75rem; font-weight:800; color:white; }
+.c-avatar { width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg, var(--accent), var(--accent2)); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-family:'Playfair Display',serif; font-size:0.8rem; font-weight:700; color:white; }
 .c-body { flex:1; }
-.c-name { font-size:0.78rem; font-weight:600; color:rgba(255,255,255,0.65); margin-bottom:3px; }
-.c-text { font-size:0.9rem; line-height:1.4; }
-.c-input-row { display:flex; gap:10px; padding:12px 16px; border-top:1px solid rgba(255,255,255,0.08); flex-shrink:0; padding-bottom:max(16px,env(safe-area-inset-bottom)); }
-.c-input { flex:1; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); border-radius:24px; padding:10px 16px; color:white; font-family:'DM Sans',sans-serif; font-size:0.9rem; outline:none; }
+.c-name { font-size:0.78rem; font-weight:700; color:var(--text2); margin-bottom:3px; }
+.c-text { font-size:0.9rem; line-height:1.4; color:var(--text); }
+.c-input-row { display:flex; gap:10px; padding:12px 16px; border-top:1px solid var(--border); flex-shrink:0; padding-bottom:max(16px,env(safe-area-inset-bottom)); }
+.c-input { flex:1; background:var(--surface2); border:1.5px solid var(--border2); border-radius:24px; padding:10px 16px; color:var(--text); font-family:'Lato',sans-serif; font-size:0.9rem; outline:none; transition:border-color 0.2s; }
+.c-input:focus { border-color:var(--accent); }
 .c-input::placeholder { color:var(--muted); }
 .c-send { background:var(--accent); border:none; color:white; width:42px; height:42px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; transition:transform 0.15s; }
 .c-send:active { transform:scale(0.9); }
 
-#backdrop { position:fixed; inset:0; z-index:99; background:rgba(0,0,0,0.6); display:none; }
+/* ── BACKDROP ── */
+#backdrop { position:fixed; inset:0; z-index:99; background:rgba(0,0,0,0.35); display:none; }
 
-.img-viewer { position:fixed; inset:0; z-index:300; background:rgba(0,0,0,0.95); backdrop-filter:blur(6px); display:none; align-items:center; justify-content:center; opacity:0; transition:opacity 0.25s; }
+/* ── IMAGE VIEWER ── */
+.img-viewer { position:fixed; inset:0; z-index:300; background:rgba(247,244,240,0.97); backdrop-filter:blur(6px); display:none; align-items:center; justify-content:center; opacity:0; transition:opacity 0.25s; }
 .img-viewer.open { display:flex; }
 .img-viewer.visible { opacity:1; }
-.img-viewer img { max-width:95%; max-height:90%; border-radius:8px; object-fit:contain; }
-.iv-close { position:absolute; top:24px; right:24px; background:rgba(255,255,255,0.15); border:none; color:white; width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+.img-viewer img { max-width:95%; max-height:90%; border-radius:12px; object-fit:contain; box-shadow:0 8px 40px rgba(0,0,0,0.15); }
+.iv-close { position:absolute; top:24px; right:24px; background:rgba(0,0,0,0.08); border:none; color:var(--text); width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; }
 
-.toast { position:fixed; bottom:90px; left:50%; transform:translateX(-50%) translateY(16px); background:rgba(255,255,255,0.12); backdrop-filter:blur(12px); border:1px solid rgba(255,255,255,0.2); border-radius:24px; padding:10px 20px; font-size:0.85rem; color:white; white-space:nowrap; opacity:0; pointer-events:none; transition:opacity 0.25s,transform 0.25s; z-index:400; }
+/* ── TOAST ── */
+.toast { position:fixed; bottom:90px; left:50%; transform:translateX(-50%) translateY(16px); background:var(--text); border-radius:24px; padding:10px 20px; font-size:0.85rem; color:white; white-space:nowrap; opacity:0; pointer-events:none; transition:opacity 0.25s, transform 0.25s; z-index:400; }
 .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+/* ── LOADING SPINNER ── */
+.spinner { width:20px; height:20px; border:2px solid rgba(255,255,255,0.35); border-top-color:white; border-radius:50%; animation:spin 0.7s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
 </style>
 </head>
 <body>
 
 <nav class="top-nav">
-  <div class="nav-logo">Ona</div>
-  <button class="nav-create-btn" onclick="openCreate()">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-    POST
-  </button>
+  <div class="nav-logo">On<span>a</span></div>
+  <button class="nav-auth-btn" id="navAuthBtn" onclick="openAuth()">Sign In</button>
 </nav>
 
 <div id="feed">
@@ -130,55 +187,109 @@ html,body { height:100%; overflow:hidden; background:#000; color:#FAFAFA; font-f
     <div class="big-icon">📸</div>
     <h2>No posts yet</h2>
     <p>Be the first to share a photo with the community.</p>
-    <button class="empty-cta" onclick="openCreate()">Share a photo</button>
+    <button class="empty-cta" onclick="handleCreateClick()">Share a photo</button>
   </div>
 </div>
 
 <div id="backdrop" onclick="closeAll()"></div>
 
-<!-- CREATE / UPLOAD SHEET -->
-<div class="create-sheet" id="createSheet">
+<!-- ── AUTH SHEET ── -->
+<div class="sheet" id="authSheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <span id="authSheetTitle">Welcome to Ona</span>
+    <button class="sheet-close" onclick="closeAuth()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="auth-body">
+    <!-- Tabs -->
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tabSignIn" onclick="switchAuthTab('signin')">Sign In</button>
+      <button class="auth-tab" id="tabSignUp" onclick="switchAuthTab('signup')">Create Account</button>
+    </div>
+
+    <!-- Error -->
+    <div class="auth-error" id="authError"></div>
+
+    <!-- Sign In Panel -->
+    <div class="auth-form-panel active" id="signinPanel">
+      <div class="input-group">
+        <label class="input-label">Email</label>
+        <input class="auth-input" id="siEmail" type="email" placeholder="you@example.com" autocomplete="email"/>
+      </div>
+      <div class="input-group">
+        <label class="input-label">Password</label>
+        <input class="auth-input" id="siPassword" type="password" placeholder="••••••••" autocomplete="current-password"/>
+      </div>
+      <button class="auth-btn" id="signInBtn" onclick="doSignIn()">Sign In</button>
+      <div class="auth-divider"><span>OR</span></div>
+      <button class="google-btn" onclick="doGoogleSignIn()">
+        <svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+        Continue with Google
+      </button>
+    </div>
+
+    <!-- Sign Up Panel -->
+    <div class="auth-form-panel" id="signupPanel">
+      <div class="input-group">
+        <label class="input-label">Display Name</label>
+        <input class="auth-input" id="suName" type="text" placeholder="Your name" autocomplete="name"/>
+      </div>
+      <div class="input-group">
+        <label class="input-label">Email</label>
+        <input class="auth-input" id="suEmail" type="email" placeholder="you@example.com" autocomplete="email"/>
+      </div>
+      <div class="input-group">
+        <label class="input-label">Password</label>
+        <input class="auth-input" id="suPassword" type="password" placeholder="Min. 6 characters" autocomplete="new-password"/>
+      </div>
+      <button class="auth-btn" id="signUpBtn" onclick="doSignUp()">Create Account</button>
+      <div class="auth-divider"><span>OR</span></div>
+      <button class="google-btn" onclick="doGoogleSignIn()">
+        <svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+        Continue with Google
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── CREATE / UPLOAD SHEET ── -->
+<div class="sheet" id="createSheet">
   <div class="sheet-handle"></div>
   <div class="sheet-header">
     <span>New Post</span>
     <button class="sheet-close" onclick="closeCreate()">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
     </button>
   </div>
   <div class="upload-body">
-    <!-- Image picker -->
     <div class="pick-area" id="pickArea" onclick="document.getElementById('fileInput').click()">
       <div class="pick-icon">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,0.35)" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
       </div>
-      <span class="pick-label">TAP TO CHOOSE PHOTO</span>
-      <span class="pick-change">CHANGE</span>
+      <span class="pick-label">Tap to choose photo</span>
+      <span class="pick-change">Change</span>
       <img id="previewImg" src="" alt="" style="display:none"/>
     </div>
-
-    <!-- Caption -->
     <textarea class="caption-field" id="captionInput" placeholder="Write a caption..." rows="3" maxlength="300"></textarea>
-
-    <!-- Progress -->
     <div class="upload-progress" id="uploadProgress">
       <div class="upload-progress-bar" id="progressBar"></div>
     </div>
-
-    <!-- Post button -->
     <button class="post-btn" id="postBtn" onclick="submitPost()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-      POST TO FEED
+      Post to Feed
     </button>
   </div>
 </div>
 
-<!-- COMMENTS SHEET -->
+<!-- ── COMMENTS SHEET ── -->
 <div class="comment-sheet" id="commentSheet">
   <div class="c-handle"></div>
   <div class="c-header">
     Comments
     <button class="c-close" onclick="closeComments()">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
     </button>
   </div>
   <div class="comments-list" id="commentsList"></div>
@@ -190,7 +301,7 @@ html,body { height:100%; overflow:hidden; background:#000; color:#FAFAFA; font-f
   </div>
 </div>
 
-<!-- IMAGE VIEWER -->
+<!-- ── IMAGE VIEWER ── -->
 <div class="img-viewer" id="imgViewer" onclick="closeViewer()">
   <button class="iv-close">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -198,51 +309,43 @@ html,body { height:100%; overflow:hidden; background:#000; color:#FAFAFA; font-f
   <img id="viewerImg" src="" alt=""/>
 </div>
 
-<!-- Hidden file input -->
 <input type="file" id="fileInput" accept="image/*" style="display:none"/>
-
 <div class="toast" id="toast"></div>
 
 <script type="module">
-import { initializeApp }               from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, onAuthStateChanged }  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getDatabase, ref, get, push, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import {
+  getAuth, onAuthStateChanged, signInWithEmailAndPassword,
+  createUserWithEmailAndPassword, signOut, GoogleAuthProvider,
+  signInWithPopup, updateProfile
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getDatabase, ref, get, push, set, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-// ── CONFIG ──────────────────────────────────────────────────────────────────
+// ── CONFIG ──
 const firebaseConfig = {
-    apiKey: "AIzaSyDllNp4lOwf8VNElzM16pBug8pLB6-9XNY",
-    authDomain: "newstart-64c43.firebaseapp.com",
-    projectId: "newstart-64c43",
-    storageBucket: "newstart-64c43.firebasestorage.app",
-    messagingSenderId: "941619830061",
-    appId: "1:941619830061:web:097b8f4f50c9486bcf87a4",
-    measurementId: "G-ZGV4MDXC7W"
-  };
+  apiKey: "AIzaSyDllNp4lOwf8VNElzM16pBug8pLB6-9XNY",
+  authDomain: "newstart-64c43.firebaseapp.com",
+  projectId: "newstart-64c43",
+  storageBucket: "newstart-64c43.firebasestorage.app",
+  messagingSenderId: "941619830061",
+  appId: "1:941619830061:web:097b8f4f50c9486bcf87a4",
+  measurementId: "G-ZGV4MDXC7W"
+};
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dqkujefxj/upload";
 const UPLOAD_PRESET  = "banter_box";
 
-// ── INIT ────────────────────────────────────────────────────────────────────
-const app  = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db   = getDatabase(app);
+const app      = initializeApp(firebaseConfig);
+const auth     = getAuth(app);
+const db       = getDatabase(app);
+const googleProvider = new GoogleAuthProvider();
 
 let currentUser         = null;
 let currentUserName     = "You";
 let posts               = [];
 let activeCommentPostId = null;
-let selectedFile        = null; // file chosen from device
+let selectedFile        = null;
 
-// ── AUTH ────────────────────────────────────────────────────────────────────
-onAuthStateChanged(auth, async (user) => {
-  if (!user) { window.location.href = 'signup.html'; return; }
-  currentUser = user;
-  try {
-    const snap = await get(ref(db, `users/${user.uid}`));
-    if (snap.exists()) currentUserName = snap.val().displayName || snap.val().username || "You";
-  } catch(e) {}
-});
-
-// ── HELPERS ─────────────────────────────────────────────────────────────────
+// ── HELPERS ──
 function escHtml(t = '') {
   return String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
 }
@@ -251,13 +354,149 @@ function showToast(msg) {
   t.textContent = msg; t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2400);
 }
+function showAuthError(msg) {
+  const el = document.getElementById('authError');
+  el.textContent = msg; el.classList.add('show');
+}
+function clearAuthError() {
+  document.getElementById('authError').classList.remove('show');
+}
 
-// ── FILE PICKER ──────────────────────────────────────────────────────────────
+// ── AUTH STATE ──
+onAuthStateChanged(auth, async (user) => {
+  currentUser = user;
+  const navBtn = document.getElementById('navAuthBtn');
+  if (user) {
+    try {
+      const snap = await get(ref(db, `users/${user.uid}`));
+      if (snap.exists()) currentUserName = snap.val().displayName || snap.val().username || user.displayName || "You";
+      else currentUserName = user.displayName || "You";
+    } catch(e) { currentUserName = user.displayName || "You"; }
+    navBtn.textContent = "Post";
+    navBtn.onclick = openCreate;
+    closeAuth();
+  } else {
+    navBtn.textContent = "Sign In";
+    navBtn.onclick = openAuth;
+  }
+});
+
+// ── AUTH SHEET ──
+window.openAuth = function(tab = 'signin') {
+  clearAuthError();
+  switchAuthTab(tab);
+  document.getElementById('authSheet').classList.add('open');
+  document.getElementById('backdrop').style.display = 'block';
+};
+window.closeAuth = function() {
+  document.getElementById('authSheet').classList.remove('open');
+  if (!document.getElementById('createSheet').classList.contains('open') &&
+      !document.getElementById('commentSheet').classList.contains('open')) {
+    document.getElementById('backdrop').style.display = 'none';
+  }
+};
+window.switchAuthTab = function(tab) {
+  const isSignIn = tab === 'signin';
+  document.getElementById('tabSignIn').classList.toggle('active', isSignIn);
+  document.getElementById('tabSignUp').classList.toggle('active', !isSignIn);
+  document.getElementById('signinPanel').classList.toggle('active', isSignIn);
+  document.getElementById('signupPanel').classList.toggle('active', !isSignIn);
+  document.getElementById('authSheetTitle').textContent = isSignIn ? 'Welcome back' : 'Join Ona';
+  clearAuthError();
+};
+
+// ── SIGN IN ──
+window.doSignIn = async function() {
+  const email    = document.getElementById('siEmail').value.trim();
+  const password = document.getElementById('siPassword').value;
+  if (!email || !password) { showAuthError('Please fill in all fields.'); return; }
+  const btn = document.getElementById('signInBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div>';
+  clearAuthError();
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+    showToast('Welcome back!');
+  } catch(e) {
+    showAuthError(friendlyAuthError(e.code));
+    btn.disabled = false;
+    btn.textContent = 'Sign In';
+  }
+};
+
+// ── SIGN UP ──
+window.doSignUp = async function() {
+  const name     = document.getElementById('suName').value.trim();
+  const email    = document.getElementById('suEmail').value.trim();
+  const password = document.getElementById('suPassword').value;
+  if (!name || !email || !password) { showAuthError('Please fill in all fields.'); return; }
+  if (password.length < 6) { showAuthError('Password must be at least 6 characters.'); return; }
+  const btn = document.getElementById('signUpBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div>';
+  clearAuthError();
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    await updateProfile(cred.user, { displayName: name });
+    await set(ref(db, `users/${cred.user.uid}`), {
+      displayName: name,
+      email: email,
+      createdAt: Date.now()
+    });
+    currentUserName = name;
+    showToast('Account created! Welcome 🎉');
+  } catch(e) {
+    showAuthError(friendlyAuthError(e.code));
+    btn.disabled = false;
+    btn.textContent = 'Create Account';
+  }
+};
+
+// ── GOOGLE SIGN IN ──
+window.doGoogleSignIn = async function() {
+  clearAuthError();
+  try {
+    const result = await signInWithPopup(auth, googleProvider);
+    const user   = result.user;
+    const snap   = await get(ref(db, `users/${user.uid}`));
+    if (!snap.exists()) {
+      await set(ref(db, `users/${user.uid}`), {
+        displayName: user.displayName || 'User',
+        email: user.email,
+        createdAt: Date.now()
+      });
+    }
+    showToast('Signed in with Google!');
+  } catch(e) {
+    if (e.code !== 'auth/popup-closed-by-user') showAuthError(friendlyAuthError(e.code));
+  }
+};
+
+function friendlyAuthError(code) {
+  const map = {
+    'auth/invalid-email':             'That doesn\'t look like a valid email.',
+    'auth/user-not-found':            'No account found with that email.',
+    'auth/wrong-password':            'Incorrect password.',
+    'auth/email-already-in-use':      'An account already exists with this email.',
+    'auth/weak-password':             'Password is too weak.',
+    'auth/too-many-requests':         'Too many attempts. Try again later.',
+    'auth/network-request-failed':    'Network error. Check your connection.',
+    'auth/invalid-credential':        'Invalid credentials. Check and try again.',
+  };
+  return map[code] || 'Something went wrong. Please try again.';
+}
+
+// ── HANDLE CREATE CLICK ──
+window.handleCreateClick = function() {
+  if (!currentUser) { openAuth('signin'); return; }
+  openCreate();
+};
+
+// ── FILE PICKER ──
 document.getElementById('fileInput').addEventListener('change', (e) => {
   const file = e.target.files[0];
   if (!file) return;
   selectedFile = file;
-
   const reader = new FileReader();
   reader.onload = (ev) => {
     const pickArea   = document.getElementById('pickArea');
@@ -269,107 +508,74 @@ document.getElementById('fileInput').addEventListener('change', (e) => {
   reader.readAsDataURL(file);
 });
 
-// ── CLOUDINARY UPLOAD ────────────────────────────────────────────────────────
+// ── CLOUDINARY ──
 async function uploadToCloudinary(file, onProgress) {
   return new Promise((resolve, reject) => {
     const xhr  = new XMLHttpRequest();
     const form = new FormData();
     form.append('file', file);
     form.append('upload_preset', UPLOAD_PRESET);
-
     xhr.open('POST', CLOUDINARY_URL);
-
     xhr.upload.addEventListener('progress', (e) => {
-      if (e.lengthComputable && onProgress) {
-        onProgress(Math.round((e.loaded / e.total) * 100));
-      }
+      if (e.lengthComputable && onProgress) onProgress(Math.round((e.loaded / e.total) * 100));
     });
-
     xhr.onload = () => {
       if (xhr.status === 200) {
         const data = JSON.parse(xhr.responseText);
-        if (data.error) reject(new Error('Cloudinary: ' + data.error.message));
-        else resolve(data.secure_url);
-      } else {
-        reject(new Error('Cloudinary HTTP ' + xhr.status));
-      }
+        data.error ? reject(new Error(data.error.message)) : resolve(data.secure_url);
+      } else reject(new Error('Cloudinary HTTP ' + xhr.status));
     };
     xhr.onerror = () => reject(new Error('Network error'));
     xhr.send(form);
   });
 }
 
-// ── SUBMIT POST ───────────────────────────────────────────────────────────────
+// ── SUBMIT POST ──
 window.submitPost = async function() {
   if (!selectedFile) { showToast('Please choose a photo first'); return; }
-
-  const caption = document.getElementById('captionInput').value.trim();
-  const postBtn = document.getElementById('postBtn');
+  const caption  = document.getElementById('captionInput').value.trim();
+  const postBtn  = document.getElementById('postBtn');
   const progress = document.getElementById('uploadProgress');
   const bar      = document.getElementById('progressBar');
-
-  // Wait for auth if needed
-  if (!currentUser) await new Promise(r => setTimeout(r, 3000));
-  if (!currentUser) { showToast('Not signed in. Please reload.'); return; }
-
+  if (!currentUser) { showToast('Please sign in first'); openAuth(); return; }
   postBtn.disabled = true;
-  postBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Uploading...`;
+  postBtn.innerHTML = '<div class="spinner"></div> Uploading...';
   progress.classList.add('active');
   bar.style.width = '0%';
-
   try {
-    // 1 – Upload to Cloudinary (with progress)
-    const cloudUrl = await uploadToCloudinary(selectedFile, (pct) => {
-      bar.style.width = pct + '%';
-    });
+    const cloudUrl = await uploadToCloudinary(selectedFile, (pct) => { bar.style.width = pct + '%'; });
     bar.style.width = '100%';
-
-    // 2 – Save to Firebase
-    postBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Saving...`;
-    const payload = {
-      imgUrl:    cloudUrl,
-      caption:   caption,
-      author:    currentUserName,
-      uid:       currentUser.uid,
-      likes:     0,
-      timestamp: Date.now()
-    };
-    const newRef = await push(ref(db, 'posts'), payload);
-
-    // 3 – Render locally
-    const post = { id: newRef.key, ...payload, liked: false, comments: [] };
+    postBtn.innerHTML = '<div class="spinner"></div> Saving...';
+    const payload = { imgUrl: cloudUrl, caption, author: currentUserName, uid: currentUser.uid, likes: 0, timestamp: Date.now() };
+    const newRef  = await push(ref(db, 'posts'), payload);
+    const post    = { id: newRef.key, ...payload, liked: false, comments: [] };
     posts.unshift(post);
     document.getElementById('emptyFeed')?.remove();
     renderPost(post, true);
     closeCreate();
     showToast('Posted!');
-
   } catch(err) {
-    console.error('Post error:', err);
     showToast('Post failed: ' + err.message);
     postBtn.disabled = false;
-    postBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> POST TO FEED`;
+    postBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Post to Feed`;
     progress.classList.remove('active');
   }
 };
 
-// ── OPEN / CLOSE CREATE ───────────────────────────────────────────────────────
+// ── OPEN/CLOSE SHEETS ──
 window.openCreate = function() {
-  // Reset state
   selectedFile = null;
   document.getElementById('captionInput').value = '';
   document.getElementById('fileInput').value = '';
-  const pickArea   = document.getElementById('pickArea');
+  const pickArea = document.getElementById('pickArea');
   const previewImg = document.getElementById('previewImg');
-  previewImg.src   = '';
-  previewImg.style.display = 'none';
+  previewImg.src = ''; previewImg.style.display = 'none';
   pickArea.classList.remove('has-image');
   const postBtn = document.getElementById('postBtn');
   postBtn.disabled = false;
-  postBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> POST TO FEED`;
+  postBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Post to Feed`;
   document.getElementById('uploadProgress').classList.remove('active');
   document.getElementById('progressBar').style.width = '0%';
-
   document.getElementById('createSheet').classList.add('open');
   document.getElementById('backdrop').style.display = 'block';
 };
@@ -377,27 +583,21 @@ window.closeCreate = function() {
   document.getElementById('createSheet').classList.remove('open');
   document.getElementById('backdrop').style.display = 'none';
 };
-window.closeAll = function() { closeCreate(); closeComments(); };
+window.closeAll = function() { closeCreate(); closeComments(); closeAuth(); };
 
-// ── LOAD FEED ─────────────────────────────────────────────────────────────────
+// ── LOAD FEED ──
 function loadFeed() {
   onValue(ref(db, 'posts'), (snapshot) => {
     const data = snapshot.val();
     if (!data) return;
-
     const incoming = Object.entries(data)
       .map(([key, val]) => ({
-        id:        key,
-        imgUrl:    val.imgUrl    || '',
-        caption:   val.caption   || '',
-        author:    val.author    || 'Unknown',
-        likes:     val.likes     || 0,
-        liked:     false,
-        timestamp: val.timestamp || 0,
-        comments:  val.comments  ? Object.values(val.comments) : []
+        id: key, imgUrl: val.imgUrl||'', caption: val.caption||'',
+        author: val.author||'Unknown', likes: val.likes||0, liked: false,
+        timestamp: val.timestamp||0,
+        comments: val.comments ? Object.values(val.comments) : []
       }))
       .sort((a, b) => b.timestamp - a.timestamp);
-
     const existingIds = new Set(posts.map(p => p.id));
     incoming.filter(p => !existingIds.has(p.id)).forEach(post => {
       posts.push(post);
@@ -407,7 +607,7 @@ function loadFeed() {
   });
 }
 
-// ── RENDER POST ───────────────────────────────────────────────────────────────
+// ── RENDER POST ──
 function renderPost(post, scrollTo = false) {
   if (document.getElementById('post-' + post.id)) return;
   const feed = document.getElementById('feed');
@@ -425,37 +625,29 @@ function renderPost(post, scrollTo = false) {
     <div class="action-bar">
       <button class="action-btn" id="like-btn-${post.id}" onclick="toggleLike('${post.id}')">
         <div class="action-icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-          </svg>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
         </div>
-        <span class="action-count" id="like-count-${post.id}">${post.likes || 0}</span>
+        <span class="action-count" id="like-count-${post.id}">${post.likes||0}</span>
       </button>
       <button class="action-btn" onclick="openComments('${post.id}')">
         <div class="action-icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-          </svg>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         </div>
-        <span class="action-count" id="comment-count-${post.id}">${(post.comments || []).length}</span>
+        <span class="action-count" id="comment-count-${post.id}">${(post.comments||[]).length}</span>
       </button>
       <button class="action-btn" onclick="sharePost('${post.id}')">
         <div class="action-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
-            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
-            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-          </svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
         </div>
         <span class="action-count">Share</span>
       </button>
     </div>
   `;
   feed.insertBefore(div, feed.firstChild);
-  if (scrollTo) div.scrollIntoView({ behavior: 'smooth' });
+  if (scrollTo) div.scrollIntoView({ behavior:'smooth' });
 }
 
-// ── INTERACTIONS ──────────────────────────────────────────────────────────────
+// ── INTERACTIONS ──
 window.toggleCaption = function(id) {
   const cap = document.getElementById('caption-' + id);
   const btn = cap?.nextElementSibling;
@@ -465,10 +657,11 @@ window.toggleCaption = function(id) {
 };
 
 window.toggleLike = function(id) {
+  if (!currentUser) { showToast('Sign in to like posts'); openAuth(); return; }
   const post = posts.find(p => p.id === id);
   if (!post) return;
   post.liked = !post.liked;
-  post.likes = (post.likes || 0) + (post.liked ? 1 : -1);
+  post.likes = (post.likes||0) + (post.liked ? 1 : -1);
   const btn   = document.getElementById('like-btn-' + id);
   const count = document.getElementById('like-count-' + id);
   if (!btn || !count) return;
@@ -494,7 +687,7 @@ window.openComments = function(id) {
     post.comments.forEach(c => {
       const el = document.createElement('div');
       el.className = 'comment-item';
-      el.innerHTML = `<div class="c-avatar">${escHtml((c.name||'?')[0])}</div><div class="c-body"><div class="c-name">${escHtml(c.name)}</div><div class="c-text">${escHtml(c.text)}</div></div>`;
+      el.innerHTML = `<div class="c-avatar">${escHtml((c.name||'?')[0].toUpperCase())}</div><div class="c-body"><div class="c-name">${escHtml(c.name)}</div><div class="c-text">${escHtml(c.text)}</div></div>`;
       list.appendChild(el);
     });
   }
@@ -508,6 +701,7 @@ window.closeComments = function() {
   activeCommentPostId = null;
 };
 window.postComment = function() {
+  if (!currentUser) { showToast('Sign in to comment'); openAuth(); return; }
   const input = document.getElementById('commentInput');
   const text  = input.value.trim();
   if (!text || !activeCommentPostId) return;
@@ -519,7 +713,7 @@ window.postComment = function() {
   push(ref(db, 'posts/' + activeCommentPostId + '/comments'), comment).catch(console.error);
   const el = document.createElement('div');
   el.className = 'comment-item';
-  el.innerHTML = `<div class="c-avatar" style="background:var(--accent)">${escHtml(currentUserName[0])}</div><div class="c-body"><div class="c-name" style="color:var(--accent)">${escHtml(currentUserName)}</div><div class="c-text">${escHtml(text)}</div></div>`;
+  el.innerHTML = `<div class="c-avatar" style="background:var(--accent)">${escHtml(currentUserName[0].toUpperCase())}</div><div class="c-body"><div class="c-name" style="color:var(--accent)">${escHtml(currentUserName)}</div><div class="c-text">${escHtml(text)}</div></div>`;
   const list = document.getElementById('commentsList');
   list.querySelector('p')?.remove();
   list.appendChild(el);
@@ -531,11 +725,8 @@ window.postComment = function() {
 };
 
 window.sharePost = function(id) {
-  if (navigator.share) {
-    navigator.share({ title: 'Ona', text: 'Check out this post!', url: window.location.href });
-  } else {
-    navigator.clipboard.writeText(window.location.href).then(() => showToast('Link copied!'));
-  }
+  if (navigator.share) navigator.share({ title:'Ona', text:'Check out this post!', url:window.location.href });
+  else navigator.clipboard.writeText(window.location.href).then(() => showToast('Link copied!'));
 };
 
 window.openViewer = function(url) {
@@ -551,6 +742,9 @@ window.closeViewer = function() {
 };
 
 document.getElementById('commentInput').addEventListener('keypress', e => { if (e.key === 'Enter') postComment(); });
+document.getElementById('siEmail').addEventListener('keypress', e => { if (e.key === 'Enter') document.getElementById('siPassword').focus(); });
+document.getElementById('siPassword').addEventListener('keypress', e => { if (e.key === 'Enter') doSignIn(); });
+document.getElementById('suPassword').addEventListener('keypress', e => { if (e.key === 'Enter') doSignUp(); });
 
 loadFeed();
 </script>
