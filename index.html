@@ -1,1121 +1,625 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lumina • Messenger</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Lumen AI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Space+Grotesk:wght@500;600&amp;display=swap');
     
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    body {
+      font-family: 'Inter', system_ui, sans-serif;
+    }
     
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600&amp;display=swap');
-        
-        body { font-family: 'Inter', system_ui, sans-serif; }
-        .title-font { font-family: 'Space Grotesk', 'Inter', sans-serif; font-weight: 600; }
-        
-        .message-bubble { max-width: 75%; padding: 10px 14px; border-radius: 18px; position: relative; }
-        .message-bubble.sent { background: #2563eb; color: white; border-bottom-right-radius: 6px; }
-        .message-bubble.received { background: #f1f5f9; color: #0f172a; border-bottom-left-radius: 6px; }
-        
-        .chat-list-item { transition: background-color 0.1s ease; }
-        .mobile-header { padding-top: env(safe-area-inset-top); }
-        .messenger-app { max-width: 100vw; height: 100dvh; height: 100vh; }
-        
-        .chat-scroll { scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .tick { font-size: 10px; margin-left: 4px; }
-        
-        #notification-bar {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            transform: translateY(-100%); opacity: 0;
-        }
-        #notification-bar.show { transform: translateY(0); opacity: 1; }
-        
-        .avatar-img { object-fit: cover; }
-    </style>
+    .font-display {
+      font-family: 'Space Grotesk', 'Inter', sans-serif;
+    }
+
+    /* Light Theme Splash */
+    .splash {
+      background: linear-gradient(135deg, #f8fafc 0%, #f1e7ff 100%);
+    }
+
+    .neural-orb {
+      width: 160px;
+      height: 160px;
+      background: radial-gradient(circle, #6366f1 10%, #4f46e5 45%, transparent 70%);
+      box-shadow: 
+        0 0 40px rgba(99, 102, 241, 0.5),
+        0 0 90px rgba(99, 102, 241, 0.25);
+      animation: orb-pulse 3s ease-in-out infinite;
+    }
+
+    .neural-ring {
+      animation: ring-rotate 8s linear infinite;
+    }
+
+    @keyframes orb-pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.06); }
+    }
+
+    .particle {
+      position: absolute;
+      background: #6366f1;
+      border-radius: 50%;
+      animation: particle-float 3.5s ease-in-out infinite;
+    }
+
+    .ai-text {
+      background: linear-gradient(90deg, #1e2937, #6366f1, #1e2937);
+      background-size: 200% 100%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: gradient-shift 3s ease-in-out infinite;
+    }
+
+    .chat-container {
+      scrollbar-width: thin;
+      scrollbar-color: #cbd5e1 #f8fafc;
+    }
+
+    .message {
+      animation: fadeInUp 0.3s ease forwards;
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Mobile Optimizations */
+    @media (max-width: 640px) {
+      .chat-container {
+        height: calc(100vh - 210px);
+      }
+      
+      .model-pill {
+        padding-left: 10px;
+        padding-right: 10px;
+        padding-top: 6px;
+        padding-bottom: 6px;
+      }
+    }
+
+    .bottom-sheet {
+      animation: slideUp 0.3s ease forwards;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+  </style>
 </head>
-<body class="bg-slate-100 text-slate-900">
+<body class="bg-zinc-100 text-zinc-900">
 
-    <!-- Login Screen -->
-    <div id="login-screen" class="hidden fixed inset-0 bg-white flex items-center justify-center z-50">
-        <div class="w-full max-w-md px-6">
-            <div class="text-center mb-8">
-                <div class="w-16 h-16 bg-blue-600 rounded-3xl flex items-center justify-center mx-auto mb-4">
-                    <i class="fa-solid fa-comments text-white text-3xl"></i>
-                </div>
-                <h1 class="title-font text-4xl font-semibold tracking-tight">Lumina</h1>
-                <p class="text-slate-500 mt-1">Connect with friends and groups</p>
+  <!-- ==================== ANIMATED SPLASH ==================== -->
+  <div id="splash" class="splash fixed inset-0 z-50 flex items-center justify-center">
+    <div class="relative flex flex-col items-center">
+      
+      <!-- Neural Orb -->
+      <div class="relative flex items-center justify-center mb-8">
+        <div class="absolute w-[220px] h-[220px] border border-indigo-200 rounded-full neural-ring"></div>
+        <div class="absolute w-[270px] h-[270px] border border-indigo-100 rounded-full neural-ring" style="animation-duration: 12s;"></div>
+        
+        <div class="neural-orb rounded-full flex items-center justify-center">
+          <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-inner">
+            <div class="w-14 h-14 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-full flex items-center justify-center">
+              <i class="fa-solid fa-brain text-white text-3xl"></i>
             </div>
-
-            <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
-                <div class="space-y-4">
-                    <div>
-                        <label class="text-xs font-medium text-slate-500 block mb-1.5">Email</label>
-                        <input id="login-email" type="email" value="demo@lumina.app" class="w-full bg-slate-100 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-blue-300">
-                    </div>
-                    <div>
-                        <label class="text-xs font-medium text-slate-500 block mb-1.5">Password</label>
-                        <input id="login-password" type="password" value="123456" class="w-full bg-slate-100 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-blue-300">
-                    </div>
-
-                    <button onclick="loginWithEmail()" class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-medium text-sm transition-colors">Sign In</button>
-
-                    <div class="flex items-center gap-3">
-                        <div class="flex-1 h-px bg-slate-200"></div>
-                        <span class="text-xs text-slate-400">OR</span>
-                        <div class="flex-1 h-px bg-slate-200"></div>
-                    </div>
-
-                    <button onclick="createAccount()" class="w-full py-3.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-2xl font-medium text-sm transition-colors">Create New Account</button>
-                </div>
-            </div>
+          </div>
         </div>
+        
+        <div id="particles" class="absolute w-[270px] h-[270px]"></div>
+      </div>
+
+      <div class="text-center">
+        <h1 class="font-display text-5xl sm:text-6xl font-semibold tracking-tighter ai-text">
+          LUMEN
+        </h1>
+        <p class="text-indigo-600/70 text-base sm:text-lg mt-1 tracking-[2px]">AI Assistant</p>
+      </div>
+
+      <div class="mt-10">
+        <div class="flex items-center gap-x-3">
+          <div class="flex items-center gap-x-2">
+            <div class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+            <span id="splash-status" class="text-sm text-zinc-600 font-medium">Initializing models...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MAIN APP ==================== -->
+  <div id="app" class="hidden min-h-screen flex flex-col bg-zinc-100">
+    
+    <!-- Mobile Optimized Header -->
+    <header class="bg-white border-b border-zinc-200 sticky top-0 z-40">
+      <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+        
+        <!-- Left: Logo -->
+        <div class="flex items-center gap-x-2.5">
+          <div class="w-8 h-8 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-2xl flex items-center justify-center shadow-sm">
+            <i class="fa-solid fa-brain text-white text-lg"></i>
+          </div>
+          <h1 class="font-display font-semibold text-xl tracking-tight">Lumen</h1>
+        </div>
+
+        <!-- Right: Model Selector + New Chat -->
+        <div class="flex items-center gap-x-2">
+          
+          <!-- Compact Model Selector (Mobile Friendly) -->
+          <button onclick="showModelSelector()" 
+                  class="model-pill flex items-center gap-x-1.5 px-3 py-1.5 bg-white border border-zinc-300 hover:border-zinc-400 active:bg-zinc-50 transition-all rounded-3xl text-sm font-medium shadow-sm">
+            <i class="fa-solid fa-robot text-indigo-600 text-sm"></i>
+            <span id="current-model-name" class="font-medium text-sm max-w-[90px] truncate">Lumen 4o</span>
+            <i class="fa-solid fa-chevron-down text-xs text-zinc-500"></i>
+          </button>
+
+          <!-- New Chat (Icon only on mobile) -->
+          <button onclick="clearChat()" 
+                  class="w-9 h-9 flex items-center justify-center text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200 active:bg-zinc-300 transition-colors rounded-3xl">
+            <i class="fa-solid fa-plus text-base"></i>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Chat Area -->
+    <div class="flex-1 max-w-4xl mx-auto w-full px-4 pt-5 pb-20">
+      <div id="chat-container" 
+           class="chat-container h-[calc(100vh-195px)] overflow-y-auto space-y-5 pr-1">
+        
+        <!-- Welcome Message -->
+        <div class="flex gap-3">
+          <div class="w-7 h-7 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-2xl flex-shrink-0 flex items-center justify-center mt-0.5 shadow-sm">
+            <i class="fa-solid fa-brain text-white text-xs"></i>
+          </div>
+          <div class="max-w-[85%]">
+            <div class="bg-white border border-zinc-200 rounded-3xl px-4 py-3 shadow-sm">
+              <p class="text-zinc-800 text-[15px]">Hello! I'm Lumen. How can I help you today?</p>
+            </div>
+            <div class="text-[10px] text-zinc-500 mt-1 ml-1">Just now</div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- Main App -->
-    <div id="main-app" class="hidden">
-        <!-- Notification Bar -->
-        <div id="notification-bar" class="hidden fixed top-0 left-0 right-0 z-[100] px-4 pt-3 lg:px-0 lg:max-w-md lg:mx-auto">
-            <div onclick="handleNotificationClick()" class="bg-white border border-slate-200 shadow-lg rounded-3xl px-4 py-3 flex items-center gap-x-3 cursor-pointer">
-                <div id="notif-avatar" class="w-9 h-9 bg-slate-200 rounded-2xl flex items-center justify-center text-sm font-bold flex-shrink-0 overflow-hidden"></div>
-                <div class="flex-1 min-w-0">
-                    <div class="flex items-center justify-between">
-                        <div id="notif-name" class="font-semibold text-sm text-slate-900"></div>
-                        <div class="text-[10px] text-slate-400">now</div>
-                    </div>
-                    <div id="notif-message" class="text-sm text-slate-600 truncate"></div>
-                </div>
-            </div>
+    <!-- Input Area -->
+    <div class="max-w-4xl mx-auto w-full px-4 pb-4 fixed bottom-0 bg-zinc-100 border-t border-zinc-200">
+      <!-- Suggested Prompts -->
+      <div id="suggestions" class="flex flex-wrap gap-2 mb-3 px-1">
+        <div onclick="useSuggestion(this)" class="px-3.5 py-1.5 bg-white hover:bg-zinc-50 border border-zinc-200 text-xs sm:text-sm rounded-3xl cursor-pointer transition-colors text-zinc-700 active:bg-zinc-100">
+          Explain quantum computing
         </div>
+        <div onclick="useSuggestion(this)" class="px-3.5 py-1.5 bg-white hover:bg-zinc-50 border border-zinc-200 text-xs sm:text-sm rounded-3xl cursor-pointer transition-colors text-zinc-700 active:bg-zinc-100">
+          Write a professional email
+        </div>
+        <div onclick="useSuggestion(this)" class="px-3.5 py-1.5 bg-white hover:bg-zinc-50 border border-zinc-200 text-xs sm:text-sm rounded-3xl cursor-pointer transition-colors text-zinc-700 active:bg-zinc-100">
+          Best ways to learn AI
+        </div>
+      </div>
 
-        <div class="messenger-app flex flex-col lg:flex-row bg-white border border-slate-200 lg:rounded-3xl overflow-hidden h-screen lg:h-[96vh] lg:my-2 lg:mx-2 shadow-xl">
+      <!-- Input Box -->
+      <div class="bg-white border border-zinc-300 rounded-3xl p-1.5 flex items-center gap-2 shadow-sm">
+        <input 
+          id="user-input" 
+          type="text" 
+          placeholder="Message Lumen..." 
+          class="flex-1 bg-transparent px-4 py-2.5 outline-none text-zinc-900 placeholder-zinc-400 text-[15px]"
+          onkeypress="if (event.key === 'Enter') sendMessage()">
+        
+        <button onclick="sendMessage()" 
+                class="bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 transition-colors w-10 h-10 flex items-center justify-center rounded-3xl text-white">
+          <i class="fa-solid fa-paper-plane text-sm"></i>
+        </button>
+      </div>
+      <p class="text-center text-[10px] text-zinc-500 mt-2 pb-1">Lumen can make mistakes.</p>
+    </div>
+  </div>
+
+  <!-- Model Selection - Mobile Optimized Bottom Sheet -->
+  <div id="model-modal" onclick="hideModelSelector()" class="hidden fixed inset-0 bg-black/50 z-50 flex items-end justify-center">
+    <div onclick="event.stopImmediatePropagation()" 
+         class="bottom-sheet bg-white w-full max-w-4xl mx-auto rounded-t-3xl shadow-xl border border-zinc-200 pb-6">
+      
+      <!-- Drag Handle -->
+      <div class="flex justify-center pt-3 pb-2">
+        <div class="w-10 h-1 bg-zinc-300 rounded-full"></div>
+      </div>
+      
+      <div class="px-4 pb-3 flex items-center justify-between border-b border-zinc-200">
+        <h3 class="font-semibold text-lg">Choose Model</h3>
+        <button onclick="hideModelSelector()" class="w-9 h-9 flex items-center justify-center text-zinc-400 hover:text-zinc-600">
+          <i class="fa-solid fa-times text-xl"></i>
+        </button>
+      </div>
+      
+      <div class="p-2 max-h-[60vh] overflow-y-auto" id="model-list">
+        <!-- Models injected via JS -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function initTailwind() {
+      // Tailwind CDN is already initialized
+    }
+
+    function createParticles() {
+      const container = document.getElementById('particles');
+      const colors = ['#6366f1', '#a5b4fc'];
+      
+      for (let i = 0; i < 14; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        
+        const size = Math.random() * 3 + 2;
+        particle.style.width = `${size}px`;
+        particle.style.height = `${size}px`;
+        
+        const angle = Math.random() * 360;
+        const distance = 80 + Math.random() * 55;
+        const x = 135 + Math.cos(angle * Math.PI / 180) * distance;
+        const y = 135 + Math.sin(angle * Math.PI / 180) * distance;
+        
+        particle.style.left = `${x}px`;
+        particle.style.top = `${y}px`;
+        particle.style.opacity = Math.random() * 0.5 + 0.3;
+        particle.style.animationDuration = (Math.random() * 2.5 + 2.5) + 's';
+        particle.style.animationDelay = '-' + Math.random() * 3 + 's';
+        
+        container.appendChild(particle);
+      }
+    }
+
+    // Animated Splash
+    function showSplash() {
+      const splash = document.getElementById('splash');
+      const status = document.getElementById('splash-status');
+      
+      const messages = [
+        "Loading models...",
+        "Connecting providers...",
+        "Optimizing for mobile...",
+        "Ready"
+      ];
+      
+      let index = 0;
+      
+      const interval = setInterval(() => {
+        if (index < messages.length - 1) {
+          status.textContent = messages[index];
+          index++;
+        } else {
+          clearInterval(interval);
+          status.textContent = "Ready";
+          
+          setTimeout(() => {
+            splash.style.transition = 'opacity 0.45s ease';
+            splash.style.opacity = '0';
             
-            <!-- Sidebar -->
-            <div id="chat-list-panel" class="w-full lg:w-80 lg:border-r border-slate-200 flex flex-col bg-white">
-                <div class="px-4 py-4 border-b border-slate-200 flex items-center justify-between mobile-header">
-                    <div class="flex items-center gap-x-3">
-                        <div class="w-9 h-9 bg-blue-600 rounded-2xl flex items-center justify-center">
-                            <i class="fa-solid fa-comments text-white text-xl"></i>
-                        </div>
-                        <h1 class="title-font text-2xl font-semibold tracking-tight text-slate-900">Lumina</h1>
-                    </div>
-                    
-                    <div onclick="showProfile()" class="flex items-center gap-x-2 cursor-pointer">
-                        <div class="text-right">
-                            <div class="text-sm font-medium text-slate-900" id="header-username">Loading...</div>
-                            <div class="text-[10px] text-emerald-600" id="header-status">Online</div>
-                        </div>
-                        <div id="header-avatar-container" class="w-8 h-8 bg-slate-200 rounded-full flex items-center justify-center overflow-hidden border border-slate-300"></div>
-                    </div>
-                </div>
+            setTimeout(() => {
+              splash.style.display = 'none';
+              document.getElementById('app').classList.remove('hidden');
+              document.getElementById('app').classList.add('flex', 'flex-col');
+              document.getElementById('user-input').focus();
+            }, 350);
+          }, 280);
+        }
+      }, 680);
+    }
 
-                <div class="px-4 py-3">
-                    <div class="relative">
-                        <i class="fa-solid fa-search absolute left-3.5 top-3 text-slate-400"></i>
-                        <input type="text" id="search-input" class="w-full bg-slate-100 border border-slate-200 text-sm rounded-2xl pl-10 py-2.5 focus:outline-none focus:border-blue-300 placeholder:text-slate-400" placeholder="Search chats...">
-                    </div>
-                </div>
+    // ==================== MODELS ====================
+    const availableModels = [
+      { 
+        id: "lumen-4o", 
+        name: "Lumen 4o", 
+        shortName: "Lumen 4o",
+        description: "Fast & balanced",
+        provider: "Lumen"
+      },
+      { 
+        id: "claude-3.5", 
+        name: "Claude 3.5 Sonnet", 
+        shortName: "Claude 3.5",
+        description: "Best for reasoning",
+        provider: "Anthropic"
+      },
+      { 
+        id: "gpt-4o", 
+        name: "GPT-4o", 
+        shortName: "GPT-4o",
+        description: "Creative & versatile",
+        provider: "OpenAI"
+      },
+      { 
+        id: "gemini-1.5", 
+        name: "Gemini 1.5 Pro", 
+        shortName: "Gemini 1.5",
+        description: "Strong analysis",
+        provider: "Google"
+      },
+      { 
+        id: "llama-3.1", 
+        name: "Llama 3.1 70B", 
+        shortName: "Llama 3.1",
+        description: "Open source",
+        provider: "Meta"
+      }
+    ];
 
-                <div class="px-4 flex gap-1 mb-2">
-                    <div onclick="filterChats('all')" id="tab-all" class="flex-1 text-center py-1.5 text-sm font-medium bg-slate-100 rounded-2xl cursor-pointer">All</div>
-                    <div onclick="filterChats('group')" id="tab-group" class="flex-1 text-center py-1.5 text-sm font-medium hover:bg-slate-100 rounded-2xl cursor-pointer">Groups</div>
-                </div>
+    let currentModel = "lumen-4o";
 
-                <div id="chat-list" class="flex-1 overflow-y-auto px-2 chat-scroll no-scrollbar"></div>
+    function updateCurrentModel(modelId) {
+      currentModel = modelId;
+      const model = availableModels.find(m => m.id === modelId);
+      document.getElementById('current-model-name').textContent = model.shortName;
+    }
+
+    function showModelSelector() {
+      const modal = document.getElementById('model-modal');
+      const listContainer = document.getElementById('model-list');
+      listContainer.innerHTML = '';
+
+      availableModels.forEach(model => {
+        const isActive = model.id === currentModel;
+        
+        const div = document.createElement('div');
+        div.className = `flex items-center justify-between p-4 mx-1 my-1 rounded-2xl cursor-pointer active:bg-zinc-100 transition-colors ${isActive ? 'bg-indigo-50 border border-indigo-200' : 'hover:bg-zinc-50 border border-transparent'}`;
+        
+        div.innerHTML = `
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-x-2">
+              <span class="font-medium text-base">${model.name}</span>
+              ${isActive ? '<span class="text-[10px] px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded-full font-medium">Active</span>' : ''}
             </div>
-
-            <!-- Chat Window -->
-            <div id="chat-panel" class="flex-1 flex flex-col hidden lg:flex bg-white">
-                <div id="chat-header" class="px-4 py-3 border-b border-slate-200 flex items-center justify-between mobile-header">
-                    <div class="flex items-center gap-x-3">
-                        <button onclick="showChatList()" class="lg:hidden w-9 h-9 flex items-center justify-center text-slate-500 hover:text-slate-700">
-                            <i class="fa-solid fa-arrow-left text-lg"></i>
-                        </button>
-                        <div id="chat-header-info" class="flex items-center gap-x-3 cursor-pointer"></div>
-                    </div>
-                    <button onclick="showChatInfo()" class="w-9 h-9 flex items-center justify-center text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-2xl">
-                        <i class="fa-solid fa-info-circle"></i>
-                    </button>
-                </div>
-
-                <div id="messages-container" class="flex-1 overflow-y-auto p-4 chat-scroll bg-slate-50" style="background-image: linear-gradient(rgba(148, 163, 184, 0.04) 1px, transparent 1px); background-size: 40px 40px;">
-                    <div id="messages" class="space-y-1"></div>
-                </div>
-
-                <div class="p-4 border-t border-slate-200 bg-white">
-                    <div class="flex items-center gap-x-2">
-                        <div class="flex-1 relative">
-                            <input id="message-input" type="text" class="w-full bg-white border border-slate-200 rounded-3xl px-5 py-3 text-sm focus:outline-none focus:border-blue-300 placeholder:text-slate-400" placeholder="Message..." onkeypress="if (event.key === 'Enter') sendMessage()">
-                        </div>
-                        <button onclick="sendMessage()" class="w-11 h-11 flex items-center justify-center bg-blue-600 hover:bg-blue-700 transition-colors rounded-3xl text-white">
-                            <i class="fa-solid fa-paper-plane"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <div id="empty-state" class="hidden lg:flex flex-1 items-center justify-center bg-slate-50">
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-white border border-slate-200 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-sm">
-                        <i class="fa-solid fa-comments text-3xl text-slate-300"></i>
-                    </div>
-                    <h3 class="font-semibold text-lg text-slate-700">Select a chat</h3>
-                    <p class="text-sm text-slate-500 mt-1">Start a conversation or create a group</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- FAB -->
-        <div id="fab-container" class="fixed bottom-6 right-6 z-50">
-            <div onclick="toggleFabMenu()" class="flex items-center gap-x-2 px-5 py-3 bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-600/30 text-white rounded-full cursor-pointer transition-all active:scale-95">
-                <div class="flex items-center gap-x-2">
-                    <i id="fab-icon" class="fa-solid fa-plus text-lg"></i>
-                    <span id="fab-text" class="font-medium text-sm pr-1">New</span>
-                </div>
-            </div>
-            <div id="fab-menu" class="hidden absolute bottom-[60px] right-0 bg-white border border-slate-200 rounded-3xl shadow-xl w-44 py-1.5 overflow-hidden">
-                <div onclick="createNewPrivateChat(); hideFabMenu();" class="flex items-center gap-x-3 px-4 py-3 hover:bg-slate-50 cursor-pointer">
-                    <div class="w-8 h-8 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center"><i class="fa-solid fa-user text-sm"></i></div>
-                    <div><div class="text-sm font-medium text-slate-800">New Chat</div><div class="text-xs text-slate-500">Private message</div></div>
-                </div>
-                <div class="border-t border-slate-100 mx-3"></div>
-                <div onclick="showCreateGroupModal(); hideFabMenu();" class="flex items-center gap-x-3 px-4 py-3 hover:bg-slate-50 cursor-pointer">
-                    <div class="w-8 h-8 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center"><i class="fa-solid fa-users text-sm"></i></div>
-                    <div><div class="text-sm font-medium text-slate-800">Create Group</div><div class="text-xs text-slate-500">With multiple people</div></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modals -->
-    <div id="group-modal" onclick="if (event.target.id === 'group-modal') hideGroupModal()" class="hidden fixed inset-0 bg-black/60 flex items-end lg:items-center justify-center z-50">
-        <div onclick="event.stopImmediatePropagation()" class="bg-white w-full lg:w-96 rounded-t-3xl lg:rounded-3xl p-6 border border-slate-200">
-            <div class="flex justify-between items-center mb-5">
-                <h3 class="font-semibold text-lg text-slate-900">Create Group</h3>
-                <button onclick="hideGroupModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-times text-xl"></i></button>
-            </div>
-            <div class="mb-4">
-                <label class="text-xs font-medium text-slate-500 mb-1.5 block">Group Name</label>
-                <input id="group-name-input" type="text" value="New Group" class="w-full bg-slate-100 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-blue-300">
-            </div>
-            <div class="text-xs font-medium text-slate-500 mb-2">Select members</div>
-            <div id="group-members-list" class="max-h-52 overflow-y-auto space-y-1 pr-1 border border-slate-100 rounded-2xl p-1"></div>
-            <div class="mt-6 flex gap-3">
-                <button onclick="hideGroupModal()" class="flex-1 py-3 text-sm font-medium bg-slate-100 hover:bg-slate-200 rounded-2xl transition-colors text-slate-700">Cancel</button>
-                <button onclick="createGroup()" class="flex-1 py-3 text-sm font-medium bg-blue-600 hover:bg-blue-700 rounded-2xl transition-colors text-white">Create Group</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="custom-alert" onclick="if (event.target.id === 'custom-alert') hideCustomAlert()" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-[200]">
-        <div onclick="event.stopImmediatePropagation()" class="bg-white w-full max-w-xs mx-4 rounded-3xl border border-slate-200 p-6 text-center">
-            <div class="mx-auto w-12 h-12 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center mb-4">
-                <i class="fa-solid fa-exclamation-triangle text-xl"></i>
-            </div>
-            <h3 class="font-semibold text-lg mb-2">Oops!</h3>
-            <p id="custom-alert-message" class="text-slate-600 text-sm"></p>
-            <button onclick="hideCustomAlert()" class="mt-6 w-full py-3 bg-slate-100 hover:bg-slate-200 rounded-2xl text-sm font-medium text-slate-700">OK</button>
-        </div>
-    </div>
-
-    <script>
-        // ==================== FIREBASE & CLOUDINARY ====================
-        const firebaseConfig = {
-            apiKey: "AIzaSyBOyZ3As4GTuNvjemvPF_SpsC6m6vqtNhc",
-            authDomain: "fire-b-a8878.firebaseapp.com",
-            databaseURL: "https://fire-b-a8878.firebaseio.com",
-            projectId: "fire-b-a8878",
-            storageBucket: "fire-b-a8878.appspot.com",
-            messagingSenderId: "658673187627",
-            appId: "1:658673187627:web:6e4c29af661785f0afa36e"
+            <div class="text-xs text-zinc-500 mt-0.5">${model.description} • ${model.provider}</div>
+          </div>
+          ${isActive ? '<i class="fa-solid fa-check text-indigo-600 ml-2"></i>' : ''}
+        `;
+        
+        div.onclick = () => {
+          updateCurrentModel(model.id);
+          hideModelSelector();
+          
+          // Show subtle model change feedback
+          addSystemMessage(`Switched to ${model.shortName}`);
         };
+        
+        listContainer.appendChild(div);
+      });
 
-        const CLOUDINARY_CLOUD_NAME = 'dqkujefxj';
-        const CLOUDINARY_UPLOAD_PRESET = 'banter_box';
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
 
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-        const rtdb = firebase.database();
+    function hideModelSelector() {
+      const modal = document.getElementById('model-modal');
+      modal.classList.remove('flex');
+      modal.classList.add('hidden');
+    }
 
-        // ==================== STATE ====================
-        let currentUser = null;
-        let users = [];
-        let conversations = [];
-        let currentChatId = null;
-        let currentFilter = 'all';
-        let currentNotificationChatId = null;
+    function addSystemMessage(text) {
+      const container = document.getElementById('chat-container');
+      const div = document.createElement('div');
+      div.className = 'flex justify-center py-1';
+      div.innerHTML = `
+        <div class="text-xs bg-zinc-200 text-zinc-600 px-3 py-1 rounded-3xl">
+          ${text}
+        </div>
+      `;
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+    }
 
-        // ==================== HELPER FUNCTIONS ====================
-        function getDisplayName(userData) {
-            if (userData.name && userData.name.trim() !== '') {
-                return userData.name;
-            }
-            if (userData.email) {
-                return userData.email.split('@')[0];
-            }
-            return `User-${userData.id ? userData.id.substring(0, 4) : '0000'}`;
+    // ==================== CHAT ====================
+    function addMessage(text, isUser = false) {
+      const container = document.getElementById('chat-container');
+      
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `flex gap-3 message ${isUser ? 'justify-end' : ''}`;
+      
+      if (isUser) {
+        messageDiv.innerHTML = `
+          <div class="max-w-[82%]">
+            <div class="bg-indigo-600 text-white rounded-3xl px-4 py-3 text-[15px]">
+              <p>${text}</p>
+            </div>
+            <div class="text-xs text-zinc-500 mt-1 text-right mr-1">Just now</div>
+          </div>
+        `;
+      } else {
+        messageDiv.innerHTML = `
+          <div class="w-7 h-7 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-2xl flex-shrink-0 flex items-center justify-center mt-0.5 shadow-sm">
+            <i class="fa-solid fa-brain text-white text-xs"></i>
+          </div>
+          <div class="max-w-[82%]">
+            <div class="bg-white border border-zinc-200 rounded-3xl px-4 py-3 shadow-sm">
+              <p class="text-zinc-800 text-[15px]">${text}</p>
+            </div>
+            <div class="text-xs text-zinc-500 mt-1 ml-1">Just now</div>
+          </div>
+        `;
+      }
+      
+      container.appendChild(messageDiv);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function showTypingIndicator() {
+      const container = document.getElementById('chat-container');
+      const typingDiv = document.createElement('div');
+      typingDiv.id = 'typing-indicator';
+      typingDiv.className = `flex gap-3`;
+      
+      typingDiv.innerHTML = `
+        <div class="w-7 h-7 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-2xl flex-shrink-0 flex items-center justify-center mt-0.5">
+          <i class="fa-solid fa-brain text-white text-xs"></i>
+        </div>
+        <div class="bg-white border border-zinc-200 rounded-3xl px-4 py-3 shadow-sm">
+          <div class="flex gap-1.5">
+            <div class="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-bounce" style="animation-delay: 0ms"></div>
+            <div class="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-bounce" style="animation-delay: 150ms"></div>
+            <div class="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-bounce" style="animation-delay: 300ms"></div>
+          </div>
+        </div>
+      `;
+      
+      container.appendChild(typingDiv);
+      container.scrollTop = container.scrollHeight;
+      return typingDiv;
+    }
+
+    function removeTypingIndicator() {
+      const typing = document.getElementById('typing-indicator');
+      if (typing) typing.remove();
+    }
+
+    // Model-aware responses
+    async function getAIResponse(userMessage, modelId) {
+      await new Promise(resolve => setTimeout(resolve, 950 + Math.random() * 650));
+
+      const lower = userMessage.toLowerCase();
+      const model = availableModels.find(m => m.id === modelId);
+
+      if (modelId === "claude-3.5") {
+        if (lower.includes('hello') || lower.includes('hi')) 
+          return "Hello! I'm Claude 3.5 Sonnet. I'm here to help you think through things carefully.";
+        if (lower.includes('quantum')) 
+          return "Quantum computing leverages superposition and entanglement to solve complex problems much faster than classical computers.";
+      }
+
+      if (modelId === "gpt-4o") {
+        if (lower.includes('email')) 
+          return "I'd be happy to help craft a professional cold email. What's the goal and who is the recipient?";
+      }
+
+      if (modelId === "gemini-1.5") {
+        return "Based on patterns and data, here's my analysis: " + generateGenericResponse(userMessage);
+      }
+
+      if (modelId === "llama-3.1") {
+        return generateGenericResponse(userMessage) + " Want me to expand on anything?";
+      }
+
+      // Default Lumen 4o
+      return generateGenericResponse(userMessage);
+    }
+
+    function generateGenericResponse(message) {
+      if (message.toLowerCase().includes('quantum')) {
+        return "Quantum computers use qubits that can represent multiple states at once, unlike regular bits.";
+      }
+      if (message.toLowerCase().includes('learn ai')) {
+        return "Start with Python, build small projects, then learn frameworks like PyTorch or TensorFlow.";
+      }
+      if (message.toLowerCase().includes('email')) {
+        return "Sure, I can help you write that. Tell me more about the context.";
+      }
+      
+      const responses = [
+        "Here's a clear breakdown:",
+        "Good question. This is how I see it:",
+        "Let me explain this simply:",
+        "From my knowledge, here's what makes sense:"
+      ];
+      return responses[Math.floor(Math.random() * responses.length)];
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById('user-input');
+      const message = input.value.trim();
+      if (!message) return;
+
+      addMessage(message, true);
+      input.value = '';
+      document.getElementById('suggestions').style.display = 'none';
+
+      const typing = showTypingIndicator();
+
+      try {
+        const response = await getAIResponse(message, currentModel);
+        removeTypingIndicator();
+        addMessage(response);
+      } catch (error) {
+        removeTypingIndicator();
+        addMessage("Sorry, something went wrong. Please try again.");
+      }
+    }
+
+    function useSuggestion(element) {
+      const text = element.textContent.trim();
+      document.getElementById('user-input').value = text;
+      document.getElementById('suggestions').style.display = 'none';
+      
+      setTimeout(() => {
+        sendMessage();
+      }, 60);
+    }
+
+    function clearChat() {
+      const container = document.getElementById('chat-container');
+      container.innerHTML = `
+        <div class="flex gap-3">
+          <div class="w-7 h-7 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-2xl flex-shrink-0 flex items-center justify-center mt-0.5 shadow-sm">
+            <i class="fa-solid fa-brain text-white text-xs"></i>
+          </div>
+          <div class="max-w-[85%]">
+            <div class="bg-white border border-zinc-200 rounded-3xl px-4 py-3 shadow-sm">
+              <p class="text-zinc-800 text-[15px]">Hello! I'm Lumen. How can I help you today?</p>
+            </div>
+            <div class="text-[10px] text-zinc-500 mt-1 ml-1">Just now</div>
+          </div>
+        </div>
+      `;
+      document.getElementById('suggestions').style.display = 'flex';
+    }
+
+    function initializeApp() {
+      initTailwind();
+      createParticles();
+      
+      // Set default model
+      updateCurrentModel("lumen-4o");
+
+      // Start splash
+      setTimeout(() => {
+        showSplash();
+      }, 120);
+
+      // Keyboard shortcut (desktop only)
+      document.addEventListener('keydown', (e) => {
+        if (e.key === '/' && document.activeElement.tagName === 'BODY') {
+          e.preventDefault();
+          document.getElementById('user-input').focus();
         }
-
-        function getAvatarInitials(userData) {
-            const name = getDisplayName(userData);
-            return name.substring(0, 2).toUpperCase();
+        
+        // Close modal with Escape
+        if (e.key === 'Escape') {
+          const modal = document.getElementById('model-modal');
+          if (!modal.classList.contains('hidden')) {
+            hideModelSelector();
+          }
         }
+      });
 
-        function getAvatarHTML(user, size = 'w-11 h-11') {
-            if (user.photoURL) {
-                return `<img src="${user.photoURL}" class="${size} rounded-2xl object-cover">`;
-            } else {
-                const initials = getAvatarInitials(user);
-                return `<div class="${size} bg-slate-200 text-slate-700 rounded-2xl flex items-center justify-center text-sm font-bold">${initials}</div>`;
-            }
+      // Auto focus input on mobile when header is tapped (nice UX)
+      const header = document.querySelector('header');
+      header.addEventListener('click', (e) => {
+        if (window.innerWidth < 640 && !e.target.closest('button')) {
+          document.getElementById('user-input').focus();
         }
+      });
 
-        function getLastSeenText(user) {
-            if (user.isOnline) return 'Online';
-            if (!user.lastSeen) return 'Offline';
-            
-            const lastSeenDate = new Date(user.lastSeen);
-            const now = new Date();
-            const diffMs = now - lastSeenDate;
-            const diffMins = Math.floor(diffMs / 60000);
-            
-            if (diffMins < 1) return 'Just now';
-            if (diffMins < 60) return `${diffMins}m ago`;
-            const diffHours = Math.floor(diffMins / 60);
-            if (diffHours < 24) return `${diffHours}h ago`;
-            return lastSeenDate.toLocaleDateString();
-        }
+      console.log('%c[Lumen AI] Mobile-optimized version loaded', 'color:#6366f1');
+    }
 
-        // ==================== INIT ====================
-        function init() {
-            initializeTailwind();
-            setupAuthListener();
-            setupSearch();
-        }
-
-        function initializeTailwind() {
-            document.documentElement.style.setProperty('--accent', '#2563eb');
-        }
-
-        // ==================== AUTH ====================
-        function setupAuthListener() {
-            auth.onAuthStateChanged(async (user) => {
-                const loginScreen = document.getElementById('login-screen');
-                const mainApp = document.getElementById('main-app');
-
-                if (user) {
-                    // Get or create user data from Firestore
-                    const userDoc = await db.collection('users').doc(user.uid).get();
-                    let userData = userDoc.exists ? userDoc.data() : {};
-
-                    const displayName = getDisplayName({
-                        name: user.displayName || userData.name,
-                        email: user.email
-                    });
-
-                    const avatarInitials = getAvatarInitials({ name: displayName });
-
-                    currentUser = {
-                        id: user.uid,
-                        name: displayName,
-                        avatar: avatarInitials,
-                        email: user.email,
-                        photoURL: user.photoURL || userData.photoURL || null
-                    };
-
-                    // Ensure user document exists with proper name
-                    if (!userDoc.exists) {
-                        await db.collection('users').doc(user.uid).set({
-                            name: displayName,
-                            avatar: avatarInitials,
-                            email: user.email,
-                            photoURL: null,
-                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                        });
-                    }
-
-                    loginScreen.classList.add('hidden');
-                    mainApp.classList.remove('hidden');
-
-                    updateHeaderProfile();
-                    setupPresence(user.uid);
-                    await loadUsersFromFirestore();
-                    listenToUserPresence();
-                    loadConversations();
-                    renderChatList();
-
-                    if (window.innerWidth >= 1024 && conversations.length > 0) {
-                        openChat(conversations[0].id);
-                    }
-                } else {
-                    loginScreen.classList.remove('hidden');
-                    mainApp.classList.add('hidden');
-                    currentUser = null;
-                    cleanupPresenceListeners();
-                }
-            });
-        }
-
-        // ==================== PRESENCE ====================
-        function setupPresence(userId) {
-            const userStatusRef = rtdb.ref(`status/${userId}`);
-            const connectedRef = rtdb.ref('.info/connected');
-
-            connectedRef.on('value', (snapshot) => {
-                if (snapshot.val() === false) return;
-
-                userStatusRef.onDisconnect().set({
-                    state: 'offline',
-                    lastSeen: firebase.database.ServerValue.TIMESTAMP
-                });
-
-                userStatusRef.set({ state: 'online', lastSeen: null });
-            });
-        }
-
-        function listenToUserPresence() {
-            const statusRef = rtdb.ref('status');
-            statusRef.on('value', (snapshot) => {
-                const statusData = snapshot.val() || {};
-                users.forEach(user => {
-                    if (statusData[user.id]) {
-                        user.isOnline = statusData[user.id].state === 'online';
-                        user.lastSeen = statusData[user.id].lastSeen;
-                    }
-                });
-                renderChatList();
-                if (currentChatId) renderChatHeader();
-            });
-        }
-
-        function cleanupPresenceListeners() {
-            rtdb.ref('status').off();
-        }
-
-        // ==================== LOAD USERS ====================
-        async function loadUsersFromFirestore() {
-            try {
-                const snapshot = await db.collection('users').get();
-                users = snapshot.docs.map(doc => {
-                    const data = doc.data();
-                    const name = getDisplayName(data);
-                    const avatar = data.avatar || getAvatarInitials({ name });
-
-                    return {
-                        id: doc.id,
-                        name: name,
-                        avatar: avatar,
-                        photoURL: data.photoURL || null,
-                        email: data.email || '',
-                        isOnline: false,
-                        lastSeen: null
-                    };
-                });
-                users = users.filter(u => u.id !== currentUser?.id);
-            } catch (error) {
-                console.error("Error loading users:", error);
-                users = [];
-            }
-        }
-
-        // ==================== AUTH FUNCTIONS ====================
-        async function loginWithEmail() {
-            const email = document.getElementById('login-email').value.trim();
-            const password = document.getElementById('login-password').value;
-            if (!email || !password) return showCustomAlert("Please enter email and password");
-
-            try {
-                await auth.signInWithEmailAndPassword(email, password);
-            } catch (error) {
-                showCustomAlert(error.message);
-            }
-        }
-
-        async function createAccount() {
-            const email = document.getElementById('login-email').value.trim();
-            const password = document.getElementById('login-password').value;
-            if (!email || !password) return showCustomAlert("Please enter email and password");
-            if (password.length < 6) return showCustomAlert("Password must be at least 6 characters");
-
-            try {
-                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-                const displayName = email.split('@')[0];
-                const avatar = displayName.substring(0, 2).toUpperCase();
-
-                await userCredential.user.updateProfile({ displayName });
-
-                await db.collection('users').doc(userCredential.user.uid).set({
-                    name: displayName,
-                    avatar: avatar,
-                    email: email,
-                    photoURL: null,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-            } catch (error) {
-                showCustomAlert(error.message);
-            }
-        }
-
-        async function logout() {
-            try {
-                if (currentUser) {
-                    await rtdb.ref(`status/${currentUser.id}`).set({
-                        state: 'offline',
-                        lastSeen: firebase.database.ServerValue.TIMESTAMP
-                    });
-                }
-                await auth.signOut();
-                localStorage.removeItem('conversations');
-            } catch (error) {
-                showCustomAlert("Failed to sign out");
-            }
-        }
-
-        // ==================== CONVERSATIONS ====================
-        function loadConversations() {
-            const saved = localStorage.getItem('conversations');
-            conversations = saved ? JSON.parse(saved) : [];
-        }
-
-        function saveToLocalStorage() {
-            localStorage.setItem('conversations', JSON.stringify(conversations));
-        }
-
-        function updateHeaderProfile() {
-            if (!currentUser) return;
-            document.getElementById('header-username').textContent = currentUser.name;
-
-            const container = document.getElementById('header-avatar-container');
-            container.innerHTML = getAvatarHTML(currentUser, 'w-8 h-8');
-        }
-
-        // ==================== ALERT & NOTIFICATION ====================
-        function showCustomAlert(message) {
-            const alertModal = document.getElementById('custom-alert');
-            document.getElementById('custom-alert-message').textContent = message;
-            alertModal.classList.remove('hidden');
-            alertModal.classList.add('flex');
-        }
-
-        function hideCustomAlert() {
-            const alertModal = document.getElementById('custom-alert');
-            alertModal.classList.remove('flex');
-            alertModal.classList.add('hidden');
-        }
-
-        let notificationTimeout = null;
-
-        function showMessageNotification(conv, message) {
-            const bar = document.getElementById('notification-bar');
-            const avatarEl = document.getElementById('notif-avatar');
-            const nameEl = document.getElementById('notif-name');
-            const msgEl = document.getElementById('notif-message');
-
-            const other = users.find(u => u.id === conv.participants.find(id => id !== currentUser.id));
-            const senderName = other ? getDisplayName(other) : "Someone";
-
-            avatarEl.innerHTML = other ? getAvatarHTML(other, 'w-9 h-9') : senderName.substring(0,2);
-            nameEl.textContent = senderName;
-            msgEl.textContent = message.text;
-            currentNotificationChatId = conv.id;
-
-            bar.classList.remove('hidden');
-            setTimeout(() => bar.classList.add('show'), 10);
-            if (notificationTimeout) clearTimeout(notificationTimeout);
-            notificationTimeout = setTimeout(hideNotification, 5000);
-        }
-
-        function hideNotification() {
-            const bar = document.getElementById('notification-bar');
-            bar.classList.remove('show');
-            setTimeout(() => bar.classList.add('hidden'), 300);
-        }
-
-        function handleNotificationClick() {
-            hideNotification();
-            if (currentNotificationChatId) openChat(currentNotificationChatId);
-        }
-
-        // ==================== FAB ====================
-        function showFab() { document.getElementById('fab-container').classList.remove('hidden'); }
-        function hideFab() { document.getElementById('fab-container').classList.add('hidden'); }
-
-        // ==================== RENDER ====================
-        function renderChatList(filtered = null) {
-            const container = document.getElementById('chat-list');
-            container.innerHTML = '';
-            
-            let convs = filtered || conversations;
-            if (currentFilter === 'group') convs = convs.filter(c => c.type === 'group');
-
-            if (convs.length === 0) {
-                container.innerHTML = `<div class="px-4 py-8 text-center text-slate-400 text-sm">No chats found</div>`;
-                return;
-            }
-
-            convs.forEach(conv => {
-                const otherId = conv.participants.find(id => id !== currentUser.id);
-                const otherUser = users.find(u => u.id === otherId);
-                
-                const displayName = conv.type === 'private' ? getDisplayName(otherUser || {}) : conv.name;
-                const avatarHTML = conv.type === 'private' && otherUser 
-                    ? getAvatarHTML(otherUser, 'w-11 h-11') 
-                    : `<div class="w-11 h-11 bg-emerald-100 text-emerald-700 rounded-2xl flex items-center justify-center text-sm font-bold">${conv.name.substring(0,2)}</div>`;
-
-                const lastMsg = conv.messages[conv.messages.length - 1];
-                const preview = lastMsg ? lastMsg.text.substring(0, 32) + (lastMsg.text.length > 32 ? '...' : '') : '';
-
-                const div = document.createElement('div');
-                div.className = `chat-list-item flex items-center gap-x-3 px-3 py-3 mx-1 rounded-2xl cursor-pointer ${currentChatId === conv.id ? 'bg-slate-100' : 'hover:bg-slate-50'}`;
-                
-                div.innerHTML = `
-                    <div class="relative avatar-clickable flex-shrink-0">
-                        ${avatarHTML}
-                        ${conv.type === 'private' && otherUser?.isOnline ? `<div class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full"></div>` : ''}
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <div class="flex justify-between">
-                            <div class="font-medium text-sm truncate">${displayName}</div>
-                            <div class="text-xs text-slate-400">${conv.lastMessageTime}</div>
-                        </div>
-                        <div class="flex justify-between mt-0.5">
-                            <div class="text-xs text-slate-500 truncate pr-2">${preview}</div>
-                            ${conv.unread > 0 ? `<div class="bg-blue-600 text-white text-[10px] px-1.5 min-w-[16px] h-4 flex items-center justify-center rounded-full font-medium">${conv.unread}</div>` : ''}
-                        </div>
-                    </div>
-                `;
-
-                div.onclick = (e) => !e.target.closest('.avatar-clickable') && openChat(conv.id);
-                
-                const avatar = div.querySelector('.avatar-clickable');
-                avatar.onclick = (e) => {
-                    e.stopImmediatePropagation();
-                    if (conv.type === 'private' && otherUser) showUserProfile(otherUser);
-                    else showChatInfo();
-                };
-
-                container.appendChild(div);
-            });
-        }
-
-        function filterChats(filter) {
-            currentFilter = filter;
-            document.getElementById('tab-all').classList.toggle('bg-slate-100', filter === 'all');
-            document.getElementById('tab-group').classList.toggle('bg-slate-100', filter === 'group');
-            renderChatList();
-        }
-
-        function setupSearch() {
-            const input = document.getElementById('search-input');
-            input.addEventListener('input', () => {
-                const term = input.value.toLowerCase();
-                const filtered = conversations.filter(conv => {
-                    if (conv.type === 'private') {
-                        const u = users.find(x => x.id === conv.participants.find(id => id !== currentUser.id));
-                        return u && getDisplayName(u).toLowerCase().includes(term);
-                    }
-                    return conv.name.toLowerCase().includes(term);
-                });
-                renderChatList(filtered);
-            });
-        }
-
-        // ==================== CHAT ====================
-        function openChat(chatId) {
-            currentChatId = chatId;
-            hideFab();
-            hideNotification();
-
-            if (window.innerWidth < 1024) {
-                document.getElementById('chat-list-panel').classList.add('hidden');
-                document.getElementById('chat-panel').classList.remove('hidden');
-                document.getElementById('chat-panel').classList.add('flex');
-            } else {
-                document.getElementById('empty-state').classList.add('hidden');
-                document.getElementById('chat-panel').classList.remove('hidden');
-            }
-
-            renderChatList();
-            renderChatHeader();
-            renderMessages();
-
-            const conv = conversations.find(c => c.id === chatId);
-            if (conv) {
-                conv.unread = 0;
-                renderChatList();
-            }
-
-            setTimeout(() => document.getElementById('message-input')?.focus(), 300);
-        }
-
-        function showChatList() {
-            document.getElementById('chat-list-panel').classList.remove('hidden');
-            document.getElementById('chat-panel').classList.add('hidden');
-            currentChatId = null;
-            showFab();
-            renderChatList();
-        }
-
-        function renderChatHeader() {
-            const container = document.getElementById('chat-header-info');
-            const conv = conversations.find(c => c.id === currentChatId);
-            if (!conv || !currentUser) return;
-
-            let html = '';
-            if (conv.type === 'private') {
-                const other = users.find(u => u.id === conv.participants.find(id => id !== currentUser.id));
-                const status = other ? getLastSeenText(other) : 'Offline';
-                html = `
-                    <div class="flex items-center gap-x-3" onclick="showUserProfile(${JSON.stringify(other)})">
-                        ${other ? getAvatarHTML(other, 'w-9 h-9') : ''}
-                        <div>
-                            <div class="font-semibold">${other ? getDisplayName(other) : 'Unknown'}</div>
-                            <div class="text-xs ${other?.isOnline ? 'text-emerald-600' : 'text-slate-400'}">${status}</div>
-                        </div>
-                    </div>
-                `;
-            } else {
-                html = `
-                    <div class="flex items-center gap-x-3" onclick="showChatInfo()">
-                        <div class="w-9 h-9 bg-emerald-100 text-emerald-700 rounded-2xl flex items-center justify-center text-sm font-bold">${conv.name.substring(0,2)}</div>
-                        <div>
-                            <div class="font-semibold">${conv.name}</div>
-                            <div class="text-xs text-slate-500">${conv.participants.length} members</div>
-                        </div>
-                    </div>
-                `;
-            }
-            container.innerHTML = html;
-        }
-
-        function renderMessages() {
-            const container = document.getElementById('messages');
-            const conv = conversations.find(c => c.id === currentChatId);
-            if (!conv || !currentUser) return;
-
-            container.innerHTML = '';
-
-            conv.messages.forEach(msg => {
-                const isSent = msg.senderId === currentUser.id;
-                const sender = users.find(u => u.id === msg.senderId) || currentUser;
-                const div = document.createElement('div');
-                div.className = `flex ${isSent ? 'justify-end' : 'justify-start'} mb-2.5`;
-
-                let tickHTML = '';
-                if (isSent) {
-                    const status = msg.status || 'sent';
-                    if (status === 'sent') tickHTML = `<i class="fa-solid fa-check tick text-slate-300"></i>`;
-                    else if (status === 'delivered') tickHTML = `<i class="fa-solid fa-check-double tick text-slate-300"></i>`;
-                    else if (status === 'read') tickHTML = `<i class="fa-solid fa-check-double tick text-blue-400"></i>`;
-                }
-
-                if (!isSent) {
-                    div.innerHTML = `
-                        <div class="flex items-start gap-x-2 max-w-[80%]">
-                            <div onclick="showUserProfile(${JSON.stringify(sender)})" class="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold cursor-pointer mt-0.5 overflow-hidden">
-                                ${getAvatarHTML(sender, 'w-7 h-7')}
-                            </div>
-                            <div>
-                                ${conv.type === 'group' ? `<div class="text-xs text-slate-500 ml-1 mb-0.5 font-medium">${getDisplayName(sender)}</div>` : ''}
-                                <div class="message-bubble received">
-                                    <div>${msg.text}</div>
-                                    <div class="text-right text-xs text-slate-400 mt-1">${msg.time}</div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                } else {
-                    div.innerHTML = `
-                        <div class="flex items-end gap-x-1 max-w-[75%]">
-                            <div class="message-bubble sent">
-                                <div>${msg.text}</div>
-                                <div class="flex items-center justify-end gap-x-1 mt-1">
-                                    <div class="text-xs opacity-75">${msg.time}</div>
-                                    ${tickHTML}
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }
-                container.appendChild(div);
-            });
-            container.scrollTop = container.scrollHeight;
-        }
-
-        function sendMessage() {
-            const input = document.getElementById('message-input');
-            const text = input.value.trim();
-            if (!text || !currentChatId || !currentUser) return;
-
-            const conv = conversations.find(c => c.id === currentChatId);
-            if (!conv) return;
-
-            const time = `${new Date().getHours()}:${new Date().getMinutes().toString().padStart(2, '0')}`;
-
-            conv.messages.push({ id: Date.now(), senderId: currentUser.id, text, time, status: 'sent' });
-            conv.lastMessage = text;
-            conv.lastMessageTime = time;
-            input.value = '';
-
-            renderMessages();
-            renderChatList();
-            saveToLocalStorage();
-
-            setTimeout(() => updateMessageStatus(conv, 'delivered'), 700);
-            if (conv.type === 'private') setTimeout(() => simulateReply(conv), 1400);
-        }
-
-        function updateMessageStatus(conv, status) {
-            const lastMsg = conv.messages[conv.messages.length - 1];
-            if (lastMsg && lastMsg.senderId === currentUser.id) {
-                lastMsg.status = status;
-                if (currentChatId === conv.id) renderMessages();
-                saveToLocalStorage();
-            }
-        }
-
-        function simulateReply(conv) {
-            const otherId = conv.participants.find(id => id !== currentUser.id);
-            const otherUser = users.find(u => u.id === otherId);
-            if (!otherUser) return;
-
-            const text = ["Got it, thanks!", "Sounds good!", "I'll check that now", "Perfect, thanks!"][Math.floor(Math.random() * 4)];
-            const time = `${new Date().getHours()}:${new Date().getMinutes().toString().padStart(2, '0')}`;
-
-            conv.messages.push({ id: Date.now(), senderId: otherUser.id, text, time, status: "read" });
-            conv.lastMessage = text;
-            conv.lastMessageTime = time;
-
-            const lastSent = [...conv.messages].reverse().find(m => m.senderId === currentUser.id);
-            if (lastSent) lastSent.status = 'read';
-
-            renderChatList();
-            if (currentChatId === conv.id) renderMessages();
-            else showMessageNotification(conv, { text });
-            saveToLocalStorage();
-        }
-
-        // ==================== FAB & MODALS ====================
-        let fabOpen = false;
-
-        function toggleFabMenu() {
-            const menu = document.getElementById('fab-menu');
-            const icon = document.getElementById('fab-icon');
-            const text = document.getElementById('fab-text');
-            fabOpen = !fabOpen;
-            if (fabOpen) {
-                menu.classList.remove('hidden');
-                icon.classList.remove('fa-plus'); icon.classList.add('fa-times');
-                text.textContent = 'Close';
-            } else {
-                menu.classList.add('hidden');
-                icon.classList.remove('fa-times'); icon.classList.add('fa-plus');
-                text.textContent = 'New';
-            }
-        }
-
-        function hideFabMenu() {
-            const menu = document.getElementById('fab-menu');
-            const icon = document.getElementById('fab-icon');
-            const text = document.getElementById('fab-text');
-            menu.classList.add('hidden');
-            icon.classList.remove('fa-times'); icon.classList.add('fa-plus');
-            text.textContent = 'New';
-            fabOpen = false;
-        }
-
-        function createNewPrivateChat() {
-            hideFabMenu();
-            showUserPickerModal();
-        }
-
-        function showUserPickerModal() {
-            const modal = document.createElement('div');
-            modal.className = 'fixed inset-0 bg-black/60 flex items-end lg:items-center justify-center z-50';
-            
-            const availableUsers = users.filter(u => u.id !== currentUser.id);
-            let html = availableUsers.length > 0 
-                ? availableUsers.map(user => `
-                    <div onclick="selectUserForChat('${user.id}', this)" class="flex items-center gap-x-3 p-3 hover:bg-slate-50 rounded-2xl cursor-pointer">
-                        ${getAvatarHTML(user, 'w-10 h-10')}
-                        <div>
-                            <div class="font-medium">${getDisplayName(user)}</div>
-                            <div class="text-xs ${user.isOnline ? 'text-emerald-600' : 'text-slate-400'}">${user.isOnline ? 'Online' : 'Offline'}</div>
-                        </div>
-                    </div>
-                `).join('') 
-                : `<div class="p-4 text-center text-slate-500 text-sm">No other users found.</div>`;
-
-            modal.innerHTML = `
-                <div onclick="this.remove()" class="absolute inset-0"></div>
-                <div onclick="event.stopImmediatePropagation()" class="bg-white w-full lg:w-96 rounded-t-3xl lg:rounded-3xl p-6 border border-slate-200">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="font-semibold text-lg">Start New Chat</h3>
-                        <button onclick="this.closest('.fixed').remove()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-times text-xl"></i></button>
-                    </div>
-                    <div class="max-h-72 overflow-y-auto space-y-1">${html}</div>
-                </div>
-            `;
-            document.body.appendChild(modal);
-        }
-
-        function selectUserForChat(userId, element) {
-            element.closest('.fixed').remove();
-            let existing = conversations.find(c => c.type === 'private' && c.participants.includes(userId) && c.participants.includes(currentUser.id));
-            if (existing) return openChat(existing.id);
-
-            const newChat = { id: 'c' + Date.now(), type: 'private', participants: [currentUser.id, userId], lastMessage: '', lastMessageTime: 'now', unread: 0, messages: [] };
-            conversations.unshift(newChat);
-            renderChatList();
-            saveToLocalStorage();
-            openChat(newChat.id);
-        }
-
-        function showCreateGroupModal() {
-            hideFabMenu();
-            const modal = document.getElementById('group-modal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            renderGroupMemberList();
-        }
-
-        function hideGroupModal() {
-            const modal = document.getElementById('group-modal');
-            modal.classList.remove('flex');
-            modal.classList.add('hidden');
-        }
-
-        function renderGroupMemberList() {
-            const container = document.getElementById('group-members-list');
-            container.innerHTML = '';
-            const availableUsers = users.filter(u => u.id !== currentUser.id);
-            
-            if (availableUsers.length === 0) {
-                container.innerHTML = `<div class="p-4 text-center text-slate-500 text-sm">No users available</div>`;
-                return;
-            }
-
-            availableUsers.forEach(user => {
-                const div = document.createElement('div');
-                div.className = 'flex items-center gap-x-3 p-2.5 hover:bg-slate-50 rounded-2xl';
-                div.innerHTML = `
-                    <input type="checkbox" id="guser-${user.id}" value="${user.id}" class="accent-blue-600 w-4 h-4">
-                    <label for="guser-${user.id}" class="flex items-center gap-x-3 flex-1 cursor-pointer">
-                        ${getAvatarHTML(user, 'w-8 h-8')}
-                        <span class="text-sm font-medium">${getDisplayName(user)}</span>
-                    </label>
-                `;
-                container.appendChild(div);
-            });
-        }
-
-        function createGroup() {
-            const name = document.getElementById('group-name-input').value.trim() || "New Group";
-            const checked = document.querySelectorAll('#group-members-list input:checked');
-            if (checked.length === 0) {
-                hideGroupModal();
-                return showCustomAlert("Please select at least one member.");
-            }
-
-            const ids = Array.from(checked).map(cb => cb.value);
-            ids.push(currentUser.id);
-
-            const newGroup = { id: 'g' + Date.now(), type: 'group', name, participants: [...new Set(ids)], lastMessage: '', lastMessageTime: 'now', unread: 0, messages: [] };
-            conversations.unshift(newGroup);
-            hideGroupModal();
-            renderChatList();
-            saveToLocalStorage();
-            openChat(newGroup.id);
-        }
-
-        // ==================== PROFILE ====================
-        function showUserProfile(user) {
-            if (!user) return;
-            const modal = document.createElement('div');
-            modal.className = 'fixed inset-0 bg-black/60 flex items-center justify-center z-50';
-            const status = getLastSeenText(user);
-            modal.innerHTML = `
-                <div onclick="event.target.remove()" class="absolute inset-0"></div>
-                <div onclick="event.stopImmediatePropagation()" class="bg-white w-full max-w-sm mx-4 rounded-3xl border border-slate-200">
-                    <div class="p-6 text-center">
-                        <div class="mx-auto mb-4">${getAvatarHTML(user, 'w-20 h-20')}</div>
-                        <div class="font-semibold text-xl">${getDisplayName(user)}</div>
-                        <div class="text-sm mt-1 ${user.isOnline ? 'text-emerald-600' : 'text-slate-500'}">${status}</div>
-                    </div>
-                    <div class="border-t border-slate-200 p-4">
-                        <button onclick="this.closest('.fixed').remove()" class="w-full py-3 text-sm font-medium bg-slate-100 hover:bg-slate-200 rounded-2xl">Close</button>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(modal);
-        }
-
-        function showProfile() {
-            const modal = document.createElement('div');
-            modal.className = 'fixed inset-0 bg-black/60 flex items-center justify-center z-50';
-            modal.innerHTML = `
-                <div onclick="event.target.remove()" class="absolute inset-0"></div>
-                <div onclick="event.stopImmediatePropagation()" class="bg-white w-full max-w-sm mx-4 rounded-3xl border border-slate-200">
-                    <div class="p-6">
-                        <div class="text-center mb-6">
-                            <div id="profile-avatar-preview" class="w-20 h-20 mx-auto mb-3 cursor-pointer">
-                                ${getAvatarHTML(currentUser, 'w-20 h-20')}
-                            </div>
-                            <button onclick="uploadProfilePicture()" class="text-blue-600 text-sm font-medium">Change Profile Picture</button>
-                            <input type="file" id="profile-file-input" accept="image/*" class="hidden" onchange="handleProfilePictureUpload(event)">
-                        </div>
-                        <div class="mb-4">
-                            <label class="text-xs font-medium text-slate-500 mb-1.5 block">Your Name</label>
-                            <input id="profile-name" type="text" value="${currentUser.name}" class="w-full bg-slate-100 border border-slate-200 rounded-2xl px-4 py-3 text-sm">
-                        </div>
-                    </div>
-                    <div class="border-t border-slate-200 p-4 flex gap-3">
-                        <button onclick="this.closest('.fixed').remove()" class="flex-1 py-3 bg-slate-100 hover:bg-slate-200 rounded-2xl text-sm font-medium">Cancel</button>
-                        <button onclick="saveProfile(this)" class="flex-1 py-3 bg-blue-600 hover:bg-blue-700 rounded-2xl text-sm font-medium text-white">Save</button>
-                    </div>
-                    <div class="border-t border-slate-200 p-4">
-                        <button onclick="logout(); this.closest('.fixed').remove()" class="w-full py-3 text-sm font-medium text-red-600 hover:bg-red-50 rounded-2xl">Sign Out</button>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(modal);
-        }
-
-        function uploadProfilePicture() {
-            document.getElementById('profile-file-input').click();
-        }
-
-        async function handleProfilePictureUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const preview = document.getElementById('profile-avatar-preview');
-            preview.innerHTML = `<div class="w-20 h-20 flex items-center justify-center"><i class="fa-solid fa-spinner fa-spin text-2xl text-blue-600"></i></div>`;
-
-            try {
-                const formData = new FormData();
-                formData.append('file', file);
-                formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-
-                const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
-                    method: 'POST', body: formData
-                });
-                const data = await res.json();
-
-                if (data.secure_url) {
-                    preview.innerHTML = `<img src="${data.secure_url}" class="w-20 h-20 rounded-3xl object-cover">`;
-                    preview.dataset.photoURL = data.secure_url;
-                }
-            } catch (e) {
-                showCustomAlert("Failed to upload image");
-                preview.innerHTML = getAvatarHTML(currentUser, 'w-20 h-20');
-            }
-        }
-
-        async function saveProfile(button) {
-            const modal = button.closest('.fixed');
-            const newName = document.getElementById('profile-name').value.trim();
-            const preview = document.getElementById('profile-avatar-preview');
-            const newPhotoURL = preview.dataset.photoURL || currentUser.photoURL;
-
-            try {
-                await auth.currentUser.updateProfile({ displayName: newName || currentUser.name });
-                await db.collection('users').doc(currentUser.id).update({
-                    name: newName || currentUser.name,
-                    photoURL: newPhotoURL || null
-                });
-
-                currentUser.name = newName || currentUser.name;
-                currentUser.photoURL = newPhotoURL || null;
-                currentUser.avatar = getAvatarInitials(currentUser);
-
-                updateHeaderProfile();
-                renderChatList();
-                if (currentChatId) renderChatHeader();
-                modal.remove();
-            } catch (error) {
-                showCustomAlert("Failed to update profile: " + error.message);
-            }
-        }
-
-        function showChatInfo() {
-            const conv = conversations.find(c => c.id === currentChatId);
-            if (!conv) return;
-
-            let content = '';
-            if (conv.type === 'group') {
-                content = conv.participants.map(id => {
-                    const u = users.find(x => x.id === id) || currentUser;
-                    return `<div onclick="showUserProfile(${JSON.stringify(u)}); this.closest('.fixed').remove()" class="flex items-center gap-x-3 p-2 hover:bg-slate-50 rounded-2xl cursor-pointer">
-                        ${getAvatarHTML(u, 'w-8 h-8')}
-                        <span class="text-sm">${getDisplayName(u)}</span>
-                    </div>`;
-                }).join('');
-            }
-
-            const modal = document.createElement('div');
-            modal.className = 'fixed inset-0 bg-black/60 flex items-center justify-center z-50';
-            modal.innerHTML = `
-                <div onclick="event.target.remove()" class="absolute inset-0"></div>
-                <div onclick="event.stopImmediatePropagation()" class="bg-white w-full max-w-sm mx-4 rounded-3xl border border-slate-200">
-                    ${conv.type === 'group' ? `
-                        <div class="p-5">
-                            <h3 class="font-semibold text-lg">${conv.name}</h3>
-                            <div class="text-sm text-slate-500 mb-4">${conv.participants.length} members</div>
-                            <div class="max-h-56 overflow-auto">${content}</div>
-                        </div>
-                    ` : `
-                        <div class="p-5 text-center">
-                            <div onclick="showUserProfile(${JSON.stringify(users.find(u => u.id === conv.participants.find(id => id !== currentUser.id)))}); this.closest('.fixed').remove()" class="w-16 h-16 mx-auto mb-3 cursor-pointer">
-                                ${getAvatarHTML(users.find(u => u.id === conv.participants.find(id => id !== currentUser.id)), 'w-16 h-16')}
-                            </div>
-                            <div class="font-semibold">${getDisplayName(users.find(u => u.id === conv.participants.find(id => id !== currentUser.id)))}</div>
-                        </div>
-                    `}
-                    <div class="border-t border-slate-200 p-4">
-                        <button onclick="this.closest('.fixed').remove()" class="w-full py-3 bg-slate-100 hover:bg-slate-200 rounded-2xl text-sm font-medium">Close</button>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(modal);
-        }
-
-        // ==================== EVENTS ====================
-        document.addEventListener('keydown', function(e) {
-            if (e.key === "Escape") {
-                const group = document.getElementById('group-modal');
-                const fab = document.getElementById('fab-menu');
-                const alert = document.getElementById('custom-alert');
-                if (!group.classList.contains('hidden')) hideGroupModal();
-                else if (!fab.classList.contains('hidden')) hideFabMenu();
-                else if (!alert.classList.contains('hidden')) hideCustomAlert();
-                else if (window.innerWidth < 1024 && currentChatId) showChatList();
-            }
-        });
-
-        document.addEventListener('click', function(e) {
-            const fabMenu = document.getElementById('fab-menu');
-            const fabContainer = document.getElementById('fab-container');
-            if (fabMenu && !fabContainer.contains(e.target)) fabMenu.classList.add('hidden');
-        });
-
-        window.onload = function() {
-            init();
-        };
-
-        window.addEventListener('resize', () => {
-            if (window.innerWidth >= 1024 && currentChatId) {
-                document.getElementById('chat-list-panel').classList.remove('hidden');
-                document.getElementById('chat-panel').classList.remove('hidden');
-                document.getElementById('empty-state').classList.add('hidden');
-            }
-        });
-    </script>
+    window.onload = initializeApp;
+  </script>
 </body>
 </html>
